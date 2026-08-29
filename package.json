@@ -1,0 +1,62 @@
+{
+	"name": "hooked",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc -b && vite build",
+		"lint": "eslint .",
+		"preview": "vite preview",
+		"format": "prettier --write .",
+		"test": "vitest",
+		"e2e:test": "playwright test",
+		"setup:registry": "bash ./scripts/setup-github-registry.sh",
+		"preinstall": "bash ./scripts/check-github-registry.sh",
+		"prepare": "husky"
+	},
+	"dependencies": {
+		"@animo-gaming/ui": "^0.1.34",
+		"normalize.css": "^8.0.1",
+		"react": "^19.2.8",
+		"react-dom": "^19.2.8"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "^21.2.2",
+		"@commitlint/config-conventional": "^21.2.2",
+		"@eslint/js": "^10.0.1",
+		"@playwright/test": "^1.62.1",
+		"@testing-library/jest-dom": "^7.0.1",
+		"@testing-library/react": "^16.3.3",
+		"@testing-library/user-event": "^14.6.6",
+		"@types/node": "^24.13.3",
+		"@types/react": "^19.2.18",
+		"@types/react-dom": "^19.2.4",
+		"@vitejs/plugin-react": "^6.1.0",
+		"@vitest/coverage-v8": "^4.1.11",
+		"eslint": "^10.9.1",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-react-hooks": "^7.1.1",
+		"eslint-plugin-react-refresh": "^0.5.5",
+		"eslint-plugin-simple-import-sort": "^14.0.0",
+		"globals": "^17.11.0",
+		"happy-dom": "^20.11.15",
+		"husky": "^9.1.7",
+		"lint-staged": "^17.4.1",
+		"prettier": "^3.9.6",
+		"typescript": "~6.0.2",
+		"typescript-eslint": "^8.68.0",
+		"vite": "^8.2.2",
+		"vite-plugin-svgr": "^5.2.0",
+		"vitest": "^4.1.11"
+	},
+	"lint-staged": {
+		"*.{ts,tsx,js,jsx}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.{json,jsonc,css,md,yml,yaml,html}": [
+			"prettier --write"
+		]
+	}
+}
