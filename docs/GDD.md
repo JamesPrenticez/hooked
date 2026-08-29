@@ -40,6 +40,36 @@ followed by:
 
 This creates a continuous narrative from bet placement through to payout, rather than presenting the player with a single instantaneous result.
 
+# 🎨 Theme
+
+"The world's busiest fishing harbour."
+
+A fictional harbour inspired by East Asian commercial fishing ports.
+
+That gives us the freedom to borrow visual elements from:
+
+🇯🇵 Japan
+🇨🇳 China
+🇰🇷 South Korea
+🇹🇼 Taiwan
+🇭🇰 Hong Kong
+
+without tying the entire game to one specific country.
+
+Hooked is set in a bustling, fictional Asian fishing harbour inspired by the world's major commercial fishing ports.
+
+The harbour is a living industrial environment filled with fishing vessels, dock workers, cranes, winches, markets and heavy machinery. Players are one of many fishermen competing to land increasingly valuable and spectacular catches.
+
+The underwater world extends directly beneath the harbour, progressing from busy coastal waters and reefs into deeper offshore waters and ultimately the mysterious ocean abyss.
+
+The environment provides a natural progression for the game's extraction mechanic. Small catches can be handled by hand, while increasingly enormous catches require progressively more powerful equipment — from fishing rods and winches to cranes, heavy machinery and helicopters.
+
+The harbour should feel busy, competitive and constantly in motion, creating the impression that the player is part of a much larger fishing industry.
+
+The overall tone is cinematic, energetic and slightly exaggerated, allowing the game to transition naturally from authentic fishing operations into spectacular, larger-than-life extraction sequences.
+
+There's one particularly cool design opportunity: the harbour itself could be our persistent "hub" screen, with the betting board integrated into the environment, while the underwater world is essentially the second half of the same scene. That would give the whole game a much stronger identity than the typical menu → spin → animation → win casino flow.
+
 # The Betting Table
 
 - SHALLOW
