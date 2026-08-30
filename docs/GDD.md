@@ -44,6 +44,8 @@ This creates a continuous narrative from bet placement through to payout, rather
 
 "The world's busiest fishing harbour."
 
+`Busy Asian fishing harbour → underwater coastal waters → reef → deep ocean → abyss → trench`
+
 A fictional harbour inspired by East Asian commercial fishing ports.
 
 That gives us the freedom to borrow visual elements from:
@@ -72,27 +74,42 @@ There's one particularly cool design opportunity: the harbour itself could be ou
 
 # The Betting Table
 
-- SHALLOW
-  - 🐟 Minnow
-  - 🐠 Sardine
-  - 🐡 Snapper
-- REEF
-  - 🐠 Grouper
-  - 🐡 Puffer
-  - 🐟 Barracuda
+```json
+export const FISH_GUIDE: FishGuideEntry[] = [
+	// Shallow — common / low-value catches
+	{ id: "shrimp", name: "Shrimp", depth: "shallow", tierId: "junk", image: FISH.shrimp },
+	{ id: "sardine", name: "Sardine", depth: "shallow", tierId: "small", image: FISH.sardine },
+	{ id: "blue-cod", name: "Blue Cod", depth: "shallow", tierId: "small", image: FISH.blueCod },
+	{ id: "barracuda", name: "Barracuda", depth: "shallow", tierId: "small", image: FISH.barracuda },
+	{ id: "puffer", name: "Pufferfish", depth: "shallow", tierId: "small", image: FISH.puffer },
 
-- DEEP
-  - 🦈 Shark
-  - 🐋 Tuna
-  - 🐟 Marlin
+	// Reef — medium / valuable catches
+	{ id: "napoleon", name: "Napoleon Wrasse", depth: "reef", tierId: "medium", image: FISH.napoleon },
+	{ id: "turtle", name: "Turtle", depth: "reef", tierId: "medium", image: FISH.turtle },
+	{ id: "swordfish", name: "Swordfish", depth: "reef", tierId: "large", image: FISH.swordfish },
+	{ id: "king-crab", name: "King Crab", depth: "reef", tierId: "large", image: FISH.kingCrab },
 
-- ABYSS
-  - 🦑 Giant Squid
-  - 🐋 Giant Whale
+	// Deep — rare / high-value catches
+	{ id: "manta-ray", name: "Manta Ray", depth: "deep", tierId: "rare", image: FISH.mantaRay },
+	{ id: "bluefin-tuna", name: "Bluefin Tuna", depth: "deep", tierId: "rare", image: FISH.blueTuna, wide: true },
+	{ id: "shark", name: "Shark", depth: "deep", tierId: "epic", image: FISH.shark, wide: true },
+	{ id: "barracuda-epic", name: "Barracuda", depth: "deep", tierId: "epic", image: FISH.barracudaEpic },
 
-- TRENCH
-  - 👹 Sea Monster
+	// Abyss — legendary / jackpot catches
+	{ id: "lanternfish", name: "Lanternfish", depth: "abyss", tierId: "legendary", image: FISH.lanternfish },
+	{ id: "jellyfish", name: "Jellyfish", depth: "abyss", tierId: "legendary", image: FISH.jellyfish },
+	{ id: "starfish", name: "Starfish", depth: "abyss", tierId: "legendary", image: FISH.starfish },
+	{ id: "whale", name: "Whale", depth: "abyss", tierId: "jackpot", image: FISH.whale, wide: true },
 
-# Math
+	// Trench — ultra-rare / ultimate catch
+	{ id: "kraken", name: "Kraken", depth: "trench", tierId: "jackpot", image: FISH.kraken, wide: true },
+];
+```
 
-The underlying mathematics share characteristics with stepper games, Mines, Dice and other probability-based instant/burst games, while the presentation layer draws inspiration from fishing and game-show mechanics.
+# Mathematical Model & RTP
+
+`Hooked` uses a single predetermined outcome per round, with players able to distribute their wager across different depth zones and individual fish. Depth bets provide broader coverage and higher hit frequency, while specific fish bets offer lower probability and higher potential payouts. Players can combine multiple bets to create their preferred risk profile — for example, placing a larger bet on Shallow as a safer cover while placing a smaller bet on Shark for greater upside.
+
+The game will target a 96% theoretical RTP, meaning that over a very large number of rounds, approximately $96 of every $100 wagered is expected to be returned to players, with the remaining 4% representing the theoretical house edge. Individual rounds and player sessions can vary significantly due to the game's volatility.
+
+The underlying outcome is generated once per round and all active bets are evaluated against that result. A specific fish also belongs to a depth zone, meaning a player can potentially win both a broad depth bet and a specific fish bet when the outcome matches both selections. The probability and payout of each selection will be balanced to maintain the target RTP while allowing players to choose between safer, more frequent catches and high-risk, high-value targets.
