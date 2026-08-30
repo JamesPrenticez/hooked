@@ -29,8 +29,8 @@ Establish the basic project structure and development tooling.
 
 ### 0.1 Project Structure
 
-- [ ] Establish client/server/shared directory structure
-- [ ] Establish shared types
+- [ ] Establish the Animo-standard `src/` layout + a sibling `server/` directory (see `docs/ARCHITECTURE.md` §4)
+- [ ] Establish wire-contract types in `src/types/api.ts`
 - [ ] Establish configuration/constants
 - [ ] Establish development/debug utilities
 - [ ] Establish environment configuration
@@ -107,7 +107,7 @@ The client must be developed against the API rather than directly against server
 
 ### 1.4 Wire Contract
 
-- [ ] `src/typings/api.ts` (`@typings/api`) holds the wire types
+- [ ] `src/types/api.ts` (`@/types/api`) holds the wire types
 - [ ] Mock server mirrors the same shapes; kept in sync by hand (no shared package)
 - [ ] `src/api/index.ts` exposes typed helpers only — `createSession()`, `startRound(bets)`, `completeRound(id)`, `getCurrent()`, `getBalance()`, `getHistory()`
 - [ ] Two-vocabulary conversion (UI strings ↔ wire enums) happens only in `src/api/index.ts`

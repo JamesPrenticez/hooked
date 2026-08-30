@@ -125,35 +125,35 @@ The Mock Game Server exists to reproduce the **interface and behaviour** of the 
 # 4. Project Structure
 
 There is **no shared package and no `src/client` / `src/server` split**. The
-client is a flat, type-organised `src/` tree (a thin presentation client). The
-mock game server is a sibling `server/` directory at the repo root. The only
-"shared" code is the wire-type file the client owns (`src/typings/api.ts`) and
-the deliberately-duplicated payout table (see §37); the mock server mirrors both
-and tracks the contract doc (`docs/BACKEND.md`).
+client is the Animo-standard `src/` tree — the nine closed directories from
+`.claude/docs/ANIMO.md`, organised by _what a file is_, not by feature. The mock
+game server is a sibling `server/` directory at the repo root (outside `src/`).
+The only "shared" code is the wire-type file the client owns
+(`src/types/api.ts`) and the deliberately-duplicated payout table (see §37); the
+mock server mirrors both and tracks the contract doc (`docs/BACKEND.md`).
 
 ```text
-src/                        thin presentation client
+src/                        thin presentation client (Animo standard layout)
 │
-├── api/
+├── api/                    HTTP clients, data access
 │   └── index.ts            the ONLY file that knows the wire envelope (§7)
 ├── assets/                 fish, harbour, boats, machinery, ui, vfx, audio
-├── components/
-│   ├── game/               Pixi scene content (ocean, fishing, fish, extraction)
-│   ├── screens/            loading, tutorial, harbour, payout
-│   ├── ui/                 betting board, HUD, history, game-info, modals
-│   ├── system/             headless controllers + StoreSync (§18, §39)
-│   └── debug/              forced-outcome tools, gated by VITE_DEBUG
+├── components/             one PascalCase directory per component, tests colocated
+│   ├── Ocean/  Fishing/  Fish/  Extraction/     Pixi scene content
+│   ├── LoadingScreen/  TutorialScreen/  HarbourScreen/  PayoutScreen/
+│   ├── BettingBoard/  Hud/  RoundHistory/  GameInfo/  …modals
+│   ├── StoreSync/                                 cross-store effects (§39)
+│   ├── AutoplayController/  AutoBetController/     headless, render null (§39)
+│   └── DebugToolbar/                              forced outcomes, gated by VITE_DEBUG
+├── constants/              shared constant values; static fish / depth / tier config
+├── hooks/                  custom React hooks
 ├── stores/                 Zustand presentation state
-├── data/                   static presentation config (fish, depths, tiers)
-├── hooks/
-├── utils/
+├── styles/                 global CSS + design tokens
+├── types/                  types crossing module boundaries
+│   └── api.ts              the wire contract (see §5)
+├── utils/                  pure helpers
 │   └── game-math.ts        mirrors server/src/constants.ts payout table (§37)
-├── typings/
-│   ├── base.ts             → @typings
-│   └── api.ts              → @typings/api   (the wire contract)
-├── styles/
 ├── App.tsx                 mounts one <Application>; runs the phase machine
-├── constants.ts
 └── main.tsx
 
 server/                     mock game server — a real HTTP service, not a stub
@@ -171,9 +171,10 @@ server/                     mock game server — a real HTTP service, not a stub
         └── seed.ts         current, rotate, reveal, upcoming
 ```
 
-Path aliases (`@typings`, `@typings/api`, `@/…`) are declared in **both**
-`tsconfig.json` and `vite.config.js` — add a new alias to both or the build
-breaks. List `@typings/api` before the bare `@typings`.
+Import rules follow the Animo standard: `@/` (aliased to `src/` in **both**
+`tsconfig.json` and `vite.config.js`) is the only alias; `./` for siblings;
+`../` is an ESLint error inside `src/`. The list of nine directories is closed —
+if a file doesn't fit one, stop and ask.
 
 ---
 
@@ -207,7 +208,7 @@ Wire rules:
 - **Money is always a decimal string** (`"1.00"`), never a float.
 - Zero-valued fields are emitted, not omitted.
 - Failed actions return a non-2xx status with a structured error body, not a `Result`.
-- The client's copy of these types lives in `src/typings/api.ts` (`@typings/api`).
+- The client's copy of these types lives in `src/types/api.ts` (`@/types/api`).
   The mock server mirrors the same shapes and tracks `docs/BACKEND.md`. There is
   no shared package — they are kept in sync by hand.
 
