@@ -9,6 +9,7 @@
 - The client must never determine or modify gambling outcomes.
 - The development environment must use a **Mock Game Server** with the same API contract as the eventual production server. It performs a real HMAC-signed operator launch and runs a provably-fair RNG — it is a real HTTP service, not a client-side fake.
 - All client/server communication goes through **one endpoint** (`POST /api/game/play`, a `{ message: { <oneVariant> } }` envelope) plus a fixed set of read endpoints. See `docs/ARCHITECTURE.md` §5.
+- The server's API is documented in `server/openapi.yaml`, served as Swagger UI at `GET /docs`. It is hand-maintained: **any change to a server route, request or response shape must update `server/openapi.yaml` in the same commit.**
 - **`src/api/index.ts` is the only file that knows the wire envelope.** Stores and components call typed helpers; they never see a `message` shape or call `fetch`.
 - Money is always a **decimal string** on the wire, never a float.
 - The mathematical result must be determined before the fishing presentation begins.
@@ -29,11 +30,11 @@ Establish the basic project structure and development tooling.
 
 ### 0.1 Project Structure
 
-- [ ] Establish the Animo-standard `src/` layout + a sibling `server/` directory (see `docs/ARCHITECTURE.md` §4)
-- [ ] Establish wire-contract types in `src/types/api.ts`
-- [ ] Establish configuration/constants
+- [x] Establish the Animo-standard `src/` layout + a sibling `server/` directory (see `docs/ARCHITECTURE.md` §4)
+- [x] Establish wire-contract types in `src/types/api.ts`
+- [x] Establish configuration/constants (`src/constants/config.ts`, `server/src/config.ts`)
 - [ ] Establish development/debug utilities
-- [ ] Establish environment configuration
+- [x] Establish environment configuration (`.env.example`; server reads `.env` via `node --env-file-if-exists`)
 
 ### 0.2 Client Foundation
 
@@ -47,24 +48,25 @@ Establish the basic project structure and development tooling.
 
 ### 0.3 Server Foundation
 
-- [ ] Server application bootstrap
-- [ ] API routing
-- [ ] Request validation
-- [ ] Error handling
-- [ ] Server configuration
-- [ ] Development logging
+- [x] Server application bootstrap (`server/src/index.ts`, stdlib `http`, nodemon reload)
+- [x] API routing (`server/src/http.ts` — method+path router, JSON body parsing)
+- [ ] Request validation (HMAC + bearer gate in place; bet/schema validation is milestone 3)
+- [x] Error handling (`HttpError` → structured `{ error: { code, message } }`, 404 fallthrough)
+- [x] Server configuration (`server/src/config.ts`)
+- [x] Development logging (per-request method/path/status/ms)
+- [x] API documentation (`server/openapi.yaml`, Swagger UI at `GET /docs`)
 
 ### 0.4 Shared Foundation
 
-- [ ] Shared TypeScript types
-- [ ] API request types
-- [ ] API response types
-- [ ] Domain identifiers
-- [ ] Error response types
+- [x] Shared TypeScript types (`src/types/api.ts`, mirrored by hand in the server)
+- [x] API request types (`Bet`, `FishingOutcome`; `start`/`complete` land with the round milestone)
+- [x] API response types (`SessionResponse`, `BalanceResponse`, `CurrentResponse`)
+- [x] Domain identifiers (`DepthId`, `FishTier`)
+- [x] Error response types (`ErrorBody`)
 
 ### Acceptance Criteria
 
-Client and server can run independently in development and communicate through a basic health/session endpoint.
+Client and server can run independently in development and communicate through a basic health/session endpoint. — **met**: `pnpm server` (`/api/health`, `/api/session` via signed `/operator/launch`, bearer-gated `/api/game/{balance,current}`) and `pnpm dev` run independently; `src/api/index.ts` is the only client file that knows the wire.
 
 ---
 

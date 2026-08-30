@@ -211,6 +211,9 @@ Wire rules:
 - The client's copy of these types lives in `src/types/api.ts` (`@/types/api`).
   The mock server mirrors the same shapes and tracks `docs/BACKEND.md`. There is
   no shared package — they are kept in sync by hand.
+- `server/openapi.yaml` (Swagger UI at `GET /docs`) is the human-readable
+  contract. It is also hand-maintained: a change to any server route or wire
+  shape updates `server/openapi.yaml` in the same commit.
 
 Example shapes:
 
