@@ -38,13 +38,18 @@ Establish the basic project structure and development tooling.
 
 ### 0.2 Client Foundation
 
-- [ ] Application bootstrap — one `<Application>` (`@pixi/react`); HTML overlays are siblings of the canvas, not children
-- [ ] `loading → tutorial → game` phase machine; advance only after asset load **and** Pixi's first non-empty frame
-- [ ] Scene manager
-- [ ] Scene transitions
-- [ ] Zustand stores in `src/stores/`; cross-store effects only in `components/system/StoreSync.tsx`
-- [ ] Headless controllers (autoplay/auto-bet) render `null` and drive sequences through stores
-- [ ] Game lifecycle
+- [x] Application bootstrap — one `<Application>` (`@pixi/react`); HTML overlays are siblings of the canvas, not children
+- [x] `loading → tutorial → game` phase machine; advance only after asset load **and** Pixi's first non-empty frame (`src/hooks/useGameBootstrap.ts`, `src/stores/gameStore.ts`)
+- [x] Scene manager (`src/components/SceneManager/`) — generic, keyed registry; not one-off per phase
+- [x] Scene transitions (`src/hooks/useCrossfade.ts`) — 300ms crossfade, framework-agnostic so it's unit-testable without a renderer
+- [x] Zustand stores in `src/stores/`; cross-store effects only in `components/system/StoreSync.tsx` (wires `api`'s `onSessionExpired` → phase reset)
+- [ ] Headless controllers (autoplay/auto-bet) render `null` and drive sequences through stores — deferred: no betting/round system yet to drive one; lands with autoplay/auto-bet (milestones 8-9) using the same `components/system/` pattern as StoreSync
+- [x] Game lifecycle — boot → phase transitions → StoreSync-driven reset on session-expiry; the round/session lifecycle itself is milestone 1/4/9
+
+Placeholder scenes (`src/components/PlaceholderScene/`) stand in for
+LoadingScreen/TutorialScreen/HarbourScreen (§5/§6/§7) — colored rect + label,
+no image assets needed. Swapped out without touching the phase machine or
+scene manager.
 
 ### 0.3 Server Foundation
 

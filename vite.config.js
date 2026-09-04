@@ -39,7 +39,24 @@ export default defineConfig(({ mode }) => {
 				// Test files and the setup file are excluded so they can't pad the
 				// numbers: a colocated *.test.tsx sits inside the include glob and
 				// would otherwise count as 100%-covered source.
-				exclude: ["src/**/*.test.{ts,tsx}", "src/vitest.setup.ts", "src/main.tsx", "src/**/*.d.ts", "src/**/index.ts"],
+				//
+				// App.tsx, SceneManager and PlaceholderScene are excluded for the
+				// same reason as main.tsx: thin Pixi-rendering wiring with no logic
+				// of its own (the logic lives in useGameBootstrap/useCrossfade,
+				// which ARE covered) — and @pixi/react needs a real WebGL/WebGPU
+				// canvas, which happy-dom doesn't provide, so rendering them in a
+				// test wouldn't work anyway. Revisit if this project sets up a real
+				// Pixi test renderer.
+				exclude: [
+					"src/**/*.test.{ts,tsx}",
+					"src/vitest.setup.ts",
+					"src/main.tsx",
+					"src/App.tsx",
+					"src/components/SceneManager/SceneManager.tsx",
+					"src/components/PlaceholderScene/PlaceholderScene.tsx",
+					"src/**/*.d.ts",
+					"src/**/index.ts"
+				],
 				// 80% is the team target. Adjust per-project only with a reason —
 				// this is meant to hold, not to be lowered on friction.
 				thresholds: {
