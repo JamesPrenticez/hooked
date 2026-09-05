@@ -85,39 +85,39 @@ The client must be developed against the API rather than directly against server
 
 ### 1.1 Session API
 
-- [ ] `POST /api/session` (unauthenticated) → HMAC-signed `POST /operator/launch` → `sessionToken`
-- [ ] Bearer-token auth on every `/api/game/*` and `/api/seed/*` call
-- [ ] `POST /api/session/refresh` — rotate token (once per token)
-- [ ] Adopt `?sessionToken=` from the launch URL and strip it from the address bar
-- [ ] `POST /api/game/current` — balance + resumable round on boot
-- [ ] `GET /api/game/balance` — authoritative live balance
+- [x] `POST /api/session` (unauthenticated) → HMAC-signed `POST /operator/launch` → `sessionToken` (milestone 0; `server/src/routes/session.ts`)
+- [ ] Bearer-token auth on every `/api/game/*` and `/api/seed/*` call — `/api/game/*` done (`server/src/sessions.ts` `requireSession`); `/api/seed/*` doesn't exist yet, lands with milestone 2.5
+- [x] `POST /api/session/refresh` — rotate token (once per token) (`server/src/sessions.ts` `rotateToken`, `server/src/routes/session.ts`; old token invalidated immediately, no grace period)
+- [x] Adopt `?sessionToken=` from the launch URL and strip it from the address bar (`src/api/index.ts` `adoptSessionTokenFromUrl` — not called from the app yet; wiring lands with milestone 5)
+- [x] `POST /api/game/current` — balance + resumable round on boot (`server/src/routes/game.ts`; reflects an open round's bets, outcome withheld — see §30)
+- [x] `GET /api/game/balance` — authoritative live balance (milestone 0)
 
 ### 1.2 Game Action API — the `/game/play` envelope
 
-- [ ] `POST /api/game/play` with `{ message: { <oneVariant> } }` → `{ message, roundId }`
-- [ ] `start` variant — place bets + open the round (server generates outcome now)
-- [ ] `complete` variant — presentation finished, settle the round
-- [ ] `GET /api/game/round/{id}` — full round detail
-- [ ] `GET /api/game/history` — recent completed rounds
-- [ ] Decimal-string money; zero fields emitted, not omitted
-- [ ] `metadata.balance` treated as non-authoritative on multi-action responses
+- [x] `POST /api/game/play` with `{ message: { <oneVariant> } }` → `{ message, roundId }` (`server/src/routes/game.ts`, `src/api/index.ts`)
+- [x] `start` variant — place bets + open the round (server generates outcome now) (`server/src/rounds.ts` `openRound` — placeholder outcome/payout; real probability-weighted math is milestone 3)
+- [x] `complete` variant — presentation finished, settle the round (`server/src/rounds.ts` `settleRound`)
+- [x] `GET /api/game/round/{id}` — full round detail (`server/src/routes/game.ts`, `src/api/index.ts` `getRound`)
+- [x] `GET /api/game/history` — recent completed rounds (`server/src/routes/game.ts`, `src/api/index.ts` `getHistory`)
+- [x] Decimal-string money; zero fields emitted, not omitted (`server/src/money.ts`)
+- [x] `metadata.balance` treated as non-authoritative on multi-action responses (always `"0"` — `server/src/routes/game.ts` `toRoundResult`)
 
 ### 1.3 Error Handling
 
-- [ ] Invalid session
-- [ ] Insufficient balance
-- [ ] Invalid bet
-- [ ] Round already started
-- [ ] Round already completed
-- [ ] Server error
-- [ ] Network failure
+- [x] Invalid session (`server/src/sessions.ts` `requireSession`, 401)
+- [x] Insufficient balance (`server/src/routes/game.ts`, 400)
+- [x] Invalid bet (`server/src/routes/game.ts` `validateBets`, 400)
+- [x] Round already started (`server/src/routes/game.ts`, 409)
+- [x] Round already completed (`server/src/routes/game.ts`, 409)
+- [x] Server error (`server/src/http.ts` catch-all, 500)
+- [x] Network failure (`src/api/index.ts` — a rejected `fetch()` normalizes to `ApiError("network_error")`)
 
 ### 1.4 Wire Contract
 
-- [ ] `src/types/api.ts` (`@/types/api`) holds the wire types
-- [ ] Mock server mirrors the same shapes; kept in sync by hand (no shared package)
-- [ ] `src/api/index.ts` exposes typed helpers only — `createSession()`, `startRound(bets)`, `completeRound(id)`, `getCurrent()`, `getBalance()`, `getHistory()`
-- [ ] Two-vocabulary conversion (UI strings ↔ wire enums) happens only in `src/api/index.ts`
+- [x] `src/types/api.ts` (`@/types/api`) holds the wire types
+- [x] Mock server mirrors the same shapes; kept in sync by hand (no shared package) (`server/src/rounds.ts`)
+- [x] `src/api/index.ts` exposes typed helpers only — `createSession()`, `startRound(bets)`, `completeRound(id)`, `getCurrent()`, `getBalance()`, `getHistory()` (also `getRound()`, `refreshSession()`, `adoptSessionTokenFromUrl()`)
+- [x] Two-vocabulary conversion (UI strings ↔ wire enums) happens only in `src/api/index.ts` (no UI vocabulary exists yet to convert; nothing outside this file references the `message` envelope)
 
 ```text
 CLIENT
@@ -131,7 +131,7 @@ MOCK / PRODUCTION SERVER
 
 ### Acceptance Criteria
 
-The complete API contract exists before the real gambling round implementation begins, and nothing outside `src/api/index.ts` references the `message` envelope.
+The complete API contract exists before the real gambling round implementation begins, and nothing outside `src/api/index.ts` references the `message` envelope. — **met**: full round lifecycle (`start`/`complete`/`round/{id}`/`history`), session refresh and the full error taxonomy are wired end-to-end against a real listening server (18 `node:test` cases in `server/src/routes/game.test.ts`, verified manually with `curl` — debit on start, credit on complete, round detail + history reflect it) and `src/api/index.ts` is still the only client file that knows the wire. Outcome/payout math is a deliberate flat placeholder (`server/src/rounds.ts`) — milestone 3 replaces it; no fish roster, dev controls or seeded RNG yet (milestones 2/3/12).
 
 ---
 

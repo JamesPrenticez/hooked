@@ -5,6 +5,8 @@
 import { randomUUID } from "node:crypto";
 
 import { config } from "./config.ts";
+import { type Ctx, HttpError } from "./http.ts";
+import { fromCents, toCents } from "./money.ts";
 
 export interface Session {
 	sessionToken: string;
@@ -29,4 +31,31 @@ export function createSession(playerId: string): Session {
 
 export function getSession(token: string | undefined): Session | undefined {
 	return token ? byToken.get(token) : undefined;
+}
+
+/** Bearer-token gate for /api/game/*, /api/seed/* and /api/session/refresh (§8). */
+export function requireSession(ctx: Ctx): Session {
+	const auth = ctx.req.headers.authorization;
+	const token = typeof auth === "string" && auth.startsWith("Bearer ") ? auth.slice(7) : undefined;
+	const session = getSession(token);
+	if (!session) throw new HttpError(401, "invalid_session", "Missing or invalid session token");
+	return session;
+}
+
+/**
+ * Rotates a session's token (§35: "each token refreshes at most once"). The
+ * old token is deleted immediately — it doesn't get a grace period, it's
+ * just dead — so a second refresh (or any other call) with it 401s via the
+ * normal invalid_session path.
+ */
+export function rotateToken(session: Session): Session {
+	byToken.delete(session.sessionToken);
+	session.sessionToken = randomUUID();
+	byToken.set(session.sessionToken, session);
+	return session;
+}
+
+/** Applies a signed cents delta to the session's authoritative balance. */
+export function adjustBalance(session: Session, deltaCents: number): void {
+	session.balance = fromCents(toCents(session.balance) + deltaCents);
 }

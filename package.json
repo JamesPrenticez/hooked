@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "vite",
 		"server": "nodemon -w server/src -e ts --exec \"node --env-file-if-exists=.env\" server/src/index.ts",
-		"test:server": "node --test server/src/**/*.test.ts",
+		"test:server": "node --test \"server/src/**/*.test.ts\"",
 		"build": "tsc -b && vite build",
 		"lint": "eslint .",
 		"preview": "vite preview",

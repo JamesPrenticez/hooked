@@ -5,7 +5,7 @@
 import { config } from "../config.ts";
 import { HttpError, route } from "../http.ts";
 import { signHeaders } from "../operator-auth.ts";
-import { createSession } from "../sessions.ts";
+import { createSession, requireSession, rotateToken } from "../sessions.ts";
 
 let playerCounter = 0;
 
@@ -23,6 +23,16 @@ route("POST", "/api/session", async () => {
 	}
 
 	const session = createSession(playerId);
+	return {
+		sessionToken: session.sessionToken,
+		playerId: session.playerId,
+		currency: session.currency,
+		balance: session.balance
+	};
+});
+
+route("POST", "/api/session/refresh", ctx => {
+	const session = rotateToken(requireSession(ctx));
 	return {
 		sessionToken: session.sessionToken,
 		playerId: session.playerId,

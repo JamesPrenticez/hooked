@@ -57,6 +57,31 @@ paths:
         "502":
           $ref: "#/components/responses/Error"
 
+  /api/session/refresh:
+    post:
+      tags: [session]
+      summary: Rotate the session token
+      description: >
+        Each token refreshes at most once — the old token is invalidated
+        immediately, not given a grace period.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: New session token
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sessionToken, playerId, currency, balance]
+                properties:
+                  sessionToken: { type: string, format: uuid }
+                  playerId: { type: string, example: dev-player-1 }
+                  currency: { type: string, example: USD }
+                  balance: { type: string, example: "1000.00" }
+        "401":
+          $ref: "#/components/responses/Error"
+
   /api/game/balance:
     get:
       tags: [game]
@@ -98,6 +123,130 @@ paths:
                     type: boolean
                     description: True when a round is open and resumable.
                   roundId: { type: string }
+                  bets:
+                    type: array
+                    description: >
+                      The open round's bets — present only when active.
+                      Outcome/payout are deliberately withheld here; call
+                      GET /api/game/round/{id} for the full result to
+                      resume presentation from.
+                    items: { $ref: "#/components/schemas/Bet" }
+        "401":
+          $ref: "#/components/responses/Error"
+
+  /api/game/play:
+    post:
+      tags: [game]
+      summary: The single game-action envelope — start a round or complete one
+      description: >
+        message must contain exactly one of start|complete. start places
+        bets and opens the round (the outcome is generated now, and the
+        wager is debited immediately). complete settles an open round (the
+        payout is credited now).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  oneOf:
+                    - type: object
+                      required: [start]
+                      properties:
+                        start:
+                          type: object
+                          required: [bets]
+                          properties:
+                            bets:
+                              type: array
+                              items: { $ref: "#/components/schemas/Bet" }
+                    - type: object
+                      required: [complete]
+                      properties:
+                        complete:
+                          type: object
+                          required: [roundId]
+                          properties:
+                            roundId: { type: string }
+      responses:
+        "200":
+          description: Round result
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message, roundId]
+                properties:
+                  message: { $ref: "#/components/schemas/RoundResult" }
+                  roundId: { type: string }
+        "400":
+          $ref: "#/components/responses/Error" # invalid_message | invalid_bet | insufficient_balance
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error" # round_not_found
+        "409":
+          $ref: "#/components/responses/Error" # round_already_started | round_already_completed
+
+  /api/game/round/{id}:
+    get:
+      tags: [game]
+      summary: Full detail for one round
+      description: >
+        Always full detail, regardless of status — unlike
+        POST /api/game/current, an open round is not redacted here.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Round detail
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [roundId, status, outcome, bets, payout]
+                properties:
+                  roundId: { type: string }
+                  status: { type: string, enum: [open, completed] }
+                  outcome: { $ref: "#/components/schemas/FishingOutcome" }
+                  bets:
+                    type: array
+                    items: { $ref: "#/components/schemas/BetResult" }
+                  payout: { $ref: "#/components/schemas/PayoutResult" }
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+
+  /api/game/history:
+    get:
+      tags: [game]
+      summary: Recent completed rounds, newest first
+      description: Full list, no pagination at this milestone.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Round history
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rounds]
+                properties:
+                  rounds:
+                    type: array
+                    items: { $ref: "#/components/schemas/HistoryEntry" }
         "401":
           $ref: "#/components/responses/Error"
 
@@ -144,6 +293,77 @@ paths:
           $ref: "#/components/responses/Error"
 
 components:
+  schemas:
+    Bet:
+      type: object
+      required: [type, selection, amount]
+      properties:
+        type: { type: string, enum: [depth, fish] }
+        selection: { type: string, example: shallow }
+        amount:
+          type: string
+          description: Decimal string, never a float.
+          example: "10.00"
+    FishingOutcome:
+      type: object
+      required: [depth, fish, tier]
+      properties:
+        depth: { type: string, enum: [shallow, reef, deep, abyss, trench] }
+        fish: { type: string, example: placeholder-fish }
+        tier: { type: string, enum: [small, large, epic, legendary, jackpot] }
+    BetResult:
+      allOf:
+        - $ref: "#/components/schemas/Bet"
+        - type: object
+          required: [won, multiplier, payout]
+          properties:
+            won: { type: boolean }
+            multiplier: { type: string, example: "2.00" }
+            payout:
+              type: string
+              description: Zero emitted, not omitted, when the bet lost.
+              example: "0.00"
+    PayoutResult:
+      type: object
+      required: [total, wagered]
+      properties:
+        total:
+          type: string
+          description: Sum of winning bets' payouts — what complete credits to balance.
+          example: "20.00"
+        wagered:
+          type: string
+          description: Sum of bet amounts — what start already debited.
+          example: "10.00"
+    RoundResult:
+      type: object
+      required: [roundId, outcome, bets, payout, metadata]
+      properties:
+        roundId: { type: string }
+        outcome: { $ref: "#/components/schemas/FishingOutcome" }
+        bets:
+          type: array
+          items: { $ref: "#/components/schemas/BetResult" }
+        payout: { $ref: "#/components/schemas/PayoutResult" }
+        metadata:
+          type: object
+          description: >
+            balance is always "0" here — NOT authoritative. Read balance
+            from GET /api/game/balance, or track it locally.
+          required: [balance]
+          properties:
+            balance: { type: string, example: "0" }
+    HistoryEntry:
+      type: object
+      required: [roundId, outcome, bets, payout, completedAt]
+      properties:
+        roundId: { type: string }
+        outcome: { $ref: "#/components/schemas/FishingOutcome" }
+        bets:
+          type: array
+          items: { $ref: "#/components/schemas/BetResult" }
+        payout: { $ref: "#/components/schemas/PayoutResult" }
+        completedAt: { type: string, format: date-time }
   securitySchemes:
     bearerAuth:
       type: http
