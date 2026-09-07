@@ -147,30 +147,45 @@ It should be a real network service.
 
 ### 2.1 Mock Session
 
-- [ ] `POST /api/session` → real HMAC-SHA256-signed round-trip to `POST /operator/launch`
-- [ ] `X-Operator-ID` / `X-Timestamp` / `X-HMAC-SHA256` headers; HMAC secret server-side only
-- [ ] Generate `sessionToken`; scope session to one player + game + currency
-- [ ] `requireSession` middleware gates `/api/game/*` and `/api/seed/*`
-- [ ] Assign development currency + balance; reset balance on server start
-- [ ] Store session state
+- [x] `POST /api/session` → real HMAC-SHA256-signed round-trip to `POST /operator/launch` (`server/src/routes/session.ts`, `server/src/routes/operator.ts`)
+- [x] `X-Operator-ID` / `X-Timestamp` / `X-HMAC-SHA256` headers; HMAC secret server-side only (`server/src/operator-auth.ts`)
+- [x] Generate `sessionToken`; scope session to one player + game + currency (`server/src/sessions.ts` `createSession`)
+- [x] `requireSession` middleware gates `/api/game/*` — `/api/seed/*` doesn't exist yet, lands with milestone 2.5
+- [x] Assign development currency + balance; reset balance on server start (`config.currency`/`config.startingBalance`, in-memory `Map` wiped per process)
+- [x] Store session state (`server/src/sessions.ts` in-memory `byToken` map)
+
+Landed as a byproduct of milestones 0/1, not new work this session — confirmed against
+the code and covered by the existing 18-case suite (`server/src/routes/game.test.ts`,
+`server/src/operator-auth.test.ts`): real HMAC round-trip, `invalid_session` 401 on
+every gated route, and token-rotation (old token dies, new token works).
 
 ### 2.2 Mock Player
 
-- [ ] Player identity
-- [ ] Balance
-- [ ] Currency
-- [ ] Session state
-- [ ] Round history
+- [x] Player identity (`server/src/routes/session.ts` — `dev-player-N`, minted per launch)
+- [x] Balance (`Session.balance`, `server/src/sessions.ts`)
+- [x] Currency (`Session.currency`, `server/src/sessions.ts`)
+- [x] Session state (`server/src/sessions.ts` `byToken` map)
+- [x] Round history (`server/src/rounds.ts` `listCompleted`, `GET /api/game/history`)
+
+No separate "player" record — a player is just the identity a `Session` carries
+(one player : one session, minted together in `createSession`). Splitting them
+would be an abstraction with no second consumer yet; add one if a real login
+identity distinct from the session ever shows up.
 
 ### 2.3 Mock Round
 
-- [ ] Create round
-- [ ] Accept bets
-- [ ] Lock bets
-- [ ] Generate outcome
-- [ ] Resolve payout
-- [ ] Update balance
-- [ ] Complete round
+- [x] Create round (`server/src/rounds.ts` `openRound`)
+- [x] Accept bets (`server/src/routes/game.ts` `validateBets`, array of `{type, selection, amount}`)
+- [x] Lock bets — implicit, not a separate step: `openRound` fixes `bets`/`outcome` together and there is no edit endpoint; `hasOpenRound` 409s any second `start` until the round completes (`round_already_started`)
+- [x] Generate outcome (`server/src/rounds.ts` `generateOutcome` — flat placeholder, real math is milestone 3)
+- [x] Resolve payout (`server/src/rounds.ts` `resolveBet`)
+- [x] Update balance (`server/src/routes/game.ts` `adjustBalance` on start/complete)
+- [x] Complete round (`server/src/rounds.ts` `settleRound`)
+
+Landed as a byproduct of milestones 0/1, not new work this session — confirmed
+against the code and covered by the existing `server/src/routes/game.test.ts`
+suite (create → bets → outcome → payout → balance → history, plus
+`round_already_started`/`round_already_completed` locking).
 
 ### 2.4 Development Controls
 
