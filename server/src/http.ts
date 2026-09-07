@@ -5,6 +5,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { config } from "./config.ts";
+import { getSimulation } from "./debug-state.ts";
+
+const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export interface Ctx {
 	req: IncomingMessage;
@@ -85,6 +88,16 @@ export async function handle(req: IncomingMessage, res: ServerResponse) {
 			}
 		}
 		if (!matched) throw new HttpError(404, "not_found", `No route for ${method} ${path}`);
+
+		// Simulated latency/errors (§16). Debug routes themselves are exempt, so
+		// the controls stay reachable while an error rate is armed.
+		if (config.debugControls && !path.startsWith("/api/debug/")) {
+			const sim = getSimulation();
+			if (sim.latencyMs > 0) await delay(sim.latencyMs);
+			if (sim.errorRate > 0 && Math.random() < sim.errorRate) {
+				throw new HttpError(500, "simulated_error", "Simulated server error (debug)");
+			}
+		}
 
 		const body = method === "GET" || method === "HEAD" ? {} : await readJson(req);
 		const result = await matched.handler({ req, res, body, params: matched.params });

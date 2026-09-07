@@ -10,6 +10,7 @@
 
 import { randomUUID } from "node:crypto";
 
+import { getForcedOutcome } from "./debug-state.ts";
 import { fromCents, toCents } from "./money.ts";
 
 export type DepthId = "shallow" | "reef" | "deep" | "abyss" | "trench";
@@ -67,7 +68,15 @@ const PLACEHOLDER_MULTIPLIER_CENTS = 200; // flat 2.00x on every winning bet
 
 function generateOutcome(): FishingOutcome {
 	const depth = DEPTHS[Math.floor(Math.random() * DEPTHS.length)];
-	return { depth, fish: PLACEHOLDER_FISH, tier: PLACEHOLDER_TIER };
+	const rolled: FishingOutcome = { depth, fish: PLACEHOLDER_FISH, tier: PLACEHOLDER_TIER };
+	// Dev override (§16/§17). routes/debug.ts has already validated these
+	// against the depth/tier enums; fish is a free string until the roster lands.
+	const forced = getForcedOutcome();
+	return {
+		depth: (forced.depth as DepthId) ?? rolled.depth,
+		fish: forced.fish ?? rolled.fish,
+		tier: (forced.tier as FishTier) ?? rolled.tier
+	};
 }
 
 function resolveBet(bet: Bet, outcome: FishingOutcome): BetResult {
@@ -114,6 +123,12 @@ export function settleRound(round: Round): void {
 	round.status = "completed";
 	round.completedAt = Date.now();
 	openByPlayer.delete(round.playerId);
+}
+
+/** Wipes every round + open-round pointer — used by POST /api/debug/reset-session. */
+export function resetRounds(): void {
+	byId.clear();
+	openByPlayer.clear();
 }
 
 // ponytail: O(n) scan of every round ever opened — fine at dev/mock scale

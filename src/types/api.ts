@@ -121,3 +121,25 @@ export interface HistoryEntry {
 export interface HistoryResponse {
 	rounds: HistoryEntry[];
 }
+
+// --- Dev controls — /api/debug/*, gated by VITE_DEBUG, absent in production (§16/§17) ---
+
+/** Any subset forces that field; omit to leave it rolled. `{}` clears the override. */
+export interface ForcedOutcome {
+	depth?: DepthId;
+	fish?: string;
+	tier?: FishTier;
+}
+
+export interface DebugSimulation {
+	/** Fixed delay added to every non-debug request, in ms. */
+	latencyMs: number;
+	/** 0..1 chance each non-debug request fails with a simulated 500. */
+	errorRate: number;
+}
+
+/** GET /api/debug/state, and the echo returned by force-outcome / simulate. */
+export interface DebugStateResponse {
+	forcedOutcome: ForcedOutcome;
+	simulation: DebugSimulation;
+}

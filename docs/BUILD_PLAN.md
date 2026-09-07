@@ -33,7 +33,7 @@ Establish the basic project structure and development tooling.
 - [x] Establish the Animo-standard `src/` layout + a sibling `server/` directory (see `docs/ARCHITECTURE.md` §4)
 - [x] Establish wire-contract types in `src/types/api.ts`
 - [x] Establish configuration/constants (`src/constants/config.ts`, `server/src/config.ts`)
-- [ ] Establish development/debug utilities
+- [x] Establish development/debug utilities (`server/src/debug-state.ts` + `/api/debug/*`, client `DEBUG` flag — see milestone 2.4)
 - [x] Establish environment configuration (`.env.example`; server reads `.env` via `node --env-file-if-exists`)
 
 ### 0.2 Client Foundation
@@ -189,16 +189,21 @@ suite (create → bets → outcome → payout → balance → history, plus
 
 ### 2.4 Development Controls
 
-- [ ] Force specific depth
-- [ ] Force specific fish
-- [ ] Force specific tier
-- [ ] Force Kraken
-- [ ] Seeded outcomes
-- [ ] Reset player balance
-- [ ] Reset session
-- [ ] Simulate server errors
-- [ ] Simulate network latency
-- [ ] All debug controls gated by `VITE_DEBUG` / `/api/debug/*`, stripped for production
+- [x] Force specific depth (`POST /api/debug/force-outcome { depth }`, `server/src/debug-state.ts` applied in `rounds.ts` `generateOutcome`)
+- [x] Force specific fish (`force-outcome { fish }` — free string until the roster lands in milestone 3)
+- [x] Force specific tier (`force-outcome { tier }`)
+- [x] Force Kraken — not a separate endpoint: `force-outcome { depth: "trench", fish: "kraken", tier: "jackpot" }` (client helper `forceOutcome(...)`, a toolbar button later)
+- [ ] Seeded outcomes — deferred to milestone 2.5; the provably-fair RNG (`server/src/rng.ts`) is the seed mechanism. Forced outcomes cover deterministic dev testing until then (ARCHITECTURE.md §17 treats `seed:` and `forcedFish:` as alternatives)
+- [x] Reset player balance (`POST /api/debug/reset-balance { balance? }`, `server/src/sessions.ts` `resetBalances`)
+- [x] Reset session (`POST /api/debug/reset-session` — wipes sessions + rounds + debug state; token dies, client re-launches)
+- [x] Simulate server errors (`POST /api/debug/simulate { errorRate }`, injected in `server/src/http.ts`, `/api/debug/*` exempt)
+- [x] Simulate network latency (`simulate { latencyMs }`, same injection point)
+- [x] All debug controls gated by `VITE_DEBUG` (`src/constants/config.ts` `DEBUG`, `src/api/index.ts` debug helpers) / `/api/debug/*` (`server/src/routes/debug.ts` — routes only registered when `config.debugControls`, i.e. `NODE_ENV !== "production"`)
+
+The `DebugToolbar` React component (ARCHITECTURE.md §4/§38) is **not** built this
+milestone — there's no betting/round UI to attach it to yet. The controls are
+exercised over HTTP (Swagger UI at `GET /docs`, or `src/api/index.ts` helpers);
+the visual toolbar lands with the betting board (milestone 8).
 
 ### 2.5 Provably-Fair Seeds
 

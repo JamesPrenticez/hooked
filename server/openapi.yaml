@@ -14,6 +14,7 @@ tags:
   - name: session
   - name: game
   - name: operator
+  - name: debug
 
 paths:
   /api/health:
@@ -250,6 +251,118 @@ paths:
         "401":
           $ref: "#/components/responses/Error"
 
+  /api/debug/state:
+    get:
+      tags: [debug]
+      summary: Current debug overrides
+      description: >
+        Development only — this route (and every /api/debug/* route) is not
+        registered when NODE_ENV=production. Unauthenticated by design: the
+        client gates these behind VITE_DEBUG, not the bearer token.
+      responses:
+        "200":
+          description: Debug state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DebugState" }
+
+  /api/debug/force-outcome:
+    post:
+      tags: [debug]
+      summary: Pin the next round's outcome (dev only)
+      description: >
+        Any provided field is forced; omit a field to leave it rolled. An empty
+        body clears the override. "Force Kraken" is just
+        { depth: trench, fish: kraken, tier: jackpot }.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                depth: { type: string, enum: [shallow, reef, deep, abyss, trench] }
+                fish: { type: string, example: kraken }
+                tier: { type: string, enum: [small, large, epic, legendary, jackpot] }
+      responses:
+        "200":
+          description: Updated debug state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DebugState" }
+        "400":
+          $ref: "#/components/responses/Error" # invalid_debug_request
+
+  /api/debug/simulate:
+    post:
+      tags: [debug]
+      summary: Arm simulated latency / errors (dev only)
+      description: >
+        Only the provided fields change. Applies to every non-debug request;
+        /api/debug/* itself is exempt so the controls stay reachable.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                latencyMs: { type: number, minimum: 0, example: 250 }
+                errorRate:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                  description: Probability each request fails with a simulated 500.
+      responses:
+        "200":
+          description: Updated debug state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DebugState" }
+        "400":
+          $ref: "#/components/responses/Error" # invalid_debug_request
+
+  /api/debug/reset-balance:
+    post:
+      tags: [debug]
+      summary: Reset every dev wallet (dev only)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                balance:
+                  type: string
+                  description: Decimal string. Defaults to the configured starting balance.
+                  example: "1000.00"
+      responses:
+        "200":
+          description: Done
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+        "400":
+          $ref: "#/components/responses/Error" # invalid_debug_request
+
+  /api/debug/reset-session:
+    post:
+      tags: [debug]
+      summary: Drop every session + round (dev only)
+      description: >
+        Every token goes dead; the client's next call 401s and it re-launches.
+        Also clears any forced outcome and simulation settings.
+      responses:
+        "200":
+          description: Done
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+
   /operator/launch:
     post:
       tags: [operator]
@@ -364,6 +477,23 @@ components:
           items: { $ref: "#/components/schemas/BetResult" }
         payout: { $ref: "#/components/schemas/PayoutResult" }
         completedAt: { type: string, format: date-time }
+    DebugState:
+      type: object
+      required: [forcedOutcome, simulation]
+      properties:
+        forcedOutcome:
+          type: object
+          description: Only the forced fields are present; {} means nothing is forced.
+          properties:
+            depth: { type: string }
+            fish: { type: string }
+            tier: { type: string }
+        simulation:
+          type: object
+          required: [latencyMs, errorRate]
+          properties:
+            latencyMs: { type: number, example: 0 }
+            errorRate: { type: number, example: 0 }
   securitySchemes:
     bearerAuth:
       type: http

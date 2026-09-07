@@ -59,3 +59,20 @@ export function rotateToken(session: Session): Session {
 export function adjustBalance(session: Session, deltaCents: number): void {
 	session.balance = fromCents(toCents(session.balance) + deltaCents);
 }
+
+/**
+ * Resets every live session's balance (§16 "reset player balance"). Dev has
+ * effectively one player, so this doesn't need to name one. Defaults to the
+ * configured starting balance.
+ */
+export function resetBalances(balance: string = config.startingBalance): void {
+	for (const session of byToken.values()) session.balance = balance;
+}
+
+/**
+ * Drops every session (§16 "reset session"). The client's current token goes
+ * dead, so its next call 401s and it re-launches — the intended dev behaviour.
+ */
+export function resetSessions(): void {
+	byToken.clear();
+}

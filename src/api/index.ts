@@ -5,12 +5,14 @@
 // None of these helpers are wired into the app yet — that starts with the
 // Loading Screen milestone (5). This milestone only defines the contract.
 
-import { API_BASE_URL } from "@/constants/config";
+import { API_BASE_URL, DEBUG } from "@/constants/config";
 import type {
 	BalanceResponse,
 	Bet,
 	CurrentResponse,
+	DebugStateResponse,
 	ErrorBody,
+	ForcedOutcome,
 	HistoryResponse,
 	PlayResponse,
 	RoundDetailResponse,
@@ -120,4 +122,39 @@ export function getRound(roundId: string): Promise<RoundDetailResponse> {
 
 export function getHistory(): Promise<HistoryResponse> {
 	return request<HistoryResponse>("/api/game/history");
+}
+
+// --- Dev controls (§16/§17). No-op unless VITE_DEBUG=true; the routes don't
+// exist on a production server anyway. Unauthenticated by design — the gate is
+// VITE_DEBUG, not the bearer token (ARCHITECTURE.md §8). ---
+
+function debugRequest<T>(path: string, body?: unknown): Promise<T> {
+	if (!DEBUG) throw new ApiError(0, "debug_disabled", "Debug controls require VITE_DEBUG=true");
+	return request<T>(path, { method: "POST", body: JSON.stringify(body ?? {}) }, false);
+}
+
+/** Pin any subset of the next outcome; `{}` clears the override. "Force Kraken"
+ *  is `forceOutcome({ depth: "trench", fish: "kraken", tier: "jackpot" })`. */
+export function forceOutcome(outcome: ForcedOutcome): Promise<DebugStateResponse> {
+	return debugRequest<DebugStateResponse>("/api/debug/force-outcome", outcome);
+}
+
+/** Arm simulated latency/errors; pass only the fields you want to change. */
+export function simulateConditions(sim: { latencyMs?: number; errorRate?: number }): Promise<DebugStateResponse> {
+	return debugRequest<DebugStateResponse>("/api/debug/simulate", sim);
+}
+
+/** Reset every dev wallet — omit `balance` for the configured starting amount. */
+export function resetBalance(balance?: string): Promise<{ ok: true }> {
+	return debugRequest<{ ok: true }>("/api/debug/reset-balance", balance ? { balance } : {});
+}
+
+/** Drop every session + round; the current token dies and the client re-launches. */
+export function resetSession(): Promise<{ ok: true }> {
+	return debugRequest<{ ok: true }>("/api/debug/reset-session");
+}
+
+export function getDebugState(): Promise<DebugStateResponse> {
+	if (!DEBUG) throw new ApiError(0, "debug_disabled", "Debug controls require VITE_DEBUG=true");
+	return request<DebugStateResponse>("/api/debug/state", {}, false);
 }

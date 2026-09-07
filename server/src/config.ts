@@ -13,5 +13,8 @@ export const config = {
 	currency: process.env.DEV_CURRENCY ?? "USD",
 	startingBalance: process.env.DEV_BALANCE ?? "1000.00",
 	// Chatty request logging in dev; off in production.
-	logRequests: process.env.NODE_ENV !== "production"
+	logRequests: process.env.NODE_ENV !== "production",
+	// /api/debug/* controls (forced outcomes, resets, latency/error injection).
+	// Never registered in production — the routes simply don't exist there.
+	debugControls: process.env.NODE_ENV !== "production"
 };

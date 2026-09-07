@@ -11,6 +11,9 @@ import "./routes/operator.ts";
 import "./routes/session.ts";
 import "./routes/game.ts";
 import "./routes/docs.ts";
+// Dev-only /api/debug/* controls — the module self-checks config.debugControls
+// and registers nothing in production (§16).
+import "./routes/debug.ts";
 
 route("GET", "/api/health", () => ({ status: "ok", uptime: process.uptime() }));
 
