@@ -5,14 +5,16 @@
 //
 // Covers: force outcome (depth/fish/tier — "Force Kraken" is just
 // { depth: "trench", fish: "kraken", tier: "jackpot" } from the toolbar),
-// reset balance, reset session, and simulated latency/errors. Seeded outcomes
-// land with the provably-fair RNG (milestone 2.5, server/src/rng.ts).
+// reset balance, reset session, and simulated latency/errors. Deterministic
+// seeded outcomes are the provably-fair RNG instead — see server/src/rng.ts
+// and the /api/seed/* endpoints.
 
 import { config } from "../config.ts";
 import { getDebugState, resetDebugState, setForcedOutcome, setSimulation } from "../debug-state.ts";
 import { HttpError, route } from "../http.ts";
 import { toCents } from "../money.ts";
 import { resetRounds } from "../rounds.ts";
+import { resetSeeds } from "../seeds.ts";
 import { resetBalances, resetSessions } from "../sessions.ts";
 
 const DEPTHS = ["shallow", "reef", "deep", "abyss", "trench"];
@@ -82,6 +84,7 @@ if (config.debugControls) {
 	route("POST", "/api/debug/reset-session", () => {
 		resetSessions();
 		resetRounds();
+		resetSeeds();
 		resetDebugState();
 		return { ok: true };
 	});

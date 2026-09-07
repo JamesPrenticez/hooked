@@ -10,6 +10,7 @@ import { handle, route } from "./http.ts";
 import "./routes/operator.ts";
 import "./routes/session.ts";
 import "./routes/game.ts";
+import "./routes/seed.ts";
 import "./routes/docs.ts";
 // Dev-only /api/debug/* controls — the module self-checks config.debugControls
 // and registers nothing in production (§16).

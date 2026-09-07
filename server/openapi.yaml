@@ -13,6 +13,7 @@ tags:
   - name: health
   - name: session
   - name: game
+  - name: seed
   - name: operator
   - name: debug
 
@@ -215,7 +216,7 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [roundId, status, outcome, bets, payout]
+                required: [roundId, status, outcome, bets, payout, seed]
                 properties:
                   roundId: { type: string }
                   status: { type: string, enum: [open, completed] }
@@ -224,9 +225,51 @@ paths:
                     type: array
                     items: { $ref: "#/components/schemas/BetResult" }
                   payout: { $ref: "#/components/schemas/PayoutResult" }
+                  seed: { $ref: "#/components/schemas/RoundSeed" }
         "401":
           $ref: "#/components/responses/Error"
         "404":
+          $ref: "#/components/responses/Error"
+
+  /api/game/verify:
+    post:
+      tags: [game]
+      summary: Recompute a past outcome from its seed triple (provably fair)
+      description: >
+        Stateless. Supply the revealed serverSeed (from POST /api/seed/reveal)
+        plus the clientSeed and nonce recorded with the round, and compare the
+        returned outcome to what that round paid out. Same inputs always yield
+        the same outcome — that is the proof. Rounds pinned with a forced
+        outcome (dev only) will not match by design.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [serverSeed, clientSeed, nonce]
+              properties:
+                serverSeed: { type: string }
+                clientSeed: { type: string }
+                nonce: { type: integer, minimum: 0 }
+      responses:
+        "200":
+          description: Recomputed outcome
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [serverSeedHash, clientSeed, nonce, outcome]
+                properties:
+                  serverSeedHash: { type: string, description: SHA-256 of the supplied serverSeed. }
+                  clientSeed: { type: string }
+                  nonce: { type: integer }
+                  outcome: { $ref: "#/components/schemas/FishingOutcome" }
+        "400":
+          $ref: "#/components/responses/Error" # invalid_verify_request
+        "401":
           $ref: "#/components/responses/Error"
 
   /api/game/history:
@@ -250,6 +293,104 @@ paths:
                     items: { $ref: "#/components/schemas/HistoryEntry" }
         "401":
           $ref: "#/components/responses/Error"
+
+  /api/seed/current:
+    post:
+      tags: [seed]
+      summary: Active seed context
+      description: Hashed server seed, current client seed, and the nonce the next round will use.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current seed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SeedContext" }
+        "401":
+          $ref: "#/components/responses/Error"
+
+  /api/seed/upcoming:
+    post:
+      tags: [seed]
+      summary: Hash of the next server seed
+      description: >
+        Committed now, becomes the active server seed after the next rotate.
+        Lets the player pin the commitment before it is in play.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Next server seed commitment
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [serverSeedHash]
+                properties:
+                  serverSeedHash: { type: string }
+        "401":
+          $ref: "#/components/responses/Error"
+
+  /api/seed/rotate:
+    post:
+      tags: [seed]
+      summary: Rotate to the next server seed
+      description: >
+        Moves the current server seed into the revealed list, switches to the
+        pre-committed next one, and resets the nonce to 0. An optional new
+        client seed can be supplied; otherwise a fresh random one is generated.
+        Rejected while a round is open.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clientSeed: { type: string, maxLength: 256 }
+      responses:
+        "200":
+          description: New seed context
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SeedContext" }
+        "400":
+          $ref: "#/components/responses/Error" # invalid_seed_request
+        "401":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error" # round_in_progress
+
+  /api/seed/reveal:
+    post:
+      tags: [seed]
+      summary: Reveal the most recently rotated-away seed pair
+      description: >
+        Returns the previous server seed in full, with its hash, client seed
+        and final nonce, so every outcome rolled under it can be re-derived
+        via POST /api/game/verify.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Revealed seed pair
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [serverSeed, serverSeedHash, clientSeed, nonce]
+                properties:
+                  serverSeed: { type: string }
+                  serverSeedHash: { type: string }
+                  clientSeed: { type: string }
+                  nonce: { type: integer }
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error" # nothing_to_reveal
 
   /api/debug/state:
     get:
@@ -468,7 +609,7 @@ components:
             balance: { type: string, example: "0" }
     HistoryEntry:
       type: object
-      required: [roundId, outcome, bets, payout, completedAt]
+      required: [roundId, outcome, bets, payout, seed, completedAt]
       properties:
         roundId: { type: string }
         outcome: { $ref: "#/components/schemas/FishingOutcome" }
@@ -476,7 +617,25 @@ components:
           type: array
           items: { $ref: "#/components/schemas/BetResult" }
         payout: { $ref: "#/components/schemas/PayoutResult" }
+        seed: { $ref: "#/components/schemas/RoundSeed" }
         completedAt: { type: string, format: date-time }
+    RoundSeed:
+      type: object
+      description: >
+        Provably-fair context for a round (§36). The raw server seed is
+        withheld until it is rotated away and revealed.
+      required: [serverSeedHash, clientSeed, nonce]
+      properties:
+        serverSeedHash: { type: string, description: SHA-256 of the server seed — the commitment. }
+        clientSeed: { type: string }
+        nonce: { type: integer }
+    SeedContext:
+      type: object
+      required: [serverSeedHash, clientSeed, nonce]
+      properties:
+        serverSeedHash: { type: string }
+        clientSeed: { type: string }
+        nonce: { type: integer, description: Nonce the next round will consume. }
     DebugState:
       type: object
       required: [forcedOutcome, simulation]

@@ -12,6 +12,8 @@ import { randomUUID } from "node:crypto";
 
 import { getForcedOutcome } from "./debug-state.ts";
 import { fromCents, toCents } from "./money.ts";
+import { byteStream, rollInt } from "./rng.ts";
+import { consumeNonce } from "./seeds.ts";
 
 export type DepthId = "shallow" | "reef" | "deep" | "abyss" | "trench";
 export type FishTier = "small" | "large" | "epic" | "legendary" | "jackpot";
@@ -40,6 +42,14 @@ export interface PayoutResult {
 	wagered: string;
 }
 
+/** Provably-fair context for one round (§36). The raw server seed is not
+ *  here — it stays in seeds.ts until a rotate reveals it. */
+export interface RoundSeed {
+	serverSeedHash: string;
+	clientSeed: string;
+	nonce: number;
+}
+
 export interface Round {
 	roundId: string;
 	playerId: string;
@@ -48,6 +58,7 @@ export interface Round {
 	outcome: FishingOutcome;
 	betResults: BetResult[];
 	payout: PayoutResult;
+	seed: RoundSeed;
 	createdAt: number;
 	completedAt?: number;
 }
@@ -66,11 +77,27 @@ const PLACEHOLDER_FISH = "placeholder-fish";
 const PLACEHOLDER_TIER: FishTier = "small";
 const PLACEHOLDER_MULTIPLIER_CENTS = 200; // flat 2.00x on every winning bet
 
-function generateOutcome(): FishingOutcome {
-	const depth = DEPTHS[Math.floor(Math.random() * DEPTHS.length)];
-	const rolled: FishingOutcome = { depth, fish: PLACEHOLDER_FISH, tier: PLACEHOLDER_TIER };
-	// Dev override (§16/§17). routes/debug.ts has already validated these
-	// against the depth/tier enums; fish is a free string until the roster lands.
+/**
+ * The pure provably-fair roll (§36) — deterministic in
+ * (serverSeed, clientSeed, nonce) and nothing else. POST /api/game/verify
+ * recomputes exactly this, so it must never consult debug/force state.
+ *
+ * ponytail: only depth is drawn from the stream today — there is no fish
+ * roster or tier-probability table until milestone 3, so fish/tier are flat
+ * placeholders. Milestone 3 extends the same stream in order: depth → fish →
+ * tier.
+ */
+export function rollOutcome(serverSeed: string, clientSeed: string, nonce: number): FishingOutcome {
+	const stream = byteStream(serverSeed, clientSeed, nonce);
+	const depth = DEPTHS[rollInt(stream, DEPTHS.length)];
+	return { depth, fish: PLACEHOLDER_FISH, tier: PLACEHOLDER_TIER };
+}
+
+function generateOutcome(serverSeed: string, clientSeed: string, nonce: number): FishingOutcome {
+	const rolled = rollOutcome(serverSeed, clientSeed, nonce);
+	// Dev override (§16/§17) — an alternative to the seed, not part of it, so
+	// a forced round intentionally will not match POST /api/game/verify.
+	// routes/debug.ts has already validated these against the depth/tier enums.
 	const forced = getForcedOutcome();
 	return {
 		depth: (forced.depth as DepthId) ?? rolled.depth,
@@ -100,7 +127,8 @@ export function getRound(roundId: string): Round | undefined {
 
 /** Caller (routes/game.ts) has already validated the bets and the balance. */
 export function openRound(playerId: string, bets: Bet[]): Round {
-	const outcome = generateOutcome();
+	const seed = consumeNonce(playerId);
+	const outcome = generateOutcome(seed.serverSeed, seed.clientSeed, seed.nonce);
 	const betResults = bets.map(b => resolveBet(b, outcome));
 	const wagered = bets.reduce((sum, b) => sum + toCents(b.amount), 0);
 	const total = betResults.reduce((sum, b) => sum + toCents(b.payout), 0);
@@ -112,6 +140,7 @@ export function openRound(playerId: string, bets: Bet[]): Round {
 		outcome,
 		betResults,
 		payout: { total: fromCents(total), wagered: fromCents(wagered) },
+		seed: { serverSeedHash: seed.serverSeedHash, clientSeed: seed.clientSeed, nonce: seed.nonce },
 		createdAt: Date.now()
 	};
 	byId.set(round.roundId, round);

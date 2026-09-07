@@ -15,9 +15,13 @@ import type {
 	ForcedOutcome,
 	HistoryResponse,
 	PlayResponse,
+	RevealedSeedResponse,
 	RoundDetailResponse,
 	RoundResult,
-	SessionResponse
+	SeedResponse,
+	SessionResponse,
+	UpcomingSeedResponse,
+	VerifyResponse
 } from "@/types/api";
 
 let sessionToken: string | null = null;
@@ -122,6 +126,43 @@ export function getRound(roundId: string): Promise<RoundDetailResponse> {
 
 export function getHistory(): Promise<HistoryResponse> {
 	return request<HistoryResponse>("/api/game/history");
+}
+
+// --- Provably-fair seeds (§36). The player can inspect the active seed
+// context, set their own client seed, reveal a rotated-away server seed and
+// re-derive any past outcome from its triple. ---
+
+export function getSeed(): Promise<SeedResponse> {
+	return request<SeedResponse>("/api/seed/current", { method: "POST" });
+}
+
+/** Hash of the next server seed — verifiable after the following rotate. */
+export function getUpcomingSeed(): Promise<UpcomingSeedResponse> {
+	return request<UpcomingSeedResponse>("/api/seed/upcoming", { method: "POST" });
+}
+
+/** Reveal the current server seed and switch to the pre-committed next one.
+ *  Optionally set a new client seed. Rejected while a round is open. */
+export function rotateSeed(clientSeed?: string): Promise<SeedResponse> {
+	return request<SeedResponse>("/api/seed/rotate", {
+		method: "POST",
+		body: JSON.stringify(clientSeed ? { clientSeed } : {})
+	});
+}
+
+/** The most recently rotated-away pair, server seed disclosed for auditing. */
+export function revealSeed(): Promise<RevealedSeedResponse> {
+	return request<RevealedSeedResponse>("/api/seed/reveal", { method: "POST" });
+}
+
+/** Recompute a past outcome from its seed triple — compare to the round's
+ *  stored outcome. Same inputs → same outcome, every time. */
+export function verifyOutcome(seed: {
+	serverSeed: string;
+	clientSeed: string;
+	nonce: number;
+}): Promise<VerifyResponse> {
+	return request<VerifyResponse>("/api/game/verify", { method: "POST", body: JSON.stringify(seed) });
 }
 
 // --- Dev controls (§16/§17). No-op unless VITE_DEBUG=true; the routes don't

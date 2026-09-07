@@ -5,6 +5,7 @@
 
 import { HttpError, route } from "../http.ts";
 import { toCents } from "../money.ts";
+import { hashSeed } from "../rng.ts";
 import {
 	type Bet,
 	type DepthId,
@@ -13,6 +14,7 @@ import {
 	hasOpenRound,
 	listCompleted,
 	openRound,
+	rollOutcome,
 	type Round,
 	settleRound
 } from "../rounds.ts";
@@ -113,7 +115,36 @@ route("GET", "/api/game/round/:id", ctx => {
 		status: round.status,
 		outcome: round.outcome,
 		bets: round.betResults,
-		payout: round.payout
+		payout: round.payout,
+		seed: round.seed
+	};
+});
+
+// Provably-fair check (§36): recompute an outcome from a seed triple. Stateless
+// — the caller supplies the revealed serverSeed (from POST /api/seed/reveal)
+// plus the clientSeed/nonce recorded with the round, and compares the returned
+// outcome to what that round paid out. Forced rounds won't match by design.
+route("POST", "/api/game/verify", ctx => {
+	requireSession(ctx);
+	const body = (ctx.body ?? {}) as { serverSeed?: unknown; clientSeed?: unknown; nonce?: unknown };
+	if (
+		typeof body.serverSeed !== "string" ||
+		typeof body.clientSeed !== "string" ||
+		typeof body.nonce !== "number" ||
+		!Number.isInteger(body.nonce) ||
+		body.nonce < 0
+	) {
+		throw new HttpError(
+			400,
+			"invalid_verify_request",
+			"serverSeed and clientSeed must be strings and nonce a non-negative integer"
+		);
+	}
+	return {
+		serverSeedHash: hashSeed(body.serverSeed),
+		clientSeed: body.clientSeed,
+		nonce: body.nonce,
+		outcome: rollOutcome(body.serverSeed, body.clientSeed, body.nonce)
 	};
 });
 
@@ -124,6 +155,7 @@ route("GET", "/api/game/history", ctx => {
 		outcome: r.outcome,
 		bets: r.betResults,
 		payout: r.payout,
+		seed: r.seed,
 		completedAt: new Date(r.completedAt ?? r.createdAt).toISOString()
 	}));
 	return { rounds };

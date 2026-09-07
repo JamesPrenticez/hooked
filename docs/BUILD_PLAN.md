@@ -86,7 +86,7 @@ The client must be developed against the API rather than directly against server
 ### 1.1 Session API
 
 - [x] `POST /api/session` (unauthenticated) → HMAC-signed `POST /operator/launch` → `sessionToken` (milestone 0; `server/src/routes/session.ts`)
-- [ ] Bearer-token auth on every `/api/game/*` and `/api/seed/*` call — `/api/game/*` done (`server/src/sessions.ts` `requireSession`); `/api/seed/*` doesn't exist yet, lands with milestone 2.5
+- [x] Bearer-token auth on every `/api/game/*` and `/api/seed/*` call (`server/src/sessions.ts` `requireSession`; `/api/seed/*` gated the same way — milestone 2.5)
 - [x] `POST /api/session/refresh` — rotate token (once per token) (`server/src/sessions.ts` `rotateToken`, `server/src/routes/session.ts`; old token invalidated immediately, no grace period)
 - [x] Adopt `?sessionToken=` from the launch URL and strip it from the address bar (`src/api/index.ts` `adoptSessionTokenFromUrl` — not called from the app yet; wiring lands with milestone 5)
 - [x] `POST /api/game/current` — balance + resumable round on boot (`server/src/routes/game.ts`; reflects an open round's bets, outcome withheld — see §30)
@@ -150,7 +150,7 @@ It should be a real network service.
 - [x] `POST /api/session` → real HMAC-SHA256-signed round-trip to `POST /operator/launch` (`server/src/routes/session.ts`, `server/src/routes/operator.ts`)
 - [x] `X-Operator-ID` / `X-Timestamp` / `X-HMAC-SHA256` headers; HMAC secret server-side only (`server/src/operator-auth.ts`)
 - [x] Generate `sessionToken`; scope session to one player + game + currency (`server/src/sessions.ts` `createSession`)
-- [x] `requireSession` middleware gates `/api/game/*` — `/api/seed/*` doesn't exist yet, lands with milestone 2.5
+- [x] `requireSession` middleware gates `/api/game/*` and `/api/seed/*` (`server/src/routes/seed.ts`, milestone 2.5)
 - [x] Assign development currency + balance; reset balance on server start (`config.currency`/`config.startingBalance`, in-memory `Map` wiped per process)
 - [x] Store session state (`server/src/sessions.ts` in-memory `byToken` map)
 
@@ -193,7 +193,7 @@ suite (create → bets → outcome → payout → balance → history, plus
 - [x] Force specific fish (`force-outcome { fish }` — free string until the roster lands in milestone 3)
 - [x] Force specific tier (`force-outcome { tier }`)
 - [x] Force Kraken — not a separate endpoint: `force-outcome { depth: "trench", fish: "kraken", tier: "jackpot" }` (client helper `forceOutcome(...)`, a toolbar button later)
-- [ ] Seeded outcomes — deferred to milestone 2.5; the provably-fair RNG (`server/src/rng.ts`) is the seed mechanism. Forced outcomes cover deterministic dev testing until then (ARCHITECTURE.md §17 treats `seed:` and `forcedFish:` as alternatives)
+- [x] Seeded outcomes — the provably-fair RNG (`server/src/rng.ts`) is the seed mechanism; every round's outcome is now derived deterministically from its `(serverSeed, clientSeed, nonce)` triple (milestone 2.5). Forced outcomes remain the alternative for pinning a specific fish/tier (ARCHITECTURE.md §17 treats `seed:` and `forcedFish:` as alternatives — a forced round won't verify)
 - [x] Reset player balance (`POST /api/debug/reset-balance { balance? }`, `server/src/sessions.ts` `resetBalances`)
 - [x] Reset session (`POST /api/debug/reset-session` — wipes sessions + rounds + debug state; token dies, client re-launches)
 - [x] Simulate server errors (`POST /api/debug/simulate { errorRate }`, injected in `server/src/http.ts`, `/api/debug/*` exempt)
@@ -207,14 +207,15 @@ the visual toolbar lands with the betting board (milestone 8).
 
 ### 2.5 Provably-Fair Seeds
 
-- [ ] `server/src/rng.ts` — HMAC-SHA256 byte stream over `(serverSeed, clientSeed, nonce)`
-- [ ] Consume the stream to roll depth → fish → tier
-- [ ] `POST /api/seed/{current,rotate,reveal,upcoming}` — rotate blocked mid-round
-- [ ] `POST /api/game/verify` — recompute a past outcome from its seed triple
+- [x] `server/src/rng.ts` — HMAC-SHA256 byte stream over `(serverSeed, clientSeed, nonce)` + rejection-sampled `rollInt` (no modulo bias); `hashSeed`/`generateSeed` for the commit-reveal
+- [x] Consume the stream to roll the outcome — `rounds.ts` `rollOutcome` draws depth from the stream now; fish/tier stay the flat placeholders until milestone 3 extends the same stream (`depth → fish → tier`)
+- [x] `POST /api/seed/{current,upcoming,rotate,reveal}` (`server/src/seeds.ts`, `server/src/routes/seed.ts`) — `rotate` 409s (`round_in_progress`) while a round is open; `upcoming` pre-commits the next server seed hash
+- [x] `POST /api/game/verify` — stateless recompute from `{ serverSeed, clientSeed, nonce }` (`server/src/routes/game.ts`); `seed` context now on round detail + history
+- [x] Client helpers + wire types (`src/api/index.ts` `getSeed`/`getUpcomingSeed`/`rotateSeed`/`revealSeed`/`verifyOutcome`, `src/types/api.ts`); `server/openapi.yaml` updated
 
 ### Acceptance Criteria
 
-The client can connect to the Mock Game Server and complete a full round without any client-side outcome generation, and a past round can be re-derived from its revealed seeds.
+The client can connect to the Mock Game Server and complete a full round without any client-side outcome generation, and a past round can be re-derived from its revealed seeds. — **met**: every round's outcome derives from its `(serverSeed, clientSeed, nonce)` triple; `POST /api/game/verify` reproduces it exactly from the seed revealed by `POST /api/seed/rotate` + `reveal`. Covered by `server/src/rng.test.ts` (7 cases — determinism, divergence, unbiased range) and `server/src/routes/seed.test.ts` (8 cases — the current/upcoming/rotate/reveal flow, rotate-blocked-mid-round, and a played round re-derived end-to-end through `verify`).
 
 ---
 

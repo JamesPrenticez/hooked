@@ -50,6 +50,14 @@ export interface FishingOutcome {
 	tier: FishTier;
 }
 
+/** Provably-fair context recorded with a round (ARCHITECTURE.md §36). The raw
+ *  server seed is withheld until it is rotated away and revealed. */
+export interface RoundSeed {
+	serverSeedHash: string;
+	clientSeed: string;
+	nonce: number;
+}
+
 // --- Round play — POST /api/game/play, the { message: { <oneVariant> } } envelope (§5) ---
 
 export interface StartMessage {
@@ -107,6 +115,7 @@ export interface RoundDetailResponse {
 	outcome: FishingOutcome;
 	bets: BetResult[];
 	payout: PayoutResult;
+	seed: RoundSeed;
 }
 
 export interface HistoryEntry {
@@ -114,12 +123,44 @@ export interface HistoryEntry {
 	outcome: FishingOutcome;
 	bets: BetResult[];
 	payout: PayoutResult;
+	seed: RoundSeed;
 	completedAt: string; // ISO-8601
 }
 
 /** GET /api/game/history — full list, no pagination this milestone (§22). */
 export interface HistoryResponse {
 	rounds: HistoryEntry[];
+}
+
+// --- Provably-fair seeds — /api/seed/*, POST /api/game/verify (§36) ---
+
+/** POST /api/seed/current — active seed context. */
+export interface SeedResponse {
+	serverSeedHash: string;
+	clientSeed: string;
+	nonce: number;
+}
+
+/** POST /api/seed/upcoming — hash of the next server seed, active after a rotate. */
+export interface UpcomingSeedResponse {
+	serverSeedHash: string;
+}
+
+/** POST /api/seed/reveal — a rotated-away pair with the server seed disclosed. */
+export interface RevealedSeedResponse {
+	serverSeed: string;
+	serverSeedHash: string;
+	clientSeed: string;
+	nonce: number;
+}
+
+/** POST /api/game/verify — outcome recomputed from a seed triple. Compare it
+ *  to the round's stored outcome; a match is the proof. */
+export interface VerifyResponse {
+	serverSeedHash: string;
+	clientSeed: string;
+	nonce: number;
+	outcome: FishingOutcome;
 }
 
 // --- Dev controls — /api/debug/*, gated by VITE_DEBUG, absent in production (§16/§17) ---
