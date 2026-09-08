@@ -3,6 +3,8 @@
 // wager, generates the outcome now), complete settles it (credits the
 // payout). See docs/BUILD_PLAN.md milestone 1 for the error-code table.
 
+import { config } from "../config.ts";
+import { FISH_IDS } from "../constants.ts";
 import { HttpError, route } from "../http.ts";
 import { toCents } from "../money.ts";
 import { hashSeed } from "../rng.ts";
@@ -22,6 +24,9 @@ import { adjustBalance, requireSession } from "../sessions.ts";
 
 const DEPTH_IDS: DepthId[] = ["shallow", "reef", "deep", "abyss", "trench"];
 
+const MIN_BET_CENTS = toCents(config.minBet);
+const MAX_BET_CENTS = toCents(config.maxBet);
+
 function validateBets(bets: unknown): Bet[] {
 	if (!Array.isArray(bets) || bets.length === 0) {
 		throw new HttpError(400, "invalid_bet", "bets must be a non-empty array");
@@ -31,16 +36,24 @@ function validateBets(bets: unknown): Bet[] {
 		if (bet.type !== "depth" && bet.type !== "fish") {
 			throw new HttpError(400, "invalid_bet", `Unknown bet type: ${String(bet.type)}`);
 		}
-		if (typeof bet.amount !== "string" || !(toCents(bet.amount) > 0)) {
+		const cents = typeof bet.amount === "string" ? toCents(bet.amount) : NaN;
+		if (!(cents > 0)) {
 			throw new HttpError(400, "invalid_bet", `Invalid bet amount: ${String(bet.amount)}`);
+		}
+		if (cents < MIN_BET_CENTS || cents > MAX_BET_CENTS) {
+			throw new HttpError(
+				400,
+				"invalid_bet",
+				`Bet amount ${bet.amount} is outside the ${config.minBet}–${config.maxBet} limit`
+			);
 		}
 		if (bet.type === "depth" && !DEPTH_IDS.includes(bet.selection as DepthId)) {
 			throw new HttpError(400, "invalid_bet", `Unknown depth selection: ${String(bet.selection)}`);
 		}
-		if (bet.type === "fish" && (typeof bet.selection !== "string" || bet.selection.length === 0)) {
-			throw new HttpError(400, "invalid_bet", "Fish bet selection must be a non-empty string");
+		if (bet.type === "fish" && !FISH_IDS.has(bet.selection as string)) {
+			throw new HttpError(400, "invalid_bet", `Unknown fish selection: ${String(bet.selection)}`);
 		}
-		return { type: bet.type, selection: bet.selection as string, amount: bet.amount };
+		return { type: bet.type, selection: bet.selection as string, amount: bet.amount as string };
 	});
 }
 

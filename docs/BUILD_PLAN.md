@@ -243,10 +243,18 @@ tests: `server/src/rounds.test.ts` (roster consistency + branch coverage),
 
 ### 3.2 Betting
 
-- [ ] Validate bets
-- [ ] Validate balance
-- [ ] Lock bets
-- [ ] Prevent modification after lock
+- [x] Validate bets — `server/src/routes/game.ts` `validateBets`: type ∈ {depth,fish}, `depth` selection ∈ the 5 depth ids, `fish` selection ∈ the roster (`constants.ts` `FISH_IDS`, real as of 3.1), amount a positive 2dp decimal string within per-bet stake limits
+- [x] Validate balance — total wager vs `session.balance`, `insufficient_balance` 400 (`routes/game.ts`, unchanged from milestone 1)
+- [x] Lock bets — implicit: `openRound` fixes `bets`+`outcome` together, no edit endpoint
+- [x] Prevent modification after lock — `hasOpenRound` 409s (`round_already_started`) any second `start` until the round completes
+- [x] Per-bet stake limits (ARCHITECTURE.md §13) — `config.minBet`/`config.maxBet` (`DEV_MIN_BET`/`DEV_MAX_BET`, dev defaults `0.10`–`500.00`), enforced in `validateBets`
+
+Lock / prevent-modification were already in place from milestones 1–2 (no
+bet-edit endpoint exists). New work this milestone: fish selections now check
+against the real roster instead of "any non-empty string", and per-bet
+min/max stake limits are enforced. Limit violations reuse the `invalid_bet`
+code (message carries the range). New `game.test.ts` cases: off-roster fish,
+below-min, above-max. Payout is still the flat 2.00x placeholder until 3.3.
 
 ### 3.3 Payout
 

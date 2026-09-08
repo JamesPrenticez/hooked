@@ -553,10 +553,19 @@ components:
       required: [type, selection, amount]
       properties:
         type: { type: string, enum: [depth, fish] }
-        selection: { type: string, example: shallow }
+        selection:
+          type: string
+          description: >
+            A depth id (shallow|reef|deep|abyss|trench) for a `depth` bet, or a
+            fish id from the server roster (server/src/constants.ts) for a `fish`
+            bet. Any other value is rejected as invalid_bet.
+          example: shallow
         amount:
           type: string
-          description: Decimal string, never a float.
+          description: >
+            Decimal string, never a float. Must be within the server's per-bet
+            stake limits (dev defaults 0.10–500.00, DEV_MIN_BET / DEV_MAX_BET);
+            outside that range is rejected as invalid_bet.
           example: "10.00"
     FishingOutcome:
       type: object

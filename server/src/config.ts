@@ -12,6 +12,9 @@ export const config = {
 	// Development wallet — assigned on session creation, reset on server start.
 	currency: process.env.DEV_CURRENCY ?? "USD",
 	startingBalance: process.env.DEV_BALANCE ?? "1000.00",
+	// Per-bet stake limits, enforced server-side on every bet (§13). Decimal strings.
+	minBet: process.env.DEV_MIN_BET ?? "0.10",
+	maxBet: process.env.DEV_MAX_BET ?? "500.00",
 	// Chatty request logging in dev; off in production.
 	logRequests: process.env.NODE_ENV !== "production",
 	// /api/debug/* controls (forced outcomes, resets, latency/error injection).

@@ -61,3 +61,6 @@ export const FISH: FishDef[] = [
 	// Trench — the Kraken, nothing else
 	{ id: "kraken", depth: "trench", tier: "jackpot", weight: 100 }
 ];
+
+/** Valid `selection` values for a `fish` bet — every roster id (§13 bet validation). */
+export const FISH_IDS: ReadonlySet<string> = new Set(FISH.map(f => f.id));

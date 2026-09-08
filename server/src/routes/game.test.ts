@@ -152,23 +152,28 @@ test("round_not_found — unknown id and another session's round", async () => {
 });
 
 test("insufficient_balance — wager exceeds available balance", async () => {
-	const session = await newSession(); // starting balance 1000.00
+	const session = await newSession();
+	await call("POST", "/api/debug/reset-balance", { body: { balance: "1.00" } });
 	const res = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
-		body: startBody([depthBet("shallow", "5000.00")])
+		body: startBody([depthBet("shallow", "50.00")]) // within stake limits, over balance
 	});
 	assert.equal(res.status, 400);
 	assert.equal(res.json.error.code, "insufficient_balance");
+	await call("POST", "/api/debug/reset-balance", { body: {} }); // back to the default for later tests
 });
 
-test("invalid_bet — empty bets, bad type, bad amount, unknown depth selection, empty fish selection", async () => {
+test("invalid_bet — empty bets, bad type, bad amount, unknown selections, stake limits", async () => {
 	const session = await newSession();
 	const cases = [
 		[],
 		[{ type: "coin-flip", selection: "shallow", amount: "5.00" }],
 		[{ type: "depth", selection: "shallow", amount: "5.999" }],
 		[{ type: "depth", selection: "moon", amount: "5.00" }],
-		[{ type: "fish", selection: "", amount: "5.00" }]
+		[{ type: "fish", selection: "", amount: "5.00" }],
+		[{ type: "fish", selection: "mermaid", amount: "5.00" }], // not on the roster
+		[{ type: "depth", selection: "shallow", amount: "0.05" }], // below minBet 0.10
+		[{ type: "depth", selection: "shallow", amount: "999.00" }] // above maxBet 500.00
 	];
 	for (const bets of cases) {
 		const res = await call("POST", "/api/game/play", { token: session.sessionToken, body: startBody(bets) });
