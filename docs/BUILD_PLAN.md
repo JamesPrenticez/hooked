@@ -339,10 +339,24 @@ Make the client operate entirely from authoritative server state.
 
 ### 4.1 Session
 
-- [ ] Initialise session
-- [ ] Store session locally
-- [ ] Restore session
-- [ ] Handle expired session
+- [x] Initialise session — `src/api/index.ts` `initSession()`: adopt a
+      `?sessionToken=` from the launch URL → else restore a persisted token →
+      else `createSession()`; always resolves to `POST /api/game/current`
+      (balance + any resumable round)
+- [x] Store session locally — token persisted to `localStorage`
+      (`deepcatch.sessionToken`) by `setToken`, written on create / adopt /
+      refresh; storage-disabled (private mode) degrades to in-memory only
+- [x] Restore session — `initSession()` reloads the stored token and confirms
+      it with `getCurrent()` before trusting it
+- [x] Handle expired session — any 401 in `request()` clears the stored token
+      (so the next `initSession()` mints fresh) and fires `onSessionExpired`
+      (StoreSync → phase reset, unchanged); a stale restored token falls
+      through to a fresh session, other errors propagate
+
+Not wired into the app yet — the Loading Screen (milestone 5) calls
+`initSession()`. New `src/api/index.test.ts` cases: token persists on create /
+clears on 401, and `initSession` for the adopt / restore / expired-token /
+no-token / non-401-failure paths.
 
 ### 4.2 Balance
 

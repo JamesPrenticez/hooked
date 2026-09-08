@@ -10,6 +10,7 @@ import {
 	getCurrent,
 	getHistory,
 	getRound,
+	initSession,
 	refreshSession,
 	setOnSessionExpired,
 	startRound
@@ -19,7 +20,11 @@ const fetchMock = vi.fn();
 beforeEach(() => {
 	fetchMock.mockReset();
 	vi.stubGlobal("fetch", fetchMock);
+	localStorage.clear();
+	window.history.pushState({}, "", "/");
 });
+
+const bearerOf = (callIndex: number) => (fetchMock.mock.calls[callIndex][1].headers as Headers).get("authorization");
 
 const jsonRes = (status: number, body: unknown) => ({
 	ok: status >= 200 && status < 300,
@@ -137,4 +142,82 @@ it("getHistory requests the history endpoint", async () => {
 	fetchMock.mockResolvedValueOnce(jsonRes(200, { rounds: [] }));
 	expect(await getHistory()).toEqual({ rounds: [] });
 	expect(fetchMock.mock.calls[0][0]).toContain("/api/game/history");
+});
+
+// --- Session lifecycle (BUILD_PLAN §4.1) ---
+
+const current = (body: Partial<Record<string, unknown>> = {}) =>
+	jsonRes(200, { balance: "1000.00", currency: "USD", active: false, ...body });
+
+it("createSession persists the token to localStorage; a 401 clears it", async () => {
+	fetchMock.mockResolvedValueOnce(
+		jsonRes(200, { sessionToken: "tok-1", playerId: "p1", currency: "USD", balance: "1000.00" })
+	);
+	await createSession();
+	expect(localStorage.getItem("deepcatch.sessionToken")).toBe("tok-1");
+
+	fetchMock.mockResolvedValueOnce(jsonRes(401, { error: { code: "invalid_session", message: "nope" } }));
+	await expect(getBalance()).rejects.toThrow("nope");
+	expect(localStorage.getItem("deepcatch.sessionToken")).toBeNull();
+});
+
+it("initSession adopts a launch-URL token and strips it, then reads current state", async () => {
+	window.history.pushState({}, "", "/?sessionToken=url-tok");
+	fetchMock.mockResolvedValueOnce(current());
+
+	const state = await initSession();
+
+	expect(state.balance).toBe("1000.00");
+	expect(window.location.search).toBe("");
+	expect(localStorage.getItem("deepcatch.sessionToken")).toBe("url-tok");
+	expect(fetchMock.mock.calls[0][0]).toContain("/api/game/current");
+	expect(bearerOf(0)).toBe("Bearer url-tok");
+});
+
+it("initSession restores a persisted token without minting a new session", async () => {
+	localStorage.setItem("deepcatch.sessionToken", "stored-tok");
+	fetchMock.mockResolvedValueOnce(current({ active: true, roundId: "r9", bets: [] }));
+
+	const state = await initSession();
+
+	expect(state.roundId).toBe("r9");
+	expect(fetchMock).toHaveBeenCalledOnce();
+	expect(bearerOf(0)).toBe("Bearer stored-tok");
+});
+
+it("initSession mints a fresh session when the persisted token is expired", async () => {
+	localStorage.setItem("deepcatch.sessionToken", "stale-tok");
+	fetchMock
+		.mockResolvedValueOnce(jsonRes(401, { error: { code: "invalid_session", message: "expired" } }))
+		.mockResolvedValueOnce(
+			jsonRes(200, { sessionToken: "fresh-tok", playerId: "p2", currency: "USD", balance: "1000.00" })
+		)
+		.mockResolvedValueOnce(current());
+
+	await initSession();
+
+	expect(fetchMock.mock.calls[1][0]).toContain("/api/session");
+	expect(bearerOf(2)).toBe("Bearer fresh-tok");
+	expect(localStorage.getItem("deepcatch.sessionToken")).toBe("fresh-tok");
+});
+
+it("initSession mints a fresh session when nothing is stored", async () => {
+	fetchMock
+		.mockResolvedValueOnce(
+			jsonRes(200, { sessionToken: "new-tok", playerId: "p3", currency: "USD", balance: "1000.00" })
+		)
+		.mockResolvedValueOnce(current());
+
+	await initSession();
+
+	expect(fetchMock.mock.calls[0][0]).toContain("/api/session");
+	expect(fetchMock.mock.calls[1][0]).toContain("/api/game/current");
+});
+
+it("initSession propagates a non-401 failure while validating a restored token", async () => {
+	localStorage.setItem("deepcatch.sessionToken", "stored-tok");
+	fetchMock.mockResolvedValueOnce(jsonRes(500, { error: { code: "server_error", message: "boom" } }));
+
+	await expect(initSession()).rejects.toThrow("boom");
+	expect(fetchMock).toHaveBeenCalledOnce();
 });

@@ -24,7 +24,31 @@ import type {
 	VerifyResponse
 } from "@/types/api";
 
-let sessionToken: string | null = null;
+// Persisted so a page reload restores the session instead of minting a new one
+// (BUILD_PLAN §4.1). In-memory copy is the source of truth for requests; storage
+// is just the survival mechanism across reloads.
+const TOKEN_KEY = "deepcatch.sessionToken";
+
+function readStoredToken(): string | null {
+	try {
+		return localStorage.getItem(TOKEN_KEY);
+	} catch {
+		return null;
+	}
+}
+
+let sessionToken: string | null = readStoredToken();
+
+function setToken(next: string | null) {
+	sessionToken = next;
+	try {
+		if (next) localStorage.setItem(TOKEN_KEY, next);
+		else localStorage.removeItem(TOKEN_KEY);
+	} catch {
+		// Storage disabled (private mode): the session still works for this
+		// tab, it just won't survive a reload.
+	}
+}
 
 /** Notified when the server rejects our token. Consumed by StoreSync (§7). */
 export let onSessionExpired: (() => void) | null = null;
@@ -57,7 +81,10 @@ async function request<T>(path: string, init: RequestInit = {}, auth = true): Pr
 
 	if (!res.ok) {
 		const err = (data as ErrorBody | null)?.error;
-		if (res.status === 401) onSessionExpired?.();
+		if (res.status === 401) {
+			setToken(null); // stale token — next initSession() mints a fresh one
+			onSessionExpired?.();
+		}
 		throw new ApiError(res.status, err?.code ?? "unknown", err?.message ?? res.statusText);
 	}
 	return data as T;
@@ -65,8 +92,35 @@ async function request<T>(path: string, init: RequestInit = {}, auth = true): Pr
 
 export async function createSession(): Promise<SessionResponse> {
 	const session = await request<SessionResponse>("/api/session", { method: "POST" }, false);
-	sessionToken = session.sessionToken;
+	setToken(session.sessionToken);
 	return session;
+}
+
+/**
+ * Boot-time session bring-up (BUILD_PLAN §4.1). In order: adopt a
+ * `?sessionToken=` from the launch URL; else restore a persisted token and
+ * confirm it still works; else mint a fresh session. Always resolves to the
+ * authoritative current state — balance plus any resumable round (§30).
+ *
+ * Not wired into the app here — the Loading Screen (milestone 5) calls this.
+ */
+export async function initSession(): Promise<CurrentResponse> {
+	if (adoptSessionTokenFromUrl()) return getCurrent();
+
+	const stored = readStoredToken();
+	if (stored) {
+		setToken(stored);
+		try {
+			return await getCurrent();
+		} catch (err) {
+			// A stale token 401s; request() has already cleared it. Anything
+			// else (network, 500) is the caller's to handle.
+			if (!(err instanceof ApiError) || err.status !== 401) throw err;
+		}
+	}
+
+	await createSession();
+	return getCurrent();
 }
 
 /**
@@ -78,7 +132,7 @@ export function adoptSessionTokenFromUrl(): boolean {
 	const url = new URL(window.location.href);
 	const token = url.searchParams.get("sessionToken");
 	if (!token) return false;
-	sessionToken = token;
+	setToken(token);
 	url.searchParams.delete("sessionToken");
 	window.history.replaceState({}, "", url);
 	return true;
@@ -91,7 +145,7 @@ export function adoptSessionTokenFromUrl(): boolean {
  */
 export async function refreshSession(): Promise<SessionResponse> {
 	const session = await request<SessionResponse>("/api/session/refresh", { method: "POST" });
-	sessionToken = session.sessionToken;
+	setToken(session.sessionToken);
 	return session;
 }
 

@@ -1141,6 +1141,10 @@ CLIENT
   it from the address bar.
 - Tokens expire on inactivity. `POST /api/session/refresh` rotates the token;
   each token refreshes at most once. The refresh timer lives in `src/api/index.ts`.
+- The token is persisted to `localStorage` so a reload restores the session
+  instead of minting a new one. `initSession()` is the boot entry point:
+  adopt-from-URL → restore-and-verify → create. A 401 anywhere clears the
+  stored token, so the next `initSession()` starts fresh.
 
 ---
 
