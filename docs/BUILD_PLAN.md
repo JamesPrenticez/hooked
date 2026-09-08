@@ -280,10 +280,16 @@ board; it lands then, mirroring `constants.ts`.
 
 ### 3.4 Balance
 
-- [ ] Deduct wager
-- [ ] Apply payout
-- [ ] Return authoritative balance
-- [ ] Prevent duplicate payout
+- [x] Deduct wager — `routes/game.ts` `start` debits `Σ bet.amount` via `sessions.ts` `adjustBalance(session, -wagered)` after `openRound` succeeds (so a debit never outlives a failed open)
+- [x] Apply payout — `complete` credits `round.payout.total` via `adjustBalance` (`routes/game.ts`), then `settleRound`
+- [x] Return authoritative balance — `GET /api/game/balance` and `POST /api/game/current` return `session.balance`; `/game/play`'s `metadata.balance` stays `"0"` by design (ARCHITECTURE §14 — not authoritative on multi-action responses)
+- [x] Prevent duplicate payout — `complete` 409s (`round_already_completed`) once `round.status === "completed"`; handlers are synchronous start-to-settle so there's no check-then-act gap
+
+Wallet mutation was already wired in milestone 1 and the payout figure went
+real in 3.3 — this milestone's only code change is reordering `start` so
+`openRound` runs before the debit. Covered by existing `game.test.ts` cases
+(balance `990.00` after a `10.00` wager, `1270.00` after the `280.00` shark
+payout; `round_already_completed` on a second `complete`).
 
 ### 3.5 Mathematical Testing
 

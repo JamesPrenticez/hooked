@@ -99,8 +99,10 @@ route("POST", "/api/game/play", ctx => {
 		if (wagered > toCents(session.balance)) {
 			throw new HttpError(400, "insufficient_balance", "Total wager exceeds available balance");
 		}
-		adjustBalance(session, -wagered);
+		// Open the round first, then debit — adjustBalance is pure arithmetic and
+		// can't throw, so the wager is never taken without a round to back it.
 		const round = openRound(session.playerId, bets);
+		adjustBalance(session, -wagered);
 		return { message: toRoundResult(round), roundId: round.roundId };
 	}
 
