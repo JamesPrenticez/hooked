@@ -43,3 +43,22 @@ export function rollInt(stream: Generator<number>, max: number): number {
 		if (v < limit) return v % max;
 	}
 }
+
+/**
+ * Weighted index draw from the stream. `weights[i]` is the relative chance of
+ * returning `i`; they must be non-negative integers with a positive sum
+ * (constants.ts keeps them so). Rolls a uniform int on the weight sum via
+ * rollInt, so it inherits the no-modulo-bias guarantee.
+ */
+export function rollWeighted(stream: Generator<number>, weights: number[]): number {
+	const total = weights.reduce((sum, w) => sum + w, 0);
+	if (weights.length === 0 || !weights.every(w => Number.isInteger(w) && w >= 0) || total < 1) {
+		throw new RangeError("weights must be non-negative integers with a positive sum");
+	}
+	let roll = rollInt(stream, total);
+	for (let i = 0; i < weights.length; i++) {
+		roll -= weights[i];
+		if (roll < 0) return i;
+	}
+	return weights.length - 1; // unreachable: roll started < total === sum(weights)
+}

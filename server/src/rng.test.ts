@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { byteStream, generateSeed, hashSeed, rollInt } from "./rng.ts";
+import { byteStream, generateSeed, hashSeed, rollInt, rollWeighted } from "./rng.ts";
 
 const take = (gen: Generator<number>, n: number) => Array.from({ length: n }, () => gen.next().value);
 
@@ -54,4 +54,26 @@ test("rollInt covers the whole range without wild bias", () => {
 
 test("rollInt rejects a non-positive max", () => {
 	assert.throws(() => rollInt(byteStream("s", "c", 0), 0), RangeError);
+});
+
+test("rollWeighted respects the weights within tolerance", () => {
+	const counts = [0, 0, 0];
+	for (let i = 0; i < 6000; i++) counts[rollWeighted(byteStream("w", "eight", i), [70, 20, 10])]++;
+	// Expectations 4200 / 1200 / 600 — allow a generous ±20%.
+	assert.ok(counts[0] > 3360 && counts[0] < 5040, `bucket0 ${counts[0]}`);
+	assert.ok(counts[1] > 960 && counts[1] < 1440, `bucket1 ${counts[1]}`);
+	assert.ok(counts[2] > 480 && counts[2] < 720, `bucket2 ${counts[2]}`);
+});
+
+test("rollWeighted skips zero-weight buckets and handles a lone bucket", () => {
+	for (let i = 0; i < 300; i++) {
+		assert.equal(rollWeighted(byteStream("z", "ero", i), [0, 5, 0]), 1);
+	}
+	assert.equal(rollWeighted(byteStream("s", "olo", 0), [1]), 0);
+});
+
+test("rollWeighted rejects empty, non-integer or all-zero weights", () => {
+	assert.throws(() => rollWeighted(byteStream("s", "c", 0), []), RangeError);
+	assert.throws(() => rollWeighted(byteStream("s", "c", 0), [1.5, 2]), RangeError);
+	assert.throws(() => rollWeighted(byteStream("s", "c", 0), [0, 0]), RangeError);
 });

@@ -10,9 +10,10 @@
 
 import { randomUUID } from "node:crypto";
 
+import { DEPTH_WEIGHTS, FISH } from "./constants.ts";
 import { getForcedOutcome } from "./debug-state.ts";
 import { fromCents, toCents } from "./money.ts";
-import { byteStream, rollInt } from "./rng.ts";
+import { byteStream, rollWeighted } from "./rng.ts";
 import { consumeNonce } from "./seeds.ts";
 
 export type DepthId = "shallow" | "reef" | "deep" | "abyss" | "trench";
@@ -68,29 +69,31 @@ const openByPlayer = new Map<string, string>(); // playerId -> roundId
 
 const DEPTHS: DepthId[] = ["shallow", "reef", "deep", "abyss", "trench"];
 
-// ponytail: flat placeholder outcome/payout — milestone 3 (Authoritative
-// Server Mathematics) replaces this with the real probability-weighted RNG
-// and payout table (§17, §36). There is no fish roster yet, so a fish bet
-// can only win by matching this literal placeholder name — expected, not a
-// bug, until the real fish list lands.
-const PLACEHOLDER_FISH = "placeholder-fish";
-const PLACEHOLDER_TIER: FishTier = "small";
-const PLACEHOLDER_MULTIPLIER_CENTS = 200; // flat 2.00x on every winning bet
+// ponytail: payout is still a flat 2.00x on every winning bet — the real
+// fish/tier → multiplier table is milestone 3.3. Milestone 3.1 replaced only
+// the outcome roll (rollOutcome below).
+const PLACEHOLDER_MULTIPLIER_CENTS = 200;
 
 /**
- * The pure provably-fair roll (§36) — deterministic in
+ * The pure provably-fair roll (§11, §36) — deterministic in
  * (serverSeed, clientSeed, nonce) and nothing else. POST /api/game/verify
  * recomputes exactly this, so it must never consult debug/force state.
  *
- * ponytail: only depth is drawn from the stream today — there is no fish
- * roster or tier-probability table until milestone 3, so fish/tier are flat
- * placeholders. Milestone 3 extends the same stream in order: depth → fish →
- * tier.
+ * Hierarchy: weighted depth, then a weighted fish from that depth's roster,
+ * then tier is that fish's roster tier (a lookup, not a third roll). Both
+ * rolls pull from the same byte stream, depth first.
  */
 export function rollOutcome(serverSeed: string, clientSeed: string, nonce: number): FishingOutcome {
 	const stream = byteStream(serverSeed, clientSeed, nonce);
-	const depth = DEPTHS[rollInt(stream, DEPTHS.length)];
-	return { depth, fish: PLACEHOLDER_FISH, tier: PLACEHOLDER_TIER };
+
+	const depthWeights = DEPTHS.map(d => DEPTH_WEIGHTS[d]);
+	const depth = DEPTHS[rollWeighted(stream, depthWeights)];
+
+	const roster = FISH.filter(f => f.depth === depth);
+	const fishWeights = roster.map(f => f.weight);
+	const fish = roster[rollWeighted(stream, fishWeights)];
+
+	return { depth, fish: fish.id, tier: fish.tier };
 }
 
 function generateOutcome(serverSeed: string, clientSeed: string, nonce: number): FishingOutcome {

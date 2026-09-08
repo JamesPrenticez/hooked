@@ -15,6 +15,7 @@ import { handle } from "../http.ts";
 import "../routes/operator.ts";
 import "../routes/session.ts";
 import "../routes/game.ts";
+import "../routes/debug.ts";
 
 const base = `http://127.0.0.1:${config.port}`;
 let server: Server;
@@ -56,16 +57,17 @@ const depthBet = (selection: string, amount: string) => ({ type: "depth", select
 const fishBet = (selection: string, amount: string) => ({ type: "fish", selection, amount });
 const startBody = (bets: unknown[]) => ({ message: { start: { bets } } });
 const completeBody = (roundId: string) => ({ message: { complete: { roundId } } });
+const forceOutcome = (body: Record<string, string>) => call("POST", "/api/debug/force-outcome", { body });
 
 test("start debits the wager, complete credits the payout, and both surface in round detail + history", async () => {
 	const session = await newSession();
 
-	// "placeholder-fish" is the fixed placeholder outcome fish (rounds.ts) —
-	// a fish bet on it always wins, giving a deterministic happy path without
-	// dev/force-outcome controls (those land in milestone 2).
+	// Pin the outcome so a fish bet on it is a guaranteed win — a deterministic
+	// happy path that doesn't depend on the weighted roll landing on our fish.
+	await forceOutcome({ fish: "shark" });
 	const start = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
-		body: startBody([fishBet("placeholder-fish", "10.00")])
+		body: startBody([fishBet("shark", "10.00")])
 	});
 	assert.equal(start.status, 200);
 	const roundId = start.json.roundId;
@@ -92,6 +94,8 @@ test("start debits the wager, complete credits the payout, and both surface in r
 	const history = await call("GET", "/api/game/history", { token: session.sessionToken });
 	assert.equal(history.status, 200);
 	assert.ok(history.json.rounds.some((r: { roundId: string }) => r.roundId === roundId));
+
+	await forceOutcome({}); // clear the pin for the rest of the file
 });
 
 test("round_already_started — starting a second round before completing the first", async () => {
@@ -109,7 +113,7 @@ test("round_already_completed — completing a round twice", async () => {
 	const session = await newSession();
 	const { json: start } = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
-		body: startBody([fishBet("placeholder-fish", "5.00")])
+		body: startBody([fishBet("shark", "5.00")])
 	});
 	const first = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
@@ -134,7 +138,7 @@ test("round_not_found — unknown id and another session's round", async () => {
 
 	const { json: startedByA } = await call("POST", "/api/game/play", {
 		token: a.sessionToken,
-		body: startBody([fishBet("placeholder-fish", "5.00")])
+		body: startBody([fishBet("shark", "5.00")])
 	});
 	const foreignComplete = await call("POST", "/api/game/play", {
 		token: b.sessionToken,

@@ -563,7 +563,13 @@ components:
       required: [depth, fish, tier]
       properties:
         depth: { type: string, enum: [shallow, reef, deep, abyss, trench] }
-        fish: { type: string, example: placeholder-fish }
+        fish:
+          type: string
+          description: >
+            A fish id from the server roster (server/src/constants.ts, mirrors
+            docs/GDD.md). Always belongs to `depth`; `tier` is that fish's
+            roster tier, not an independent roll.
+          example: shark
         tier: { type: string, enum: [small, large, epic, legendary, jackpot] }
     BetResult:
       allOf:

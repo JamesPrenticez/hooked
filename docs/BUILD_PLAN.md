@@ -227,11 +227,19 @@ Implement the actual mathematical model on the server.
 
 ### 3.1 Outcome Generation
 
-- [ ] Define depth probabilities
-- [ ] Define fish probabilities
-- [ ] Define outcome hierarchy
-- [ ] Implement RNG
-- [ ] Generate server-side outcome
+- [x] Define depth probabilities (`server/src/constants.ts` `DEPTH_WEIGHTS`)
+- [x] Define fish probabilities (`server/src/constants.ts` `FISH[].weight`, relative within each depth)
+- [x] Define outcome hierarchy — weighted depth → weighted fish in that depth → tier is the fish's roster tier (a lookup, not a roll) (`server/src/rounds.ts` `rollOutcome`)
+- [x] Implement RNG — `server/src/rng.ts` `rollWeighted` (uniform int on the weight sum via `rollInt`, so no modulo bias), drawn from the existing provably-fair `byteStream`
+- [x] Generate server-side outcome — `rollOutcome` consumes the seed stream (depth then fish); forced-outcome overlay unchanged; `POST /api/game/verify` re-derives it
+
+Fish roster is `docs/GDD.md` FISH_GUIDE with its 8 `tierId`s folded onto the
+wire's 5 (`junk→small`, `medium→large`, `rare→epic`). Probability weights are a
+first pass — the structure is final, the values get tuned to the 96% RTP target
+in 3.5 alongside the 3.3 payout table. Payout is still the flat 2.00x
+placeholder (`rounds.ts` `PLACEHOLDER_MULTIPLIER_CENTS`) until 3.3. New unit
+tests: `server/src/rounds.test.ts` (roster consistency + branch coverage),
+`rollWeighted` cases in `server/src/rng.test.ts`.
 
 ### 3.2 Betting
 

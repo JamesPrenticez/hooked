@@ -80,15 +80,13 @@ test("upcoming is a different commitment from the active server seed", async () 
 test("each round consumes the next nonce and records the seed context", async () => {
 	const token = await newSession();
 
-	const r1 = (await call("POST", "/api/game/play", { token, body: startBody([fishBet("placeholder-fish", "1.00")]) }))
-		.json;
+	const r1 = (await call("POST", "/api/game/play", { token, body: startBody([fishBet("shark", "1.00")]) })).json;
 	await call("POST", "/api/game/play", { token, body: completeBody(r1.roundId) });
 	const detail1 = (await call("GET", `/api/game/round/${r1.roundId}`, { token })).json;
 	assert.equal(detail1.seed.nonce, 0);
 	assert.match(detail1.seed.serverSeedHash, /^[0-9a-f]{64}$/);
 
-	const r2 = (await call("POST", "/api/game/play", { token, body: startBody([fishBet("placeholder-fish", "1.00")]) }))
-		.json;
+	const r2 = (await call("POST", "/api/game/play", { token, body: startBody([fishBet("shark", "1.00")]) })).json;
 	await call("POST", "/api/game/play", { token, body: completeBody(r2.roundId) });
 	const detail2 = (await call("GET", `/api/game/round/${r2.roundId}`, { token })).json;
 	assert.equal(detail2.seed.nonce, 1);
@@ -121,9 +119,7 @@ test("rotate reveals the old seed (hash matches), pre-commit becomes active, non
 
 test("rotate is blocked while a round is open", async () => {
 	const token = await newSession();
-	const round = (
-		await call("POST", "/api/game/play", { token, body: startBody([fishBet("placeholder-fish", "1.00")]) })
-	).json;
+	const round = (await call("POST", "/api/game/play", { token, body: startBody([fishBet("shark", "1.00")]) })).json;
 
 	const blocked = await call("POST", "/api/seed/rotate", { token });
 	assert.equal(blocked.status, 409);
@@ -136,9 +132,7 @@ test("rotate is blocked while a round is open", async () => {
 test("verify re-derives a past round's outcome from its revealed seed triple", async () => {
 	const token = await newSession();
 
-	const round = (
-		await call("POST", "/api/game/play", { token, body: startBody([fishBet("placeholder-fish", "1.00")]) })
-	).json;
+	const round = (await call("POST", "/api/game/play", { token, body: startBody([fishBet("shark", "1.00")]) })).json;
 	await call("POST", "/api/game/play", { token, body: completeBody(round.roundId) });
 	const detail = (await call("GET", `/api/game/round/${round.roundId}`, { token })).json;
 
