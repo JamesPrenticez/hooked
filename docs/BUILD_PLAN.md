@@ -387,11 +387,26 @@ board (§8) needs it.
 
 ### 4.3 Round Synchronisation
 
-- [ ] Receive round ID
-- [ ] Receive locked bets
-- [ ] Receive outcome
-- [ ] Receive payout
-- [ ] Receive final balance
+- [x] Receive round ID — `src/stores/roundStore.ts`: `RoundSnapshot.roundId`,
+      mirrored verbatim from the server's round response
+- [x] Receive locked bets — `RoundSnapshot.bets` (`BetResult[]`, as locked and
+      resolved server-side — §9 LOCK BETS → RESOLVE BETS)
+- [x] Receive outcome — `RoundSnapshot.outcome` (`FishingOutcome`); the client
+      never rolls it (Rule 2), only presents from it (§12)
+- [x] Receive payout — `RoundSnapshot.payout` (`PayoutResult`); never computed
+      client-side (Rule 3 / §15)
+- [x] Receive final balance — through `balanceStore` (§4.2), not this store:
+      `metadata.balance` on a round response is always `"0"` (§14), so the
+      post-settle figure comes from `getBalance()` → `setBalance()`
+
+`src/stores/roundStore.ts` is the round counterpart to §4.2's `balanceStore` —
+a verbatim mirror of the authoritative round the client presents from, with one
+whole-replacement mutator (`setRound`) and a `clearRound` for returning to
+BETTING (§18). No derived state: outcome, payout and status are the server's
+word. Built as a unit with unit coverage (`roundStore.test.ts`); nothing calls
+`setRound` in the running app yet — the feed wires in with the betting
+controller (milestone 8), and the resume path (`getCurrent` → `getRound` →
+`setRound`) is §4.4. No e2e: no interaction and no data until then.
 
 ### 4.4 Failure Recovery
 
