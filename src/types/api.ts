@@ -88,6 +88,8 @@ export interface PayoutResult {
 	total: string;
 	/** Decimal string — sum of bet amounts; what `start` already debited. */
 	wagered: string;
+	/** Decimal string — `total` − `wagered`; negative (leading "-") on a losing round. */
+	net: string;
 }
 
 export interface RoundResult {

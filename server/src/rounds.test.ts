@@ -1,15 +1,16 @@
 // Run: pnpm test:server  (node --test, no framework)
 //
-// Pure unit tests for outcome generation (BUILD_PLAN 3.1). No HTTP, no state —
-// rollOutcome is deterministic in its seed triple. The heavy RTP / frequency
-// simulation is milestone 3.5; this proves the hierarchy holds and the weighted
-// roll reaches every branch.
+// Pure unit tests for outcome generation (BUILD_PLAN 3.1) and payout resolution
+// (BUILD_PLAN 3.3). No HTTP, no state — rollOutcome is deterministic in its seed
+// triple and resolveBet is a pure (bet, outcome) → result. The heavy RTP /
+// frequency simulation is milestone 3.5; this proves the hierarchy holds, the
+// weighted roll reaches every branch, and each bet pays its table multiplier.
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { FISH } from "./constants.ts";
-import { rollOutcome } from "./rounds.ts";
+import { DEPTH_MULTIPLIERS, FISH } from "./constants.ts";
+import { type FishingOutcome, resolveBet, rollOutcome } from "./rounds.ts";
 
 const depthOf = new Map(FISH.map(f => [f.id, f.depth]));
 const tierOf = new Map(FISH.map(f => [f.id, f.tier]));
@@ -52,4 +53,42 @@ test("common depths outrank rare ones at the first-pass weights", () => {
 	assert.ok(count.reef > count.deep, `reef ${count.reef} !> deep ${count.deep}`);
 	assert.ok(count.deep > count.abyss, `deep ${count.deep} !> abyss ${count.abyss}`);
 	assert.ok(count.abyss > count.trench, `abyss ${count.abyss} !> trench ${count.trench}`);
+});
+
+// --- Payout resolution (BUILD_PLAN 3.3) ---
+
+const OUTCOME: FishingOutcome = { depth: "deep", fish: "shark", tier: "epic" };
+
+test("resolveBet — depth bet pays DEPTH_MULTIPLIERS on a hit, zero on a miss", () => {
+	const hit = resolveBet({ type: "depth", selection: "deep", amount: "10.00" }, OUTCOME);
+	assert.equal(hit.won, true);
+	assert.equal(hit.multiplier, "5.60"); // DEPTH_MULTIPLIERS.deep = 5.6
+	assert.equal(hit.payout, "56.00"); // 10.00 × 5.6
+
+	const miss = resolveBet({ type: "depth", selection: "shallow", amount: "10.00" }, OUTCOME);
+	assert.equal(miss.won, false);
+	assert.equal(miss.payout, "0.00");
+	assert.equal(miss.multiplier, "2.10"); // still reports what it would have paid
+});
+
+test("resolveBet — fish bet pays the roster multiplier on a hit, zero on a miss", () => {
+	const hit = resolveBet({ type: "fish", selection: "shark", amount: "4.00" }, OUTCOME);
+	assert.equal(hit.won, true);
+	assert.equal(hit.multiplier, "28.00"); // FISH shark multiplier
+	assert.equal(hit.payout, "112.00"); // 4.00 × 28
+
+	const miss = resolveBet({ type: "fish", selection: "whale", amount: "4.00" }, OUTCOME);
+	assert.equal(miss.won, false);
+	assert.equal(miss.payout, "0.00");
+});
+
+test("resolveBet — fractional multiplier and odd stake round to whole cents", () => {
+	// sardine ×8.5 on 3.33 = 28.305 → 28.31 (banker-free Math.round, half up)
+	const r = resolveBet({ type: "fish", selection: "sardine", amount: "3.33" }, { ...OUTCOME, fish: "sardine" });
+	assert.equal(r.payout, "28.31");
+});
+
+test("every depth id and every fish id has a payout multiplier above 1x", () => {
+	for (const [depth, m] of Object.entries(DEPTH_MULTIPLIERS)) assert.ok(m > 1, `${depth} multiplier ${m}`);
+	for (const f of FISH) assert.ok(f.multiplier > 1, `${f.id} multiplier ${f.multiplier}`);
 });

@@ -258,11 +258,25 @@ below-min, above-max. Payout is still the flat 2.00x placeholder until 3.3.
 
 ### 3.3 Payout
 
-- [ ] Resolve depth bets
-- [ ] Resolve fish bets
-- [ ] Support multiple simultaneous bets
-- [ ] Calculate total payout
-- [ ] Calculate net result
+- [x] Resolve depth bets — `rounds.ts` `resolveBet`: win on `selection === outcome.depth`, pays `amount × DEPTH_MULTIPLIERS[selection]` (`constants.ts`)
+- [x] Resolve fish bets — same function, win on `selection === outcome.fish`, pays `amount × FISH[].multiplier` (per-fish, not per-tier — same-tier fish have different weights so a per-tier multiplier would skew their EV)
+- [x] Support multiple simultaneous bets — `openRound` maps `resolveBet` over every bet against the one outcome; each resolves independently (a depth + fish bet can both win)
+- [x] Calculate total payout — sum of winning bets' payouts (`PayoutResult.total`), what `complete` credits
+- [x] Calculate net result — `PayoutResult.net` = `total − wagered`, negative (leading `-`) on a losing round
+
+Replaces the flat 2.00x `PLACEHOLDER_MULTIPLIER_CENTS`. Multipliers are a
+first pass at ≈ `0.96 / P(selection)` — the **structure** (fixed table
+multiplier per selection, depth table + per-fish column in `constants.ts`) is
+final; the numbers get tuned with the probability weights to the 96% RTP
+target in 3.5. `resolveBet` is now exported and pure — new
+`server/src/rounds.test.ts` cases (depth/fish hit + miss, fractional
+multiplier rounding, every-selection-pays-above-1x); new `game.test.ts` cases
+(three simultaneous bets on one outcome, negative net on a loss); the
+existing flat-2x happy-path assertions updated to the real shark ×28.
+`src/types/api.ts` `PayoutResult.net` + `server/openapi.yaml` updated. The
+client paytable mirror (`src/utils/game-math.ts`, ARCHITECTURE §37) is **not**
+created yet — no paytable UI consumes it until milestone 21 / the betting
+board; it lands then, mirroring `constants.ts`.
 
 ### 3.4 Balance
 

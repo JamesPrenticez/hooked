@@ -10,7 +10,7 @@
 
 import { randomUUID } from "node:crypto";
 
-import { DEPTH_WEIGHTS, FISH } from "./constants.ts";
+import { DEPTH_MULTIPLIERS, DEPTH_WEIGHTS, FISH } from "./constants.ts";
 import { getForcedOutcome } from "./debug-state.ts";
 import { fromCents, toCents } from "./money.ts";
 import { byteStream, rollWeighted } from "./rng.ts";
@@ -41,6 +41,8 @@ export interface BetResult extends Bet {
 export interface PayoutResult {
 	total: string;
 	wagered: string;
+	/** total − wagered; negative on a losing round. */
+	net: string;
 }
 
 /** Provably-fair context for one round (§36). The raw server seed is not
@@ -69,10 +71,18 @@ const openByPlayer = new Map<string, string>(); // playerId -> roundId
 
 const DEPTHS: DepthId[] = ["shallow", "reef", "deep", "abyss", "trench"];
 
-// ponytail: payout is still a flat 2.00x on every winning bet — the real
-// fish/tier → multiplier table is milestone 3.3. Milestone 3.1 replaced only
-// the outcome roll (rollOutcome below).
-const PLACEHOLDER_MULTIPLIER_CENTS = 200;
+const multiplierByFish = new Map(FISH.map(f => [f.id, f.multiplier]));
+
+/** Table payout multiplier for a bet's selection (§15, §37) — depth bets read
+ *  DEPTH_MULTIPLIERS, fish bets the roster. Independent of whether it won, so a
+ *  losing bet still reports what it would have paid. 0 for a selection off the
+ *  tables (validateBets rejects those before a real round; keeps unit-tested
+ *  resolveBet from returning NaN into the wallet). */
+function multiplierFor(bet: Bet): number {
+	const table =
+		bet.type === "depth" ? DEPTH_MULTIPLIERS[bet.selection as DepthId] : multiplierByFish.get(bet.selection);
+	return table ?? 0;
+}
 
 /**
  * The pure provably-fair roll (§11, §36) — deterministic in
@@ -109,10 +119,13 @@ function generateOutcome(serverSeed: string, clientSeed: string, nonce: number):
 	};
 }
 
-function resolveBet(bet: Bet, outcome: FishingOutcome): BetResult {
+/** Resolve one bet against the authoritative outcome (§15). Pure — exported for
+ *  unit tests; the round path calls it via openRound. */
+export function resolveBet(bet: Bet, outcome: FishingOutcome): BetResult {
 	const won = bet.type === "depth" ? bet.selection === outcome.depth : bet.selection === outcome.fish;
-	const payoutCents = won ? Math.round((toCents(bet.amount) * PLACEHOLDER_MULTIPLIER_CENTS) / 100) : 0;
-	return { ...bet, won, multiplier: fromCents(PLACEHOLDER_MULTIPLIER_CENTS), payout: fromCents(payoutCents) };
+	const multiplier = multiplierFor(bet);
+	const payoutCents = won ? Math.round(toCents(bet.amount) * multiplier) : 0;
+	return { ...bet, won, multiplier: fromCents(Math.round(multiplier * 100)), payout: fromCents(payoutCents) };
 }
 
 export function hasOpenRound(playerId: string): boolean {
@@ -142,7 +155,7 @@ export function openRound(playerId: string, bets: Bet[]): Round {
 		bets,
 		outcome,
 		betResults,
-		payout: { total: fromCents(total), wagered: fromCents(wagered) },
+		payout: { total: fromCents(total), wagered: fromCents(wagered), net: fromCents(total - wagered) },
 		seed: { serverSeedHash: seed.serverSeedHash, clientSeed: seed.clientSeed, nonce: seed.nonce },
 		createdAt: Date.now()
 	};

@@ -587,23 +587,33 @@ components:
           required: [won, multiplier, payout]
           properties:
             won: { type: boolean }
-            multiplier: { type: string, example: "2.00" }
+            multiplier:
+              type: string
+              description: >
+                The selection's fixed table multiplier (depth bets from
+                DEPTH_MULTIPLIERS, fish bets from the roster). Reported even when
+                the bet lost — it is what the bet would have paid.
+              example: "28.00"
             payout:
               type: string
-              description: Zero emitted, not omitted, when the bet lost.
+              description: amount × multiplier on a win; zero (emitted, not omitted) on a loss.
               example: "0.00"
     PayoutResult:
       type: object
-      required: [total, wagered]
+      required: [total, wagered, net]
       properties:
         total:
           type: string
           description: Sum of winning bets' payouts — what complete credits to balance.
-          example: "20.00"
+          example: "280.00"
         wagered:
           type: string
           description: Sum of bet amounts — what start already debited.
           example: "10.00"
+        net:
+          type: string
+          description: total − wagered; negative (leading "-") on a losing round.
+          example: "270.00"
     RoundResult:
       type: object
       required: [roundId, outcome, bets, payout, metadata]

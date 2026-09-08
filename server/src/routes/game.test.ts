@@ -73,7 +73,8 @@ test("start debits the wager, complete credits the payout, and both surface in r
 	const roundId = start.json.roundId;
 	assert.equal(start.json.message.roundId, roundId);
 	assert.equal(start.json.message.payout.wagered, "10.00");
-	assert.equal(start.json.message.payout.total, "20.00"); // flat 2.00x placeholder multiplier
+	assert.equal(start.json.message.payout.total, "280.00"); // shark ×28.00 (server/src/constants.ts)
+	assert.equal(start.json.message.payout.net, "270.00"); // 280.00 − 10.00
 	assert.equal(start.json.message.bets[0].won, true);
 	assert.equal(start.json.message.metadata.balance, "0"); // not authoritative (§14)
 
@@ -82,10 +83,10 @@ test("start debits the wager, complete credits the payout, and both surface in r
 
 	const complete = await call("POST", "/api/game/play", { token: session.sessionToken, body: completeBody(roundId) });
 	assert.equal(complete.status, 200);
-	assert.equal(complete.json.message.payout.total, "20.00");
+	assert.equal(complete.json.message.payout.total, "280.00");
 
 	const afterComplete = await call("GET", "/api/game/balance", { token: session.sessionToken });
-	assert.equal(afterComplete.json.balance, "1010.00");
+	assert.equal(afterComplete.json.balance, "1270.00"); // 990.00 + 280.00
 
 	const detail = await call("GET", `/api/game/round/${roundId}`, { token: session.sessionToken });
 	assert.equal(detail.status, 200);
@@ -96,6 +97,42 @@ test("start debits the wager, complete credits the payout, and both surface in r
 	assert.ok(history.json.rounds.some((r: { roundId: string }) => r.roundId === roundId));
 
 	await forceOutcome({}); // clear the pin for the rest of the file
+});
+
+test("multiple simultaneous bets resolve independently against one outcome (BUILD_PLAN 3.3)", async () => {
+	const session = await newSession();
+	await forceOutcome({ depth: "deep", fish: "shark", tier: "epic" });
+
+	// Three bets on one outcome: depth hit (deep ×5.6), fish hit (shark ×28),
+	// fish miss (whale). Total = 56 + 280 + 0, wagered 30, net = 306.
+	const start = await call("POST", "/api/game/play", {
+		token: session.sessionToken,
+		body: startBody([depthBet("deep", "10.00"), fishBet("shark", "10.00"), fishBet("whale", "10.00")])
+	});
+	assert.equal(start.status, 200);
+	const [depthRes, sharkRes, whaleRes] = start.json.message.bets;
+	assert.deepEqual([depthRes.won, sharkRes.won, whaleRes.won], [true, true, false]);
+	assert.equal(depthRes.payout, "56.00");
+	assert.equal(sharkRes.payout, "280.00");
+	assert.equal(whaleRes.payout, "0.00");
+	assert.equal(start.json.message.payout.total, "336.00");
+	assert.equal(start.json.message.payout.wagered, "30.00");
+	assert.equal(start.json.message.payout.net, "306.00");
+
+	await forceOutcome({});
+});
+
+test("a losing round reports a negative net", async () => {
+	const session = await newSession();
+	await forceOutcome({ depth: "trench", fish: "kraken", tier: "jackpot" });
+	const start = await call("POST", "/api/game/play", {
+		token: session.sessionToken,
+		body: startBody([depthBet("shallow", "5.00")])
+	});
+	assert.equal(start.json.message.bets[0].won, false);
+	assert.equal(start.json.message.payout.total, "0.00");
+	assert.equal(start.json.message.payout.net, "-5.00");
+	await forceOutcome({});
 });
 
 test("round_already_started — starting a second round before completing the first", async () => {
