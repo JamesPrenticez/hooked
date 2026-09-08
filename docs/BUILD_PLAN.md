@@ -360,10 +360,30 @@ no-token / non-401-failure paths.
 
 ### 4.2 Balance
 
-- [ ] Receive server balance
-- [ ] Display balance
-- [ ] Animate balance changes
-- [ ] Never locally calculate authoritative balance
+- [x] Receive server balance — `src/stores/balanceStore.ts`: holds
+      `balance` + `currency`, both verbatim from a server response. Its only
+      mutator is `setBalance(balance, currency)` (whoever holds a
+      `CurrentResponse`/`BalanceResponse`/settled round calls it)
+- [x] Display balance — `src/components/Balance/`: HTML overlay (sibling of
+      `<Application>`, §38), mounted for the `game` phase in `App.tsx`. Reads
+      the store, formats with `Intl.NumberFormat`, renders nothing until the
+      first figure arrives
+- [x] Animate balance changes — `src/hooks/useAnimatedNumber.ts`: rAF cubic
+      ease-out (~600ms) toward the changing target, retargeting from the
+      on-screen value; renderer-free like `useCrossfade` (Rule 11).
+      `tabular-nums` keeps the digits from jittering mid-count
+- [x] Never locally calculate authoritative balance — the store has **no**
+      delta/adjust action, only whole replacement; `Number()` in `Balance`
+      is display-only and never fed back to the wire (Rule 3 / 6b)
+
+Built as a unit with full unit coverage (`balanceStore.test.ts`,
+`useAnimatedNumber.test.ts`, `Balance.test.tsx`) — nothing calls `setBalance`
+in the running app yet, so the display stays dormant. The feed wires in at
+milestone 5 (`initSession()` → `setBalance`), the same way §4.1 left
+`initSession()` unwired for milestone 5. Round-driven debit/credit is §4.3.
+No e2e: display-only, no interaction and no data until milestone 5. Skipped a
+shared `formatMoney` util — one consumer today; extract when the betting
+board (§8) needs it.
 
 ### 4.3 Round Synchronisation
 
