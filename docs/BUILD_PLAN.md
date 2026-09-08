@@ -410,11 +410,38 @@ controller (milestone 8), and the resume path (`getCurrent` → `getRound` →
 
 ### 4.4 Failure Recovery
 
-- [ ] Reconnect
-- [ ] Recover active round
-- [ ] Recover completed round
-- [ ] Handle interrupted animation
-- [ ] Prevent duplicate requests
+- [x] Reconnect — `src/components/system/roundRecovery.ts` `recoverFromServer()`:
+      re-pulls authoritative state via `getCurrent()` and makes the stores
+      match it; takes the `CurrentResponse` from `initSession()` on boot to
+      skip a round-trip, fetches its own on a bare reconnect. `onSessionExpired`
+      (StoreSync) → phase reset is the trigger side, unchanged
+- [x] Recover active round — `getCurrent()` reports `active` → `getRound(id)`
+      for full detail → `setRound()` with `status: "open"`; the presenting
+      round's id is persisted (`deepcatch.roundId`, mirrors the session-token
+      pattern in `src/api/index.ts`)
+- [x] Recover completed round — a persisted `deepcatch.roundId` that
+      `getCurrent()` no longer reports as active → `getRound(id)`; if it settled
+      while the client was away (`status === "completed"`) it still loads into
+      `roundStore` so the win isn't silently dropped
+- [x] Handle interrupted animation — the resumed `RoundSnapshot.status` is the
+      signal: `"open"` → play the fishing sequence out, `"completed"` → jump to
+      payout. The presentation that reads it lands with §18; §4.4 carries the
+      status through
+- [x] Prevent duplicate requests — `src/api/index.ts`: `startRound` /
+      `completeRound` route through one `play()` guarded by an in-flight flag,
+      so a double-click or retry storm can't fire a second wager or completion
+      (server still 409s duplicates — §31; this stops the request leaving the
+      client)
+
+`recoverFromServer()` and `setInflightRoundId()` sit in `roundRecovery.ts`
+beside `StoreSync.tsx` — the same "no store imports `@/api`" layer (§7/§39),
+split only so `StoreSync.tsx` stays component-only for fast-refresh. Nothing
+calls `recoverFromServer()` in the running app yet — the Loading Screen wires
+it after `initSession()` (milestone 5), and the betting controller calls
+`setInflightRoundId()` when it opens a round (milestone 8). Unit coverage:
+`roundRecovery.test.ts` (active / settled-while-away / stale-id / bare
+reconnect), plus the in-flight-guard case in `src/api/index.test.ts`. No e2e:
+no interaction and no data until milestone 5.
 
 ### Acceptance Criteria
 

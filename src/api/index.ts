@@ -14,6 +14,7 @@ import type {
 	ErrorBody,
 	ForcedOutcome,
 	HistoryResponse,
+	PlayMessage,
 	PlayResponse,
 	RevealedSeedResponse,
 	RoundDetailResponse,
@@ -157,20 +158,33 @@ export function getCurrent(): Promise<CurrentResponse> {
 	return request<CurrentResponse>("/api/game/current", { method: "POST" });
 }
 
-export async function startRound(bets: Bet[]): Promise<RoundResult> {
-	const res = await request<PlayResponse>("/api/game/play", {
-		method: "POST",
-		body: JSON.stringify({ message: { start: { bets } } })
-	});
-	return res.message;
+// One /api/game/play request at a time (§31, BUILD_PLAN §4.4) — a double-click
+// or a retry storm must not fire a second wager or a second completion. The
+// server 409s duplicates anyway; this stops the request ever leaving the client.
+// ponytail: single in-process flag, not keyed by roundId — a client only ever
+// has one play call outstanding. Key it if that stops being true.
+let playInFlight = false;
+
+async function play(message: PlayMessage): Promise<RoundResult> {
+	if (playInFlight) throw new ApiError(0, "request_in_flight", "A play request is already in flight");
+	playInFlight = true;
+	try {
+		const res = await request<PlayResponse>("/api/game/play", {
+			method: "POST",
+			body: JSON.stringify({ message })
+		});
+		return res.message;
+	} finally {
+		playInFlight = false;
+	}
 }
 
-export async function completeRound(roundId: string): Promise<RoundResult> {
-	const res = await request<PlayResponse>("/api/game/play", {
-		method: "POST",
-		body: JSON.stringify({ message: { complete: { roundId } } })
-	});
-	return res.message;
+export function startRound(bets: Bet[]): Promise<RoundResult> {
+	return play({ start: { bets } });
+}
+
+export function completeRound(roundId: string): Promise<RoundResult> {
+	return play({ complete: { roundId } });
 }
 
 /** Full detail for one round — including a still-open one (§30; unlike getCurrent()). */

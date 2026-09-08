@@ -123,6 +123,28 @@ it("completeRound wraps the roundId in the complete envelope", async () => {
 	expect(JSON.parse(init.body as string)).toEqual({ message: { complete: { roundId: "r1" } } });
 });
 
+it("a second play call is rejected while the first is still in flight (§4.4)", async () => {
+	let release!: (v: unknown) => void;
+	fetchMock.mockImplementationOnce(() => new Promise(r => (release = r)));
+
+	const first = startRound([{ type: "depth", selection: "shallow", amount: "5.00" }]);
+	await expect(completeRound("r1")).rejects.toMatchObject({ code: "request_in_flight" });
+
+	release(
+		jsonRes(200, {
+			roundId: "r1",
+			message: { roundId: "r1", outcome: {}, bets: [], payout: {}, metadata: { balance: "0" } }
+		})
+	);
+	await first;
+	expect(fetchMock).toHaveBeenCalledOnce();
+
+	// lock released — a later call goes through
+	fetchMock.mockResolvedValueOnce(jsonRes(200, { roundId: "r1", message: { roundId: "r1" } }));
+	await completeRound("r1");
+	expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
 it("getRound requests the round detail endpoint", async () => {
 	fetchMock.mockResolvedValueOnce(
 		jsonRes(200, {
