@@ -593,7 +593,7 @@ components:
                 The selection's fixed table multiplier (depth bets from
                 DEPTH_MULTIPLIERS, fish bets from the roster). Reported even when
                 the bet lost — it is what the bet would have paid.
-              example: "28.00"
+              example: "28.24"
             payout:
               type: string
               description: amount × multiplier on a win; zero (emitted, not omitted) on a loss.
@@ -605,7 +605,7 @@ components:
         total:
           type: string
           description: Sum of winning bets' payouts — what complete credits to balance.
-          example: "280.00"
+          example: "282.40"
         wagered:
           type: string
           description: Sum of bet amounts — what start already debited.
@@ -613,7 +613,7 @@ components:
         net:
           type: string
           description: total − wagered; negative (leading "-") on a losing round.
-          example: "270.00"
+          example: "272.40"
     RoundResult:
       type: object
       required: [roundId, outcome, bets, payout, metadata]

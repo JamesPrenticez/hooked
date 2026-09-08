@@ -73,8 +73,8 @@ test("start debits the wager, complete credits the payout, and both surface in r
 	const roundId = start.json.roundId;
 	assert.equal(start.json.message.roundId, roundId);
 	assert.equal(start.json.message.payout.wagered, "10.00");
-	assert.equal(start.json.message.payout.total, "280.00"); // shark ×28.00 (server/src/constants.ts)
-	assert.equal(start.json.message.payout.net, "270.00"); // 280.00 − 10.00
+	assert.equal(start.json.message.payout.total, "282.40"); // shark ×28.24 (server/src/constants.ts)
+	assert.equal(start.json.message.payout.net, "272.40"); // 282.40 − 10.00
 	assert.equal(start.json.message.bets[0].won, true);
 	assert.equal(start.json.message.metadata.balance, "0"); // not authoritative (§14)
 
@@ -83,10 +83,10 @@ test("start debits the wager, complete credits the payout, and both surface in r
 
 	const complete = await call("POST", "/api/game/play", { token: session.sessionToken, body: completeBody(roundId) });
 	assert.equal(complete.status, 200);
-	assert.equal(complete.json.message.payout.total, "280.00");
+	assert.equal(complete.json.message.payout.total, "282.40");
 
 	const afterComplete = await call("GET", "/api/game/balance", { token: session.sessionToken });
-	assert.equal(afterComplete.json.balance, "1270.00"); // 990.00 + 280.00
+	assert.equal(afterComplete.json.balance, "1272.40"); // 990.00 + 282.40
 
 	const detail = await call("GET", `/api/game/round/${roundId}`, { token: session.sessionToken });
 	assert.equal(detail.status, 200);
@@ -103,8 +103,8 @@ test("multiple simultaneous bets resolve independently against one outcome (BUIL
 	const session = await newSession();
 	await forceOutcome({ depth: "deep", fish: "shark", tier: "epic" });
 
-	// Three bets on one outcome: depth hit (deep ×5.6), fish hit (shark ×28),
-	// fish miss (whale). Total = 56 + 280 + 0, wagered 30, net = 306.
+	// Three bets on one outcome: depth hit (deep ×5.65), fish hit (shark ×28.24),
+	// fish miss (whale). Total = 56.50 + 282.40 + 0, wagered 30, net = 308.90.
 	const start = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
 		body: startBody([depthBet("deep", "10.00"), fishBet("shark", "10.00"), fishBet("whale", "10.00")])
@@ -112,12 +112,12 @@ test("multiple simultaneous bets resolve independently against one outcome (BUIL
 	assert.equal(start.status, 200);
 	const [depthRes, sharkRes, whaleRes] = start.json.message.bets;
 	assert.deepEqual([depthRes.won, sharkRes.won, whaleRes.won], [true, true, false]);
-	assert.equal(depthRes.payout, "56.00");
-	assert.equal(sharkRes.payout, "280.00");
+	assert.equal(depthRes.payout, "56.50");
+	assert.equal(sharkRes.payout, "282.40");
 	assert.equal(whaleRes.payout, "0.00");
-	assert.equal(start.json.message.payout.total, "336.00");
+	assert.equal(start.json.message.payout.total, "338.90");
 	assert.equal(start.json.message.payout.wagered, "30.00");
-	assert.equal(start.json.message.payout.net, "306.00");
+	assert.equal(start.json.message.payout.net, "308.90");
 
 	await forceOutcome({});
 });

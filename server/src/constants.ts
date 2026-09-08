@@ -21,14 +21,17 @@ export interface FishDef {
 	multiplier: number;
 }
 
-// ponytail: first-pass probability weights AND payout multipliers. The
-// structure — weighted depth, then a weighted fish within that depth, each
-// selection paying a fixed table multiplier — is final; the numbers are not.
-// Milestone 3.5 runs the RTP simulation and tunes weights + multipliers
-// together to the GDD's 96% target. Weights are relative, not percentages; the
-// roller sums and normalises them. A weight of 0 disables a branch without
-// deleting it. Multipliers here are ≈ 0.96 / P(selection) — a rough single-bet
-// break-even, deliberately un-tuned until the simulation lands.
+// Structure — weighted depth, then a weighted fish within that depth, each
+// selection paying a fixed table multiplier — is final. Weights are relative,
+// not percentages; the roller sums and normalises them. A weight of 0 disables
+// a branch without deleting it.
+//
+// Multipliers are tuned (BUILD_PLAN 3.5): each is 0.96 / P(selection) rounded
+// to 2dp, so every single selection returns ~96% (the GDD RTP target) on its
+// own, and any mix of bets does too — bets resolve independently against the
+// one outcome, so the blended RTP is just the stake-weighted average. Change a
+// weight and its selection's multiplier must be re-derived (server/src/math.test.ts
+// asserts the 96% band). Weights alone set hit-frequency / volatility, not RTP.
 
 /** P(depth) for the first roll. Shallow common, trench rare. */
 export const DEPTH_WEIGHTS: Record<DepthId, number> = {
@@ -39,42 +42,42 @@ export const DEPTH_WEIGHTS: Record<DepthId, number> = {
 	trench: 1
 };
 
-/** Payout multiplier for a winning `depth` bet. Rarer depth pays more. Mirrors
- *  the fish multipliers below — both get tuned in 3.5. */
+/** Payout multiplier for a winning `depth` bet — 0.96 / P(depth), 2dp. Rarer
+ *  depth pays more. Mirrors the fish multipliers below. */
 export const DEPTH_MULTIPLIERS: Record<DepthId, number> = {
-	shallow: 2.1,
+	shallow: 2.13,
 	reef: 3.2,
-	deep: 5.6,
-	abyss: 13.5,
-	trench: 95
+	deep: 5.65,
+	abyss: 13.71,
+	trench: 96
 };
 
 /** Every catchable fish, grouped by depth. A round outcome always names one;
  *  its tier is looked up here, not rolled separately. */
 export const FISH: FishDef[] = [
 	// Shallow — common, low value
-	{ id: "shrimp", depth: "shallow", tier: "small", weight: 30, multiplier: 7 },
-	{ id: "sardine", depth: "shallow", tier: "small", weight: 25, multiplier: 8.5 },
-	{ id: "blue-cod", depth: "shallow", tier: "small", weight: 20, multiplier: 10.5 },
-	{ id: "barracuda", depth: "shallow", tier: "small", weight: 15, multiplier: 14 },
-	{ id: "puffer", depth: "shallow", tier: "small", weight: 10, multiplier: 21 },
+	{ id: "shrimp", depth: "shallow", tier: "small", weight: 30, multiplier: 7.11 },
+	{ id: "sardine", depth: "shallow", tier: "small", weight: 25, multiplier: 8.53 },
+	{ id: "blue-cod", depth: "shallow", tier: "small", weight: 20, multiplier: 10.67 },
+	{ id: "barracuda", depth: "shallow", tier: "small", weight: 15, multiplier: 14.22 },
+	{ id: "puffer", depth: "shallow", tier: "small", weight: 10, multiplier: 21.33 },
 	// Reef — mid value
-	{ id: "napoleon", depth: "reef", tier: "large", weight: 35, multiplier: 9 },
-	{ id: "turtle", depth: "reef", tier: "large", weight: 30, multiplier: 10.5 },
+	{ id: "napoleon", depth: "reef", tier: "large", weight: 35, multiplier: 9.14 },
+	{ id: "turtle", depth: "reef", tier: "large", weight: 30, multiplier: 10.67 },
 	{ id: "swordfish", depth: "reef", tier: "large", weight: 20, multiplier: 16 },
-	{ id: "king-crab", depth: "reef", tier: "large", weight: 15, multiplier: 21 },
+	{ id: "king-crab", depth: "reef", tier: "large", weight: 15, multiplier: 21.33 },
 	// Deep — rare, high value
-	{ id: "manta-ray", depth: "deep", tier: "epic", weight: 35, multiplier: 16 },
-	{ id: "bluefin-tuna", depth: "deep", tier: "epic", weight: 30, multiplier: 18.5 },
-	{ id: "shark", depth: "deep", tier: "epic", weight: 20, multiplier: 28 },
-	{ id: "barracuda-epic", depth: "deep", tier: "epic", weight: 15, multiplier: 37 },
+	{ id: "manta-ray", depth: "deep", tier: "epic", weight: 35, multiplier: 16.13 },
+	{ id: "bluefin-tuna", depth: "deep", tier: "epic", weight: 30, multiplier: 18.82 },
+	{ id: "shark", depth: "deep", tier: "epic", weight: 20, multiplier: 28.24 },
+	{ id: "barracuda-epic", depth: "deep", tier: "epic", weight: 15, multiplier: 37.65 },
 	// Abyss — legendary, plus the whale jackpot
-	{ id: "lanternfish", depth: "abyss", tier: "legendary", weight: 40, multiplier: 34 },
-	{ id: "jellyfish", depth: "abyss", tier: "legendary", weight: 30, multiplier: 45 },
-	{ id: "starfish", depth: "abyss", tier: "legendary", weight: 22, multiplier: 62 },
-	{ id: "whale", depth: "abyss", tier: "jackpot", weight: 8, multiplier: 170 },
+	{ id: "lanternfish", depth: "abyss", tier: "legendary", weight: 40, multiplier: 34.29 },
+	{ id: "jellyfish", depth: "abyss", tier: "legendary", weight: 30, multiplier: 45.71 },
+	{ id: "starfish", depth: "abyss", tier: "legendary", weight: 22, multiplier: 62.34 },
+	{ id: "whale", depth: "abyss", tier: "jackpot", weight: 8, multiplier: 171.43 },
 	// Trench — the Kraken, nothing else
-	{ id: "kraken", depth: "trench", tier: "jackpot", weight: 100, multiplier: 95 }
+	{ id: "kraken", depth: "trench", tier: "jackpot", weight: 100, multiplier: 96 }
 ];
 
 /** Valid `selection` values for a `fish` bet — every roster id (§13 bet validation). */

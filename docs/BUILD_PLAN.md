@@ -288,20 +288,46 @@ board; it lands then, mirroring `constants.ts`.
 Wallet mutation was already wired in milestone 1 and the payout figure went
 real in 3.3 — this milestone's only code change is reordering `start` so
 `openRound` runs before the debit. Covered by existing `game.test.ts` cases
-(balance `990.00` after a `10.00` wager, `1270.00` after the `280.00` shark
-payout; `round_already_completed` on a second `complete`).
+(balance `990.00` after a `10.00` wager, `1272.40` after the `282.40` shark
+payout; `round_already_completed` on a second `complete`). Shark's multiplier
+is the 3.3 first pass (×28) retuned to the 96%-RTP value (×28.24) in 3.5.
 
 ### 3.5 Mathematical Testing
 
-- [ ] Unit tests
-- [ ] Probability tests
-- [ ] RTP simulation
-- [ ] Combined bet tests
-- [ ] Edge case tests
+- [x] Unit tests — `server/src/math.test.ts`: `resolveBet` pays exactly
+      `round(stake × table multiplier)` for every one of the 23 selections;
+      losing bets still report the multiplier (exhaustive per-branch coverage
+      stays in `rounds.test.ts`)
+- [x] Probability tests — 200k-round simulation through the real `rollOutcome`;
+      measured depth frequencies within 10% relative of `P(depth)`, fish within
+      15% (wide enough for whale's `P≈0.0056` noise); `Σ P` checks
+- [x] RTP simulation — multipliers retuned to `0.96 / P(selection)` (2dp) in
+      `constants.ts`, so every selection's **theoretical** RTP is 96% ± 0.5%
+      (asserted exactly); simulated blended RTP over the 200k stream is
+      95–97.5%; the frequently-hit selections (`P ≥ 9%`) land within 2% of 96%
+- [x] Combined bet tests — a depth + fish bet on one outcome resolve
+      independently (both can win); a mixed slip's winners pay regardless of its
+      losers; a `{reef, napoleon}` slip simulated over 200k rounds stays ~96%,
+      confirming combining bets doesn't move RTP
+- [x] Edge case tests — stake at `config.minBet` / `config.maxBet` on the
+      largest multiplier; half-cent payouts round up (not banker's); an
+      all-losing round nets `−wagered`; the rarest outcome (kraken) pays its
+      exact multiplier; an off-table selection resolves to `0.00`, never `NaN`
+
+Weight tables are unchanged — in this model each multiplier compensates for its
+selection's probability, so weights set only hit-frequency / volatility, not
+RTP (volatility targets are milestone 23). `openapi.yaml` payout examples and
+the `rounds.test.ts` / `game.test.ts` assertions that pinned the 3.3 first-pass
+multipliers (shark ×28 → ×28.24, etc.) were updated to the retuned values.
 
 ### Acceptance Criteria
 
-The server can independently process a complete round and produce a mathematically correct result.
+The server can independently process a complete round and produce a
+mathematically correct result. — **met**: `server/src/math.test.ts` (18 cases)
+plus the existing `rounds.test.ts` / `game.test.ts` / `rng.test.ts` suites
+(71 `node:test` cases total) prove outcome generation realises the weight
+tables, every bet pays its tuned table multiplier, combined bets resolve
+independently, and the simulated RTP converges on the GDD's 96% target.
 
 ---
 

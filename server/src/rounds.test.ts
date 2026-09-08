@@ -62,20 +62,20 @@ const OUTCOME: FishingOutcome = { depth: "deep", fish: "shark", tier: "epic" };
 test("resolveBet — depth bet pays DEPTH_MULTIPLIERS on a hit, zero on a miss", () => {
 	const hit = resolveBet({ type: "depth", selection: "deep", amount: "10.00" }, OUTCOME);
 	assert.equal(hit.won, true);
-	assert.equal(hit.multiplier, "5.60"); // DEPTH_MULTIPLIERS.deep = 5.6
-	assert.equal(hit.payout, "56.00"); // 10.00 × 5.6
+	assert.equal(hit.multiplier, "5.65"); // DEPTH_MULTIPLIERS.deep = 5.65
+	assert.equal(hit.payout, "56.50"); // 10.00 × 5.65
 
 	const miss = resolveBet({ type: "depth", selection: "shallow", amount: "10.00" }, OUTCOME);
 	assert.equal(miss.won, false);
 	assert.equal(miss.payout, "0.00");
-	assert.equal(miss.multiplier, "2.10"); // still reports what it would have paid
+	assert.equal(miss.multiplier, "2.13"); // still reports what it would have paid
 });
 
 test("resolveBet — fish bet pays the roster multiplier on a hit, zero on a miss", () => {
 	const hit = resolveBet({ type: "fish", selection: "shark", amount: "4.00" }, OUTCOME);
 	assert.equal(hit.won, true);
-	assert.equal(hit.multiplier, "28.00"); // FISH shark multiplier
-	assert.equal(hit.payout, "112.00"); // 4.00 × 28
+	assert.equal(hit.multiplier, "28.24"); // FISH shark multiplier
+	assert.equal(hit.payout, "112.96"); // 4.00 × 28.24
 
 	const miss = resolveBet({ type: "fish", selection: "whale", amount: "4.00" }, OUTCOME);
 	assert.equal(miss.won, false);
@@ -83,9 +83,9 @@ test("resolveBet — fish bet pays the roster multiplier on a hit, zero on a mis
 });
 
 test("resolveBet — fractional multiplier and odd stake round to whole cents", () => {
-	// sardine ×8.5 on 3.33 = 28.305 → 28.31 (banker-free Math.round, half up)
+	// sardine ×8.53 on 3.33 = 28.4049 → 28.40 (banker-free Math.round, half up)
 	const r = resolveBet({ type: "fish", selection: "sardine", amount: "3.33" }, { ...OUTCOME, fish: "sardine" });
-	assert.equal(r.payout, "28.31");
+	assert.equal(r.payout, "28.40");
 });
 
 test("every depth id and every fish id has a payout multiplier above 1x", () => {
