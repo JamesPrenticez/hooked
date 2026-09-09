@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice">
+	<defs>
+		<linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="#12324a" />
+			<stop offset="0.55" stop-color="#0a1f31" />
+			<stop offset="1" stop-color="#040d16" />
+		</linearGradient>
+	</defs>
+	<rect width="1280" height="720" fill="url(#water)" />
+	<g fill="#04121d" opacity="0.85">
+		<rect x="0" y="470" width="230" height="250" />
+		<rect x="250" y="420" width="160" height="300" />
+		<rect x="430" y="500" width="300" height="220" />
+		<rect x="760" y="440" width="180" height="280" />
+		<rect x="960" y="510" width="320" height="210" />
+	</g>
+	<g stroke="#1c4a63" stroke-width="4" opacity="0.5">
+		<line x1="300" y1="420" x2="300" y2="180" />
+		<line x1="300" y1="180" x2="470" y2="240" />
+		<line x1="850" y1="440" x2="850" y2="150" />
+		<line x1="850" y1="150" x2="690" y2="220" />
+	</g>
+	<text x="640" y="370" text-anchor="middle" fill="#3a6b86" font-family="monospace" font-size="34" letter-spacing="6">
+		BACKGROUND PLACEHOLDER
+	</text>
+</svg>

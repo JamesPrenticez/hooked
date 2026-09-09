@@ -457,11 +457,22 @@ Create the game's initial presentation and asset loading pipeline.
 
 ### 5.1 Visual
 
-- [ ] Background
-- [ ] Deep Catch logo
-- [ ] Loading indicator
-- [ ] Progress display
-- [ ] Loading animation
+- [x] Background — `src/assets/loading/background.svg`, full-bleed
+      (`object-fit: cover`) behind the panel
+- [x] Deep Catch logo — `src/assets/loading/logo.svg`, centred, gentle bob
+- [x] Loading indicator — CSS spinner with `role="status"` / `aria-label`
+- [x] Progress display — percentage text, `tabular-nums` so digits don't jitter
+- [x] Loading animation — `spin` + `bob` keyframes; both drop under
+      `prefers-reduced-motion: reduce`
+
+`src/components/LoadingScreen/` is an HTML overlay, a sibling of
+`<Application>` and never its child (§38), mounted for the `loading` phase in
+`App.tsx`. Progress is a `ponytail` fake ramp (`useFakeProgress`) — §5.2
+("Load required assets") replaces it with a `progress` prop fed by
+`Assets.load`'s `onProgress` and deletes the hook. Unit coverage:
+`LoadingScreen.test.tsx` (logo + indicator + 0% start, ramp advances, settles
+at 100%). No e2e yet — §5.2 wires the real load, the session handshake and the
+phase advance, so the loading-flow spec lands with it.
 
 ### 5.2 Technical
 

@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
 	return {
 		server: {
-			port: env.FRONTEND_PORT || 3000,
+			port: env.FRONTEND_PORT || 4200,
 			host: "0.0.0.0"
 		},
 		plugins: [react(), svgr()],

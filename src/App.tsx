@@ -4,6 +4,7 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text } from "pixi.js";
 
 import Balance from "@/components/Balance";
+import LoadingScreen from "@/components/LoadingScreen";
 import PlaceholderScene from "@/components/PlaceholderScene/PlaceholderScene";
 import SceneManager from "@/components/SceneManager/SceneManager";
 import StoreSync from "@/components/system/StoreSync";
@@ -43,6 +44,8 @@ function App() {
 			</Application>
 
 			<StoreSync />
+
+			{phase === "loading" && <LoadingScreen />}
 
 			{phase === "game" && <Balance />}
 

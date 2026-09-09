@@ -4,7 +4,7 @@
 const num = (v: string | undefined, fallback: number) => (v ? Number(v) : fallback);
 
 export const config = {
-	port: num(process.env.SERVER_PORT, 3001),
+	port: num(process.env.SERVER_PORT, 4201),
 	// The operator handshake the server performs against its own /operator/launch
 	// endpoint (§35). Secret is server-side only and never reaches the browser.
 	operatorId: process.env.OPERATOR_ID ?? "dev-operator",
