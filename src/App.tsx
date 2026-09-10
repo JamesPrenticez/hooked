@@ -4,6 +4,7 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Text } from "pixi.js";
 
 import Balance from "@/components/Balance";
+import HarbourScene from "@/components/HarbourScene";
 import LoadingScreen from "@/components/LoadingScreen";
 import PlaceholderScene from "@/components/PlaceholderScene/PlaceholderScene";
 import SceneManager from "@/components/SceneManager/SceneManager";
@@ -18,13 +19,14 @@ import styles from "./App.module.css";
 // these by default.
 extend({ Container, Graphics, Text });
 
-// ponytail: colored rects, not real art — LoadingScreen/TutorialScreen/
-// HarbourScreen (BUILD_PLAN §5/§6/§7) replace these without touching
-// SceneManager or the phase machine.
+// `game` is the real (placeholder-art) harbour scene now — §7.1. `loading`
+// and `tutorial` stay colored rects until §5.1's overlay / §6's slide deck
+// need more; swapping any of them never touches SceneManager or the phase
+// machine.
 const SCENES: Record<GamePhase, ReactNode> = {
 	loading: <PlaceholderScene label="Loading…" color={0x0a1a2f} />,
 	tutorial: <PlaceholderScene label="Tutorial" color={0x0f5c5c} />,
-	game: <PlaceholderScene label="Harbour" color={0x4a3320} />
+	game: <HarbourScene />
 };
 
 /**

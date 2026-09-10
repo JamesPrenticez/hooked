@@ -490,34 +490,37 @@ The application loads assets, connects to the Mock Game Server and reaches the m
 
 # 6. Tutorial
 
-### Goal
+**Deferred — build last, after §28.** Keeps its number; built out of
+sequence. Every milestone from §7 on reworks the betting board, the fishing
+sequence and the harbour — a tutorial built now gets rewritten on each of
+those passes. It also doesn't warrant the weight: this is a
+target-selection gambling game, not a mechanics-heavy one.
 
-Teach the game using the real client/server architecture.
+**Reduced scope.** Not a guided, server-driven interactive walkthrough — a
+short deck of static slides (one image + one line of copy each), shown once
+on first load, skippable, with "don't show again". No tutorial round, no
+controlled outcome, no UI gating.
 
-The tutorial may use a **server-controlled development/tutorial outcome**.
+The `loading → tutorial → game` phase machine keeps its middle state as a
+harmless click-through placeholder until this lands; §5.2 may collapse it to
+`loading → game` when it wires the real boot flow. Either way no §6 work
+happens until the game is otherwise complete.
 
-### 6.1 Tutorial Flow
+### 6.1 Slides (build last)
 
-- [ ] Explain depth betting
-- [ ] Explain fish betting
-- [ ] Explain multiple bets
-- [ ] Explain cast
-- [ ] Explain descent
-- [ ] Explain catch
-- [ ] Explain extraction
-- [ ] Explain payout
-
-### 6.2 Guided Interaction
-
-- [ ] Highlight betting UI
-- [ ] Restrict invalid interaction
-- [ ] Submit tutorial bet to server
-- [ ] Receive controlled tutorial outcome
-- [ ] Play normal fishing presentation
+- [ ] Pick a depth and/or a fish — one slide
+- [ ] Watch the cast & descent — one slide
+- [ ] The catch — one slide
+- [ ] Extraction & payout — one slide
+- [ ] Skippable + "don't show again" (localStorage)
 
 ### Acceptance Criteria
 
-A new player can complete the tutorial through the same API flow used by normal gameplay.
+A first-time player sees a short, skippable slide deck before their first
+round, and never sees it again unless they clear storage.
+
+_Original interactive-tutorial scope (guided UI, tutorial round, controlled
+server outcome) is dropped unless an operator or regulator requires it._
 
 ---
 
@@ -529,14 +532,28 @@ Create the primary game environment.
 
 ### 7.1 Environment
 
-- [ ] Harbour
-- [ ] Dock
-- [ ] Ocean
-- [ ] Buildings
-- [ ] Cranes
-- [ ] Boats
-- [ ] Props
-- [ ] Lighting
+- [x] Harbour
+- [x] Dock
+- [x] Ocean
+- [x] Buildings
+- [x] Cranes
+- [x] Boats
+- [x] Props
+- [x] Lighting
+
+`src/components/HarbourScene/` replaces the `game`-phase `PlaceholderScene`
+in `App.tsx`. Each checklist item is a flat Pixi-drawn layer in `layers.ts`,
+composed back-to-front (`sky → buildings → ocean → boats → dock → cranes →
+props → lighting`). The art is placeholder — a real webp / skeleton asset
+swaps in by replacing a layer's `draw` body without touching the layer
+stack or z-order. Asset spec + open questions: `docs/ASSETS.md`.
+
+Layers size off `app.screen`, so the placeholder holds at any aspect
+(desktop / landscape / portrait). `layers.test.ts` locks the layer set,
+z-order and §7.1 coverage, and runs every `draw` through a renderer-free
+Graphics stub (Rule 11). No e2e: display-only environment backdrop, no
+interaction — §7.2 fisherman and §7.3 ambient activity are the interactive
+/ animated parts and are still open.
 
 ### 7.2 Fisherman
 
@@ -545,6 +562,11 @@ Create the primary game environment.
 - [ ] Fishing
 - [ ] Reaction
 - [ ] Victory
+
+Animation pipeline: Blender → PNG sequence → packed sprite sheet, played by
+Pixi `AnimatedSprite`. No skeletal runtime, no new dependency. Simple parts
+(rod, cranes, boats) are code-transformed sprites, not sheets. Full spec +
+frame budget: `docs/ASSETS.md`.
 
 ### 7.3 Ambient Activity
 

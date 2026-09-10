@@ -54,6 +54,10 @@ export default defineConfig(({ mode }) => {
 					"src/App.tsx",
 					"src/components/SceneManager/SceneManager.tsx",
 					"src/components/PlaceholderScene/PlaceholderScene.tsx",
+					// Same reason as PlaceholderScene: thin @pixi/react wiring, no
+					// logic of its own (that's in layers.ts, which IS covered), and
+					// it needs a real WebGL canvas happy-dom can't give.
+					"src/components/HarbourScene/HarbourScene.tsx",
 					"src/**/*.d.ts",
 					"src/**/index.ts"
 				],
