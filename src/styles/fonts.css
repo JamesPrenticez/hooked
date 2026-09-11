@@ -1,6 +1,8 @@
 /* Replace font family and sizes here */
 @import url("https://fonts.googleapis.com/css2?family=Bungee&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Chango&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Zalando+Sans:ital,wdth,wght@0,75..125,200..900;1,75..125,200..900&display=swap");
+
 :root {
 	--font-size-legal: 1rem;
 	--font-size-xxs: 1.2rem;
@@ -25,18 +27,48 @@
 
 	/* Bungee Font Styles */
 	--font-bungee: "Bungee", sans-serif;
-	--font-bungee-legal: var(--font-weight-bold) var(--font-size-legal)/1 var(--font-bungee);
-	--font-bungee-xxs: var(--font-weight-bold) var(--font-size-xxs)/1 var(--font-bungee);
-	--font-bungee-xs: var(--font-weight-bold) var(--font-size-xs)/1 var(--font-bungee);
-	--font-bungee-base: var(--font-weight-bold) var(--font-size-base)/1 var(--font-bungee);
-	--font-bungee-sm: var(--font-weight-bold) var(--font-size-sm)/1 var(--font-bungee);
-	--font-bungee-md: var(--font-weight-bold) var(--font-size-md)/1 var(--font-bungee);
-	--font-bungee-lg: var(--font-weight-bold) var(--font-size-lg)/1 var(--font-bungee);
-	--font-bungee-xl: var(--font-weight-bold) var(--font-size-xl)/1 var(--font-bungee);
-	--font-bungee-xxl: var(--font-weight-bold) var(--font-size-xxl)/1 var(--font-bungee);
-	--font-bungee-xxxl: var(--font-weight-bold) var(--font-size-xxxl)/1 var(--font-bungee);
-	--font-bungee-xxxxl: var(--font-weight-bold) var(--font-size-xxxxl)/1 var(--font-bungee);
-	--font-bungee-xxxxxl: var(--font-weight-bold) var(--font-size-xxxxxl)/1 var(--font-bungee);
+	--font-bungee-legal: var(--font-weight-normal) var(--font-size-legal)/1 var(--font-bungee);
+	--font-bungee-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-bungee);
+	--font-bungee-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-bungee);
+	--font-bungee-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-bungee);
+	--font-bungee-sm: var(--font-weight-normal) var(--font-size-sm)/1 var(--font-bungee);
+	--font-bungee-md: var(--font-weight-normal) var(--font-size-md)/1 var(--font-bungee);
+	--font-bungee-lg: var(--font-weight-normal) var(--font-size-lg)/1 var(--font-bungee);
+	--font-bungee-xl: var(--font-weight-normal) var(--font-size-xl)/1 var(--font-bungee);
+	--font-bungee-xxl: var(--font-weight-normal) var(--font-size-xxl)/1 var(--font-bungee);
+	--font-bungee-xxxl: var(--font-weight-normal) var(--font-size-xxxl)/1 var(--font-bungee);
+	--font-bungee-xxxxl: var(--font-weight-normal) var(--font-size-xxxxl)/1 var(--font-bungee);
+	--font-bungee-xxxxxl: var(--font-weight-normal) var(--font-size-xxxxxl)/1 var(--font-bungee);
+
+	/* Bowlby Font Styles */
+	--font-bowlby: "Bowlby One SC", sans-serif;
+	--font-bowlby-legal: var(--font-weight-normal) var(--font-size-legal)/1 var(--font-bowlby);
+	--font-bowlby-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-bowlby);
+	--font-bowlby-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-bowlby);
+	--font-bowlby-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-bowlby);
+	--font-bowlby-sm: var(--font-weight-normal) var(--font-size-sm)/1 var(--font-bowlby);
+	--font-bowlby-md: var(--font-weight-normal) var(--font-size-md)/1 var(--font-bowlby);
+	--font-bowlby-lg: var(--font-weight-normal) var(--font-size-lg)/1 var(--font-bowlby);
+	--font-bowlby-xl: var(--font-weight-normal) var(--font-size-xl)/1 var(--font-bowlby);
+	--font-bowlby-xxl: var(--font-weight-normal) var(--font-size-xxl)/1 var(--font-bowlby);
+	--font-bowlby-xxxl: var(--font-weight-normal) var(--font-size-xxxl)/1 var(--font-bowlby);
+	--font-bowlby-xxxxl: var(--font-weight-normal) var(--font-size-xxxxl)/1 var(--font-bowlby);
+	--font-bowlby-xxxxxl: var(--font-weight-normal) var(--font-size-xxxxxl)/1 var(--font-bowlby);
+
+	/* Chango Font Styles */
+	--font-chango: "Chango", sans-serif;
+	--font-chango-legal: var(--font-weight-normal) var(--font-size-legal)/1 var(--font-chango);
+	--font-chango-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-chango);
+	--font-chango-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-chango);
+	--font-chango-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-chango);
+	--font-chango-sm: var(--font-weight-normal) var(--font-size-sm)/1 var(--font-chango);
+	--font-chango-md: var(--font-weight-normal) var(--font-size-md)/1 var(--font-chango);
+	--font-chango-lg: var(--font-weight-normal) var(--font-size-lg)/1 var(--font-chango);
+	--font-chango-xl: var(--font-weight-normal) var(--font-size-xl)/1 var(--font-chango);
+	--font-chango-xxl: var(--font-weight-normal) var(--font-size-xxl)/1 var(--font-chango);
+	--font-chango-xxxl: var(--font-weight-normal) var(--font-size-xxxl)/1 var(--font-chango);
+	--font-chango-xxxxl: var(--font-weight-normal) var(--font-size-xxxxl)/1 var(--font-chango);
+	--font-chango-xxxxxl: var(--font-weight-normal) var(--font-size-xxxxxl)/1 var(--font-chango);
 
 	/* Zalando Font Styles */
 	--font-zalando: "Zalando Sans", sans-serif;
@@ -71,5 +103,5 @@ body {
 
 button {
 	color: var(--color-black);
-	font-family: var(--font-bungee);
+	font-family: var(--font-chango);
 }

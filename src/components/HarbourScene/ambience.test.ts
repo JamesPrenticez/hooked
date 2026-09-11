@@ -34,6 +34,19 @@ describe("computeAmbience", () => {
 		expect(brightness(mid)).toBeLessThan(brightness(lo));
 	});
 
+	describe("windowGlow", () => {
+		it("is off at noon and fully lit at midnight", () => {
+			expect(computeAmbience(0.5).windowGlow).toBe(0);
+			expect(computeAmbience(0).windowGlow).toBe(1);
+		});
+
+		it("ramps up through dusk rather than snapping on", () => {
+			// 0.76 sits between the 0.72 (sunset) and 0.8 (dusk) keyframes.
+			expect(computeAmbience(0.76).windowGlow).toBeGreaterThan(computeAmbience(0.72).windowGlow);
+			expect(computeAmbience(0.76).windowGlow).toBeLessThan(computeAmbience(0.8).windowGlow);
+		});
+	});
+
 	describe("celestial body", () => {
 		it("is the sun, near its zenith, at noon", () => {
 			const { celestial } = computeAmbience(0.5);

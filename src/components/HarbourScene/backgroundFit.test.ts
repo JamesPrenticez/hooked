@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { computeBackgroundFit } from "./backgroundFit";
+import { computeBackgroundFit, textureToScreen } from "./backgroundFit";
 
 const DESKTOP = { width: 2149, height: 732 };
 const MOBILE = { width: 942, height: 1670 };
@@ -31,5 +31,21 @@ describe("computeBackgroundFit", () => {
 
 	it("treats an exact square as landscape", () => {
 		expect(computeBackgroundFit({ width: 1000, height: 1000 }, DESKTOP, MOBILE).texture).toBe(DESKTOP);
+	});
+});
+
+describe("textureToScreen", () => {
+	it("maps the texture centre to the fit's anchor point", () => {
+		const fit = computeBackgroundFit({ width: 1080, height: 1920 }, DESKTOP, MOBILE);
+		const centre = textureToScreen(fit, { x: MOBILE.width / 2, y: MOBILE.height / 2 });
+		expect(centre.x).toBeCloseTo(fit.x);
+		expect(centre.y).toBeCloseTo(fit.y);
+	});
+
+	it("scales an offset from the texture centre by the fit scale", () => {
+		const fit = computeBackgroundFit({ width: 1920, height: 1080 }, DESKTOP, MOBILE);
+		const point = textureToScreen(fit, { x: DESKTOP.width / 2 + 100, y: DESKTOP.height / 2 });
+		expect(point.x).toBeCloseTo(fit.x + 100 * fit.scale);
+		expect(point.y).toBeCloseTo(fit.y);
 	});
 });

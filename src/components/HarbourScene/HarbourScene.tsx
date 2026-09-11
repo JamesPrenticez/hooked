@@ -3,8 +3,11 @@ import { useApplication } from "@pixi/react";
 import { Assets, type Texture } from "pixi.js";
 
 import bgDesktopUrl from "@/assets/layers/hub/background/bg-desktop.webp";
+import bgLightsDesktopUrl from "@/assets/layers/hub/background/bg-lights-desktop.webp";
+import bgLightsMobileUrl from "@/assets/layers/hub/background/bg-lights-mobile.webp";
 import bgMobileUrl from "@/assets/layers/hub/background/bg-mobile.webp";
 import { useDayNightClock } from "@/hooks/useDayNightClock";
+import { useElapsedSeconds } from "@/hooks/useElapsedSeconds";
 
 import { computeAmbience } from "./ambience";
 import BackgroundLayer from "./BackgroundLayer";
@@ -33,13 +36,14 @@ function HarbourScene() {
 	const { app, isInitialised } = useApplication();
 	const [textures, setTextures] = useState<Record<string, Texture>>();
 	const t = useDayNightClock();
+	const seconds = useElapsedSeconds();
 
 	useEffect(() => {
 		let live = true;
 		// ponytail: loaded on scene mount, not via the boot manifest — one small
 		// pop the first time the hub shows. Route through §5's Assets.load(manifest)
 		// when the harbour asset set is real.
-		Assets.load([bgDesktopUrl, bgMobileUrl]).then(loaded => {
+		Assets.load([bgDesktopUrl, bgMobileUrl, bgLightsDesktopUrl, bgLightsMobileUrl]).then(loaded => {
 			if (live) setTextures(loaded);
 		});
 		return () => {
@@ -51,14 +55,23 @@ function HarbourScene() {
 	if (!isInitialised) return null;
 
 	const view = { width: app.screen.width, height: app.screen.height };
-	const { skyTop, skyHorizon, bgTint, celestial } = computeAmbience(t, view);
+	const { skyTop, skyHorizon, bgTint, windowGlow, celestial } = computeAmbience(t, view);
 
 	return (
 		<pixiContainer>
 			<SkyLayer view={view} skyTop={skyTop} skyHorizon={skyHorizon} />
 			<OceanLayer view={view} tint={bgTint} />
 			<CelestialBody view={view} celestial={celestial} />
-			<BackgroundLayer view={view} desktop={textures?.[bgDesktopUrl]} mobile={textures?.[bgMobileUrl]} tint={bgTint} />
+			<BackgroundLayer
+				view={view}
+				desktop={textures?.[bgDesktopUrl]}
+				mobile={textures?.[bgMobileUrl]}
+				litDesktop={textures?.[bgLightsDesktopUrl]}
+				litMobile={textures?.[bgLightsMobileUrl]}
+				tint={bgTint}
+				windowGlow={windowGlow}
+				seconds={seconds}
+			/>
 		</pixiContainer>
 	);
 }

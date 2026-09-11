@@ -63,7 +63,7 @@
 }
 
 .percent {
-	font: var(--font-bungee-xs);
+	font: var(--font-chango-xs);
 	color: var(--color-primary-accent);
 	letter-spacing: 0.08em;
 	font-variant-numeric: tabular-nums;

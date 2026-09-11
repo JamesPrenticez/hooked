@@ -1,0 +1,57 @@
+.trigger {
+	position: absolute;
+	right: 16px;
+	bottom: 16px;
+	z-index: 10;
+	padding: 6px 12px;
+	border: 1px solid var(--color-negative);
+	border-radius: 6px;
+	background: color-mix(in srgb, var(--color-negative) 20%, transparent);
+	color: var(--color-white);
+	font: var(--font-chango-xs);
+	letter-spacing: 0.08em;
+	cursor: pointer;
+}
+
+.modal {
+	width: min(90vw, 420px);
+	padding: 20px;
+	border: none;
+	border-radius: 12px;
+	background: var(--color-black);
+	color: var(--color-white);
+}
+
+.modal::backdrop {
+	background: color-mix(in srgb, var(--color-black) 60%, transparent);
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 16px;
+}
+
+.title {
+	font: var(--font-chango-sm);
+}
+
+.category {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.categoryTitle {
+	font: var(--font-chango-xs);
+	letter-spacing: 0.08em;
+	color: var(--color-primary-accent);
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-size: var(--font-size-legal);
+}

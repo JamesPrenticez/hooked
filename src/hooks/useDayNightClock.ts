@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { useDebugStore } from "@/stores/debugStore";
+
 /** Real seconds for one full midnight→noon→midnight cycle. Deliberately
  *  short so the effect is visible while building the harbour; wall-clock
  *  sync or a slower rate is a later call. */
@@ -25,18 +27,24 @@ function timeOfDay(): number {
  * noon, `0.75` sunset), advancing off wall-clock time. Drives off
  * `requestAnimationFrame` rather than Pixi's ticker so it needs no renderer
  * to test (ARCHITECTURE Rule 11) — see `useCrossfade`.
+ *
+ * The DEBUG panel's environment category can freeze this at a manual value
+ * (`useDebugStore`), taking over from both the live clock and `?tod=`.
  */
 export function useDayNightClock(): number {
+	const frozen = useDebugStore(state => state.frozen);
+	const manualTimeOfDay = useDebugStore(state => state.timeOfDay);
 	const [t, setT] = useState(() => frozenOverride() ?? timeOfDay());
 
 	useEffect(() => {
-		if (frozenOverride() !== null) return;
+		if (frozenOverride() !== null || frozen) return;
 		let frame = requestAnimationFrame(function tick() {
 			setT(timeOfDay());
 			frame = requestAnimationFrame(tick);
 		});
 		return () => cancelAnimationFrame(frame);
-	}, []);
+	}, [frozen]);
 
-	return t;
+	if (frozen) return manualTimeOfDay;
+	return frozenOverride() ?? t;
 }

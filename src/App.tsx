@@ -4,6 +4,7 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Sprite, Text } from "pixi.js";
 
 import Balance from "@/components/Balance";
+import DebugPanel from "@/components/DebugPanel";
 import HarbourScene from "@/components/HarbourScene";
 import LoadingScreen from "@/components/LoadingScreen";
 import PlaceholderScene from "@/components/PlaceholderScene/PlaceholderScene";
@@ -58,6 +59,8 @@ function App() {
 					</Button>
 				</div>
 			)}
+
+			<DebugPanel />
 		</div>
 	);
 }

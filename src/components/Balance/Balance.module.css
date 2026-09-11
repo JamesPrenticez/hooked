@@ -15,13 +15,13 @@
 }
 
 .label {
-	font: var(--font-bungee-xxs);
+	font: var(--font-chango-xxs);
 	color: var(--color-primary-accent);
 	letter-spacing: 0.08em;
 }
 
 .amount {
-	font: var(--font-bungee-sm);
+	font: var(--font-chango-sm);
 	/* Keeps digit columns from jittering as the number eases. */
 	font-variant-numeric: tabular-nums;
 }

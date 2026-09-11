@@ -25,6 +25,9 @@ export interface Ambience {
 	skyHorizon: number;
 	/** Multiply tint for the strip — `0xffffff` at noon (no change). */
 	bgTint: number;
+	/** Building-window light strength, `0` (off, daylight) .. `1` (fully lit) —
+	 *  drives the lit-windows overlay's alpha. */
+	windowGlow: number;
 	celestial: Celestial;
 }
 
@@ -33,19 +36,20 @@ interface Keyframe {
 	skyTop: number;
 	skyHorizon: number;
 	bgTint: number;
+	windowGlow: number;
 }
 
 // Sorted by `at`. The last frame wraps back to the first across midnight.
 const KEYFRAMES: Keyframe[] = [
-	{ at: 0.0, skyTop: 0x05070f, skyHorizon: 0x0b1224, bgTint: 0x2a3550 }, // midnight
-	{ at: 0.22, skyTop: 0x0b1428, skyHorizon: 0x2b3450, bgTint: 0x53617f }, // pre-dawn
-	{ at: 0.28, skyTop: 0x394d78, skyHorizon: 0xe6a86a, bgTint: 0xd98f5c }, // sunrise
-	{ at: 0.34, skyTop: 0x4a7bb5, skyHorizon: 0xc3dbee, bgTint: 0xf2ddc4 }, // morning
-	{ at: 0.5, skyTop: 0x3172c2, skyHorizon: 0xa9d3f0, bgTint: 0xffffff }, // noon
-	{ at: 0.66, skyTop: 0x3d72ad, skyHorizon: 0xd2e2ef, bgTint: 0xf6e6cf }, // afternoon
-	{ at: 0.72, skyTop: 0x35406a, skyHorizon: 0xef8a4c, bgTint: 0xdd7f42 }, // sunset
-	{ at: 0.8, skyTop: 0x1b2540, skyHorizon: 0x46375f, bgTint: 0x5a4a70 }, // dusk
-	{ at: 0.88, skyTop: 0x080c1a, skyHorizon: 0x141a30, bgTint: 0x2f3a58 } // night
+	{ at: 0.0, skyTop: 0x05070f, skyHorizon: 0x0b1224, bgTint: 0x2a3550, windowGlow: 1 }, // midnight
+	{ at: 0.22, skyTop: 0x0b1428, skyHorizon: 0x2b3450, bgTint: 0x53617f, windowGlow: 0.9 }, // pre-dawn
+	{ at: 0.28, skyTop: 0x394d78, skyHorizon: 0xe6a86a, bgTint: 0xd98f5c, windowGlow: 0.15 }, // sunrise
+	{ at: 0.34, skyTop: 0x4a7bb5, skyHorizon: 0xc3dbee, bgTint: 0xf2ddc4, windowGlow: 0 }, // morning
+	{ at: 0.5, skyTop: 0x3172c2, skyHorizon: 0xa9d3f0, bgTint: 0xffffff, windowGlow: 0 }, // noon
+	{ at: 0.66, skyTop: 0x3d72ad, skyHorizon: 0xd2e2ef, bgTint: 0xf6e6cf, windowGlow: 0 }, // afternoon
+	{ at: 0.72, skyTop: 0x35406a, skyHorizon: 0xef8a4c, bgTint: 0xdd7f42, windowGlow: 0.2 }, // sunset
+	{ at: 0.8, skyTop: 0x1b2540, skyHorizon: 0x46375f, bgTint: 0x5a4a70, windowGlow: 0.8 }, // dusk
+	{ at: 0.88, skyTop: 0x080c1a, skyHorizon: 0x141a30, bgTint: 0x2f3a58, windowGlow: 1 } // night
 ];
 
 /** Linear blend of two `0xRRGGBB` colours in RGB space. */
@@ -58,6 +62,8 @@ function mix(a: number, b: number, u: number): number {
 	const bl = Math.round(ab + ((b & 0xff) - ab) * u);
 	return (r << 16) | (g << 8) | bl;
 }
+
+const lerp = (a: number, b: number, u: number) => a + (b - a) * u;
 
 /** Screen fraction the body sits at when rising / setting — the scene
  *  horizon, so it tracks along the water rather than climbing out from
@@ -112,6 +118,7 @@ export function computeAmbience(t: number, view?: { width: number; height: numbe
 		skyTop: mix(lo.skyTop, hi.skyTop, u),
 		skyHorizon: mix(lo.skyHorizon, hi.skyHorizon, u),
 		bgTint: mix(lo.bgTint, hi.bgTint, u),
+		windowGlow: lerp(lo.windowGlow, hi.windowGlow, u),
 		celestial: celestialAt(time, aspect)
 	};
 }

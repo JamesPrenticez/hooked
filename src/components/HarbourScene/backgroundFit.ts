@@ -34,3 +34,17 @@ export function computeBackgroundFit<T extends Size>(screen: Size, desktop: T, m
 
 	return { texture, scale, x: screen.width / 2, y: screen.height / 2 };
 }
+
+/**
+ * Maps a point in the background art's own pixel space (top-left origin,
+ * e.g. a landmark measured off the source image) to screen space, given the
+ * `BackgroundFit` the sprite is drawn with (anchor `0.5`). For code-driven
+ * effects pinned to something baked into the art — the Skytree antenna tip,
+ * say — rather than placed independently of it.
+ */
+export function textureToScreen<T extends Size>(fit: BackgroundFit<T>, point: { x: number; y: number }) {
+	return {
+		x: fit.x + (point.x - fit.texture.width / 2) * fit.scale,
+		y: fit.y + (point.y - fit.texture.height / 2) * fit.scale
+	};
+}
