@@ -6,6 +6,7 @@ import bgDesktopUrl from "@/assets/layers/hub/background/bg-desktop.webp";
 import bgLightsDesktopUrl from "@/assets/layers/hub/background/bg-lights-desktop.webp";
 import bgLightsMobileUrl from "@/assets/layers/hub/background/bg-lights-mobile.webp";
 import bgMobileUrl from "@/assets/layers/hub/background/bg-mobile.webp";
+import waterTileUrl from "@/assets/layers/hub/water/water-tile.webp";
 import { useDayNightClock } from "@/hooks/useDayNightClock";
 import { useElapsedSeconds } from "@/hooks/useElapsedSeconds";
 
@@ -24,10 +25,10 @@ import SkyLayer from "./SkyLayer";
  * carries the buildings, dock and cranes. The sky, sun / moon and overall
  * light level are code, cycled through a day / night loop by
  * `useDayNightClock` + `computeAmbience` — the strip is painted at midday
- * and tinted from there. Only the `ocean` placeholder from `layers.ts`
- * still renders, filling the strip's transparent lower zone until real
- * water art replaces it; the other placeholders stay in `layers.ts` as the
- * spec for their own passes (docs/ASSETS.md).
+ * and tinted from there. `OceanLayer` fills the strip's transparent lower
+ * zone with a scrolling water tile once it loads (falling back to the flat
+ * `ocean` placeholder from `layers.ts` until then); the other placeholders
+ * stay in `layers.ts` as the spec for their own passes (docs/ASSETS.md).
  *
  * §7.2 fisherman and §7.3 ambient activity are separate sub-milestones and
  * are not here yet.
@@ -43,7 +44,7 @@ function HarbourScene() {
 		// ponytail: loaded on scene mount, not via the boot manifest — one small
 		// pop the first time the hub shows. Route through §5's Assets.load(manifest)
 		// when the harbour asset set is real.
-		Assets.load([bgDesktopUrl, bgMobileUrl, bgLightsDesktopUrl, bgLightsMobileUrl]).then(loaded => {
+		Assets.load([bgDesktopUrl, bgMobileUrl, bgLightsDesktopUrl, bgLightsMobileUrl, waterTileUrl]).then(loaded => {
 			if (live) setTextures(loaded);
 		});
 		return () => {
@@ -60,7 +61,7 @@ function HarbourScene() {
 	return (
 		<pixiContainer>
 			<SkyLayer view={view} skyTop={skyTop} skyHorizon={skyHorizon} />
-			<OceanLayer view={view} tint={bgTint} />
+			<OceanLayer view={view} tint={bgTint} texture={textures?.[waterTileUrl]} seconds={seconds} />
 			<CelestialBody view={view} celestial={celestial} />
 			<BackgroundLayer
 				view={view}

@@ -1,7 +1,9 @@
 /* Replace font family and sizes here */
-@import url("https://fonts.googleapis.com/css2?family=Bungee&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Chango&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Zalando+Sans:ital,wdth,wght@0,75..125,200..900;1,75..125,200..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Sigmar&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Coiny&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lilita+One&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap");
 
 :root {
 	--font-size-legal: 1rem;
@@ -25,83 +27,65 @@
 	--font-weight-semibold: 600;
 	--font-weight-normal: 400;
 
-	/* Bungee Font Styles */
-	--font-bungee: "Bungee", sans-serif;
-	--font-bungee-legal: var(--font-weight-normal) var(--font-size-legal)/1 var(--font-bungee);
-	--font-bungee-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-bungee);
-	--font-bungee-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-bungee);
-	--font-bungee-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-bungee);
-	--font-bungee-sm: var(--font-weight-normal) var(--font-size-sm)/1 var(--font-bungee);
-	--font-bungee-md: var(--font-weight-normal) var(--font-size-md)/1 var(--font-bungee);
-	--font-bungee-lg: var(--font-weight-normal) var(--font-size-lg)/1 var(--font-bungee);
-	--font-bungee-xl: var(--font-weight-normal) var(--font-size-xl)/1 var(--font-bungee);
-	--font-bungee-xxl: var(--font-weight-normal) var(--font-size-xxl)/1 var(--font-bungee);
-	--font-bungee-xxxl: var(--font-weight-normal) var(--font-size-xxxl)/1 var(--font-bungee);
-	--font-bungee-xxxxl: var(--font-weight-normal) var(--font-size-xxxxl)/1 var(--font-bungee);
-	--font-bungee-xxxxxl: var(--font-weight-normal) var(--font-size-xxxxxl)/1 var(--font-bungee);
+	/* Display font — headings, buttons, anything punchy. Swap this one line to test a new font. */
+	--font-display: "Sigmar", sans-serif;
+	--font-display-legal: var(--font-weight-normal) var(--font-size-legal)/1 var(--font-display);
+	--font-display-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-display);
+	--font-display-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-display);
+	--font-display-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-display);
+	--font-display-sm: var(--font-weight-normal) var(--font-size-sm)/1 var(--font-display);
+	--font-display-md: var(--font-weight-normal) var(--font-size-md)/1 var(--font-display);
+	--font-display-lg: var(--font-weight-normal) var(--font-size-lg)/1 var(--font-display);
+	--font-display-xl: var(--font-weight-normal) var(--font-size-xl)/1 var(--font-display);
+	--font-display-xxl: var(--font-weight-normal) var(--font-size-xxl)/1 var(--font-display);
+	--font-display-xxxl: var(--font-weight-normal) var(--font-size-xxxl)/1 var(--font-display);
+	--font-display-xxxxl: var(--font-weight-normal) var(--font-size-xxxxl)/1 var(--font-display);
+	--font-display-xxxxxl: var(--font-weight-normal) var(--font-size-xxxxxl)/1 var(--font-display);
 
-	/* Bowlby Font Styles */
-	--font-bowlby: "Bowlby One SC", sans-serif;
-	--font-bowlby-legal: var(--font-weight-normal) var(--font-size-legal)/1 var(--font-bowlby);
-	--font-bowlby-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-bowlby);
-	--font-bowlby-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-bowlby);
-	--font-bowlby-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-bowlby);
-	--font-bowlby-sm: var(--font-weight-normal) var(--font-size-sm)/1 var(--font-bowlby);
-	--font-bowlby-md: var(--font-weight-normal) var(--font-size-md)/1 var(--font-bowlby);
-	--font-bowlby-lg: var(--font-weight-normal) var(--font-size-lg)/1 var(--font-bowlby);
-	--font-bowlby-xl: var(--font-weight-normal) var(--font-size-xl)/1 var(--font-bowlby);
-	--font-bowlby-xxl: var(--font-weight-normal) var(--font-size-xxl)/1 var(--font-bowlby);
-	--font-bowlby-xxxl: var(--font-weight-normal) var(--font-size-xxxl)/1 var(--font-bowlby);
-	--font-bowlby-xxxxl: var(--font-weight-normal) var(--font-size-xxxxl)/1 var(--font-bowlby);
-	--font-bowlby-xxxxxl: var(--font-weight-normal) var(--font-size-xxxxxl)/1 var(--font-bowlby);
+	/* Text font — body copy, UI chrome. Swap this one line to test a new font. */
+	--font-text: "League Spartan", sans-serif;
+	--font-text-legal: var(--font-weight-normal) var(--font-size-legal)/1 var(--font-text);
+	--font-text-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-text);
+	--font-text-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-text);
+	--font-text-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-text);
+	--font-text-sm: var(--font-weight-normal) var(--font-size-sm)/1 var(--font-text);
 
-	/* Chango Font Styles */
-	--font-chango: "Chango", sans-serif;
-	--font-chango-legal: var(--font-weight-normal) var(--font-size-legal)/1 var(--font-chango);
-	--font-chango-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-chango);
-	--font-chango-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-chango);
-	--font-chango-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-chango);
-	--font-chango-sm: var(--font-weight-normal) var(--font-size-sm)/1 var(--font-chango);
-	--font-chango-md: var(--font-weight-normal) var(--font-size-md)/1 var(--font-chango);
-	--font-chango-lg: var(--font-weight-normal) var(--font-size-lg)/1 var(--font-chango);
-	--font-chango-xl: var(--font-weight-normal) var(--font-size-xl)/1 var(--font-chango);
-	--font-chango-xxl: var(--font-weight-normal) var(--font-size-xxl)/1 var(--font-chango);
-	--font-chango-xxxl: var(--font-weight-normal) var(--font-size-xxxl)/1 var(--font-chango);
-	--font-chango-xxxxl: var(--font-weight-normal) var(--font-size-xxxxl)/1 var(--font-chango);
-	--font-chango-xxxxxl: var(--font-weight-normal) var(--font-size-xxxxxl)/1 var(--font-chango);
-
-	/* Zalando Font Styles */
-	--font-zalando: "Zalando Sans", sans-serif;
-	--font-zalando-legal: var(--font-weight-normal) var(--font-size-legal)/1.2 var(--font-zalando);
-	--font-zalando-xxs: var(--font-weight-normal) var(--font-size-xxs)/1.2 var(--font-zalando);
-	--font-zalando-xs: var(--font-weight-normal) var(--font-size-xs)/1.2 var(--font-zalando);
-	--font-zalando-base: var(--font-weight-normal) var(--font-size-base)/1.2 var(--font-zalando);
-	--font-zalando-sm: var(--font-weight-normal) var(--font-size-sm)/1.2 var(--font-zalando);
-
-	/* Zalando Bold Narrow Font Styles */
+	/* Text Bold Narrow Font Styles */
 	/* The width axis isn't part of the `font` shorthand, so every one of these
 	   needs `font-variation-settings` declared alongside it or the narrow width
 	   silently doesn't apply. eg:
-		font: var(--font-zalando-bold-base);
+		font: var(--font-text-bold-base);
 		font-variation-settings: var(--font-width-narrow);
 	*/
-	--font-zalando-bold-xxs: var(--font-weight-semibold) var(--font-size-xxs)/1 var(--font-zalando);
-	--font-zalando-bold-xs: var(--font-weight-semibold) var(--font-size-xs)/1 var(--font-zalando);
-	--font-zalando-bold-base: var(--font-weight-semibold) var(--font-size-base)/1 var(--font-zalando);
-	--font-zalando-bold-sm: var(--font-weight-semibold) var(--font-size-sm)/1 var(--font-zalando);
-	--font-zalando-bold-md: var(--font-weight-semibold) var(--font-size-md)/1 var(--font-zalando);
-	--font-zalando-bold-lg: var(--font-weight-semibold) var(--font-size-lg)/1 var(--font-zalando);
+	--font-text-bold-xxs: var(--font-weight-semibold) var(--font-size-xxs)/1 var(--font-text);
+	--font-text-bold-xs: var(--font-weight-semibold) var(--font-size-xs)/1 var(--font-text);
+	--font-text-bold-base: var(--font-weight-semibold) var(--font-size-base)/1 var(--font-text);
+	--font-text-bold-sm: var(--font-weight-semibold) var(--font-size-sm)/1 var(--font-text);
+	--font-text-bold-md: var(--font-weight-semibold) var(--font-size-md)/1 var(--font-text);
+	--font-text-bold-lg: var(--font-weight-semibold) var(--font-size-lg)/1 var(--font-text);
+
+	/* @animo-gaming/ui reads these for its own components — point them at ours
+	   instead of the library's Chakra Petch default. */
+	--animo-font-primary: var(--font-display);
+	--animo-font-secondary: var(--font-text);
 }
 
 html,
 body {
 	color: var(--color-black);
-	font-family: var(--font-zalando);
+	font-family: var(--font-text);
 	font-size: 10px;
 	line-height: 100%;
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
 button {
-	color: var(--color-black);
-	font-family: var(--font-chango);
+	text-transform: uppercase;
+	font-family: var(--font-display);
+	letter-spacing: 0.1em !important;
 }
