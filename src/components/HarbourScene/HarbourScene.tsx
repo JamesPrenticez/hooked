@@ -1,30 +1,64 @@
+import { useEffect, useState } from "react";
 import { useApplication } from "@pixi/react";
+import { Assets, type Texture } from "pixi.js";
 
-import { HARBOUR_LAYERS } from "./layers";
+import bgDesktopUrl from "@/assets/layers/hub/background/bg-desktop.webp";
+import bgMobileUrl from "@/assets/layers/hub/background/bg-mobile.webp";
+import { useDayNightClock } from "@/hooks/useDayNightClock";
+
+import { computeAmbience } from "./ambience";
+import BackgroundLayer from "./BackgroundLayer";
+import CelestialBody from "./CelestialBody";
+import OceanLayer from "./OceanLayer";
+import SkyLayer from "./SkyLayer";
 
 /**
  * The harbour / main hub scene (BUILD_PLAN §7.1) — the game's home state
- * between rounds. Placeholder art: each §7.1 checklist item is a flat
- * Pixi-drawn layer in `layers.ts`, back-to-front. Real webp / skeleton art
- * drops in by replacing a layer's `draw` body (see docs/ASSETS.md); the
- * layer stack and z-order stay put.
+ * between rounds.
+ *
+ * Real art lands one layer at a time. The background strip (`bg-desktop` /
+ * `bg-mobile`, picked by viewport shape — see `backgroundFit`) is in and
+ * carries the buildings, dock and cranes. The sky, sun / moon and overall
+ * light level are code, cycled through a day / night loop by
+ * `useDayNightClock` + `computeAmbience` — the strip is painted at midday
+ * and tinted from there. Only the `ocean` placeholder from `layers.ts`
+ * still renders, filling the strip's transparent lower zone until real
+ * water art replaces it; the other placeholders stay in `layers.ts` as the
+ * spec for their own passes (docs/ASSETS.md).
  *
  * §7.2 fisherman and §7.3 ambient activity are separate sub-milestones and
  * are not here yet.
  */
 function HarbourScene() {
 	const { app, isInitialised } = useApplication();
+	const [textures, setTextures] = useState<Record<string, Texture>>();
+	const t = useDayNightClock();
+
+	useEffect(() => {
+		let live = true;
+		// ponytail: loaded on scene mount, not via the boot manifest — one small
+		// pop the first time the hub shows. Route through §5's Assets.load(manifest)
+		// when the harbour asset set is real.
+		Assets.load([bgDesktopUrl, bgMobileUrl]).then(loaded => {
+			if (live) setTextures(loaded);
+		});
+		return () => {
+			live = false;
+		};
+	}, []);
+
 	// Children mount before <Application>'s async init resolves.
 	if (!isInitialised) return null;
 
 	const view = { width: app.screen.width, height: app.screen.height };
+	const { skyTop, skyHorizon, bgTint, celestial } = computeAmbience(t, view);
 
 	return (
 		<pixiContainer>
-			{HARBOUR_LAYERS.map(layer => (
-				<pixiGraphics key={layer.id} draw={g => layer.draw(g.clear(), view)} />
-			))}
-			<pixiText text="§7.1 Harbour — placeholder art" x={16} y={16} style={{ fill: "#8fa9bd", fontSize: 14 }} />
+			<SkyLayer view={view} skyTop={skyTop} skyHorizon={skyHorizon} />
+			<OceanLayer view={view} tint={bgTint} />
+			<CelestialBody view={view} celestial={celestial} />
+			<BackgroundLayer view={view} desktop={textures?.[bgDesktopUrl]} mobile={textures?.[bgMobileUrl]} tint={bgTint} />
 		</pixiContainer>
 	);
 }

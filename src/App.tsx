@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Button } from "@animo-gaming/ui";
 import { Application, extend } from "@pixi/react";
-import { Container, Graphics, Text } from "pixi.js";
+import { Container, Graphics, Sprite, Text } from "pixi.js";
 
 import Balance from "@/components/Balance";
 import HarbourScene from "@/components/HarbourScene";
@@ -17,7 +17,7 @@ import styles from "./App.module.css";
 // Registers the Pixi classes used as JSX tags (pixiContainer, pixiGraphics,
 // pixiText) below and in every scene component — @pixi/react doesn't bundle
 // these by default.
-extend({ Container, Graphics, Text });
+extend({ Container, Graphics, Sprite, Text });
 
 // `game` is the real (placeholder-art) harbour scene now — §7.1. `loading`
 // and `tutorial` stay colored rects until §5.1's overlay / §6's slide deck
