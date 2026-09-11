@@ -1,6 +1,8 @@
 import type { Texture } from "pixi.js";
 
+import type { Celestial } from "./ambience";
 import { HARBOUR_LAYERS, type HarbourView } from "./layers";
+import WaterReflections from "./WaterReflections";
 import { waterSwell } from "./waterSwell";
 
 const ocean = HARBOUR_LAYERS.find(layer => layer.id === "ocean");
@@ -29,6 +31,12 @@ interface OceanLayerProps {
 	texture?: Texture;
 	/** Wall-clock seconds (`useElapsedSeconds`), driving the scroll. */
 	seconds: number;
+	/** Position, colour and glow strength from `computeAmbience` — the moon /
+	 *  sun glint's source. */
+	celestial: Celestial;
+	/** `0`..`1` overlay strength from `computeAmbience` — the waterline's
+	 *  lit-building glow. */
+	windowGlow: number;
 }
 
 /**
@@ -36,10 +44,15 @@ interface OceanLayerProps {
  * strip's transparent lower zone, drawn as `LAYERS` stacked copies so the
  * surface doesn't read as one rigid sheet — see its comment. Until the
  * texture loads, the flat placeholder from `layers.ts` fills the same band.
+ * `WaterReflections` adds the moon / building-light shine on top either way.
  */
-function OceanLayer({ view, tint, texture, seconds }: OceanLayerProps) {
+function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow }: OceanLayerProps) {
+	const baseTop = view.height * 0.52; // HORIZON_Y, layers.ts
+	const reflections = (
+		<WaterReflections view={view} celestial={celestial} windowGlow={windowGlow} waterTop={baseTop} seconds={seconds} />
+	);
+
 	if (texture) {
-		const baseTop = view.height * 0.52; // HORIZON_Y, layers.ts
 		return (
 			<pixiContainer>
 				{LAYERS.map(layer => {
@@ -59,12 +72,18 @@ function OceanLayer({ view, tint, texture, seconds }: OceanLayerProps) {
 						/>
 					);
 				})}
+				{reflections}
 			</pixiContainer>
 		);
 	}
 
 	if (!ocean) return null;
-	return <pixiGraphics tint={tint} draw={g => ocean.draw(g.clear(), view)} />;
+	return (
+		<pixiContainer>
+			<pixiGraphics tint={tint} draw={g => ocean.draw(g.clear(), view)} />
+			{reflections}
+		</pixiContainer>
+	);
 }
 
 export default OceanLayer;

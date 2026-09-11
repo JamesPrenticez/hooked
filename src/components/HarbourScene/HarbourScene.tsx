@@ -61,7 +61,14 @@ function HarbourScene() {
 	return (
 		<pixiContainer>
 			<SkyLayer view={view} skyTop={skyTop} skyHorizon={skyHorizon} />
-			<OceanLayer view={view} tint={bgTint} texture={textures?.[waterTileUrl]} seconds={seconds} />
+			<OceanLayer
+				view={view}
+				tint={bgTint}
+				texture={textures?.[waterTileUrl]}
+				seconds={seconds}
+				celestial={celestial}
+				windowGlow={windowGlow}
+			/>
 			<CelestialBody view={view} celestial={celestial} />
 			<BackgroundLayer
 				view={view}
