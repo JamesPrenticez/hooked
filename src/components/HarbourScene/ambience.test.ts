@@ -64,7 +64,8 @@ describe("computeAmbience", () => {
 
 		it("rises and sets at the scene horizon, not below it", () => {
 			for (const t of [0.25, 0.75]) {
-				expect(computeAmbience(t, { width: 400, height: 800 }).celestial.y).toBeCloseTo(0.5);
+				expect(computeAmbience(t, { width: 400, height: 800 }).celestial.y).toBeCloseTo(0.4);
+				expect(computeAmbience(t, { width: 1200, height: 600 }).celestial.y).toBeCloseTo(0.6);
 			}
 		});
 

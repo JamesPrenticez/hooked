@@ -1,5 +1,6 @@
 import { Color, FillGradient } from "pixi.js";
 
+import { bucketColor, cachedGradient } from "./gradientCache";
 import type { TowerLandmark } from "./towerLandmarks";
 
 interface TowerBeaconProps {
@@ -21,6 +22,37 @@ interface TowerBeaconProps {
 /** Degrees of hue per second — a full rainbow cycle every 9s. */
 const CYCLE_SPEED = 40;
 
+/** The hue cycles through the same 360° loop forever — a bounded palette,
+ *  so caching by (bucketed) RGB plateaus instead of growing. See
+ *  `gradientCache` for why this is cached at all. */
+const haloGradientCache = new Map<string, FillGradient>();
+
+function haloGradient(color: number): FillGradient {
+	const [r, g, b] = bucketColor(color);
+	return cachedGradient(
+		haloGradientCache,
+		r,
+		g,
+		b,
+		rgb =>
+			new FillGradient({
+				type: "radial",
+				center: { x: 0.5, y: 0.5 },
+				innerRadius: 0,
+				outerCenter: { x: 0.5, y: 0.5 },
+				outerRadius: 0.5,
+				// A soft blurred glow doesn't need a crisp texture — the GPU
+				// bilinear-scales this up over the halo's radius fine.
+				textureSize: 64,
+				colorStops: [
+					{ offset: 0, color: `rgba(${rgb},0.6)` },
+					{ offset: 1, color: `rgba(${rgb},0)` }
+				],
+				textureSpace: "local"
+			})
+	);
+}
+
 /**
  * The Skytree antenna beacon: a single colour-cycling tip light. Code-driven,
  * not art — only the landmark pixel coordinates come from the background
@@ -32,9 +64,6 @@ function TowerBeacon({ landmark, toScreen, scale, alpha, seconds }: TowerBeaconP
 	const tip = toScreen({ x: landmark.x, y: landmark.tipY });
 	const hue = (seconds * CYCLE_SPEED) % 360;
 	const color = new Color({ h: hue, s: 85, l: 62 }).toNumber();
-	const cR = (color >> 16) & 0xff;
-	const cG = (color >> 8) & 0xff;
-	const cB = color & 0xff;
 	const r = 3 * scale;
 
 	return (
@@ -44,20 +73,7 @@ function TowerBeacon({ landmark, toScreen, scale, alpha, seconds }: TowerBeaconP
 			draw={g => {
 				g.clear();
 				// soft halo around the tip — same falloff trick as the sun/moon
-				g.circle(tip.x, tip.y, r * 6).fill(
-					new FillGradient({
-						type: "radial",
-						center: { x: 0.5, y: 0.5 },
-						innerRadius: 0,
-						outerCenter: { x: 0.5, y: 0.5 },
-						outerRadius: 0.5,
-						colorStops: [
-							{ offset: 0, color: `rgba(${cR},${cG},${cB},0.6)` },
-							{ offset: 1, color: `rgba(${cR},${cG},${cB},0)` }
-						],
-						textureSpace: "local"
-					})
-				);
+				g.circle(tip.x, tip.y, r * 6).fill(haloGradient(color));
 				// bright core
 				g.circle(tip.x, tip.y, r).fill({ color, alpha: 0.95 });
 			}}

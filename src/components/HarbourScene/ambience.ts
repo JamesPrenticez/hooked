@@ -67,8 +67,10 @@ const lerp = (a: number, b: number, u: number) => a + (b - a) * u;
 
 /** Screen fraction the body sits at when rising / setting — the scene
  *  horizon, so it tracks along the water rather than climbing out from
- *  behind it. */
-const HORIZON_Y = 0.5;
+ *  behind it. Lower (further down-screen) on desktop's wide aspect, higher
+ *  on mobile/portrait where the water strip sits closer to the top. */
+const HORIZON_Y_DESKTOP = 0.6;
+const HORIZON_Y_MOBILE = 0.4;
 /** Peak height above the horizon, as a fraction of viewport height, scaled
  *  by aspect and clamped. Wide viewports get a tall arc; portrait ones a
  *  shallow one, so the on-screen slope stays roughly constant. */
@@ -84,10 +86,11 @@ function celestialAt(time: number, aspect: number): Celestial {
 	// across the sky near the top instead of spiking to a point.
 	const arc = Math.sin(frac * Math.PI) ** 0.7; // 0 at horizon, 1 at zenith
 	const lift = Math.min(LIFT_MAX, Math.max(LIFT_MIN, LIFT_PER_ASPECT * aspect));
+	const horizonY = aspect >= 1 ? HORIZON_Y_DESKTOP : HORIZON_Y_MOBILE;
 
 	return {
 		x: frac,
-		y: HORIZON_Y - lift * arc,
+		y: horizonY - lift * arc,
 		// warm at the horizon, white-hot at the zenith; the moon stays cool.
 		color: isDay ? mix(0xffb066, 0xfff6e2, arc) : 0xd7e2f2,
 		intensity: Math.max(0, arc),
