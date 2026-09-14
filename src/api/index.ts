@@ -5,7 +5,7 @@
 // None of these helpers are wired into the app yet — that starts with the
 // Loading Screen milestone (5). This milestone only defines the contract.
 
-import { API_BASE_URL, DEBUG } from "@/constants/config";
+import { API_BASE_URL, DEBUG } from "@constants/config";
 import type {
 	BalanceResponse,
 	Bet,
@@ -23,7 +23,7 @@ import type {
 	SessionResponse,
 	UpcomingSeedResponse,
 	VerifyResponse
-} from "@/types/api";
+} from "@type/api";
 
 // Persisted so a page reload restores the session instead of minting a new one
 // (BUILD_PLAN §4.1). In-memory copy is the source of truth for requests; storage

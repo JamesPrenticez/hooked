@@ -1,6 +1,6 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
-import type { Bet } from "@/types/api";
+import type { Bet } from "@type/api";
 
 import {
 	adoptSessionTokenFromUrl,

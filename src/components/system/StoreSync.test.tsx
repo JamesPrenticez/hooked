@@ -1,8 +1,8 @@
 import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
 
-import { onSessionExpired } from "@/api";
-import { useGameStore } from "@/stores/gameStore";
+import { onSessionExpired } from "@api";
+import { useGameStore } from "@stores/gameStore";
 
 import StoreSync from "./StoreSync";
 

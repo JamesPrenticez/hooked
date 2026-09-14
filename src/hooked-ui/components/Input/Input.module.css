@@ -1,0 +1,73 @@
+.wrapper {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+
+	&[data-disabled] {
+		opacity: 0.4;
+	}
+}
+
+.label {
+	color: var(--animo-color-primary);
+	font-family: var(--animo-font-primary);
+	font-size: 1.2rem;
+	font-style: normal;
+	font-weight: 400;
+	line-height: 120%;
+	margin-bottom: 0.6rem;
+	text-align: left;
+}
+
+.field {
+	align-items: center;
+	background: var(--animo-input-bg-color);
+	border: 1px solid var(--animo-input-border-color);
+	border-radius: 0.8rem;
+	display: flex;
+	gap: 0.8rem;
+	padding-right: 0.8rem;
+	width: 100%;
+
+	&:focus-within {
+		border-color: var(--animo-color-primary);
+	}
+}
+
+.input {
+	background: none;
+	border: none;
+	color: var(--animo-color-white);
+	flex: 1;
+	font-family: var(--animo-font-primary);
+	font-size: 1.6rem;
+	font-weight: 400;
+	line-height: 120%;
+	min-width: 0;
+	padding: 1.4rem 0.8rem;
+	text-shadow: var(--animo-input-text-shadow);
+
+	&:focus {
+		outline: none;
+	}
+
+	&:disabled {
+		cursor: not-allowed;
+	}
+}
+
+.iconButton {
+	aspect-ratio: 1 / 1;
+	background: var(--animo-input-icon-bg-color);
+	backdrop-filter: blur(4px);
+	border: none;
+	border-radius: 0.8rem;
+	height: 3.2rem;
+	width: 3.2rem;
+
+	& > svg {
+		height: 1.8rem;
+		padding: 0.15rem;
+		width: 1.8rem;
+	}
+}

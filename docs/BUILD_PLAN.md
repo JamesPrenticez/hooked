@@ -536,9 +536,6 @@ Create the primary game environment.
 - [x] Dock
 - [x] Ocean
 - [x] Buildings
-- [x] Cranes
-- [x] Boats
-- [x] Props
 - [x] Lighting
 
 `src/components/HarbourScene/` replaces the `game`-phase `PlaceholderScene`
@@ -557,8 +554,8 @@ interaction — §7.2 fisherman and §7.3 ambient activity are the interactive
 
 ### 7.2 Fisherman
 
-- [ ] Character
-- [ ] Idle
+- [x] Character
+- [x] Idle
 - [ ] Fishing
 - [ ] Reaction
 - [ ] Victory
@@ -568,14 +565,25 @@ Pixi `AnimatedSprite`. No skeletal runtime, no new dependency. Simple parts
 (rod, cranes, boats) are code-transformed sprites, not sheets. Full spec +
 frame budget: `docs/ASSETS.md`.
 
+Character + idle landed as four flat stills (`src/assets/player/`: boat,
+player, rod, hook — no Blender/sprite-sheet pass yet, still `docs/ASSETS.md`
+work) composed by `src/components/HarbourScene/Fisherman.tsx`: one rig,
+positioned and scaled off the boat, rocking on the water with the existing
+`waterSwell` helper (reused as-is — same trick as the harbour's background
+boats). The line-and-hook is a code-drawn `Graphics` stroke to a small hook
+sprite, per `docs/ASSETS.md` §13, with its own small sway. `player` swaps for
+an `AnimatedSprite` sheet later without touching the rest of the rig.
+
 ### 7.3 Ambient Activity
 
+- [ ] Helicopter
 - [ ] Moving boats
 - [ ] Workers
 - [ ] Crane movement
 - [ ] Birds
-- [ ] Water movement
-- [ ] Particles
+- [x] Water movement
+- [x] Day/Night Cycle
+- [ ] Jack pot sign
 
 ### Acceptance Criteria
 

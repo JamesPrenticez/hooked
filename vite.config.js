@@ -15,10 +15,21 @@ export default defineConfig(({ mode }) => {
 		plugins: [react(), svgr()],
 		resolve: {
 			alias: {
-				// Single alias for the whole tree; keep in sync with the "paths"
-				// entry in tsconfig.json. Per-bucket aliases are deliberately not
-				// used — one key can't collide with another by prefix.
-				"@": path.resolve(import.meta.dirname, "./src")
+				// One alias per src/ bucket; keep in sync with the "paths" entry in
+				// tsconfig.json. Add a bucket here only once something actually
+				// imports across into it.
+				"@api": path.resolve(import.meta.dirname, "./src/api"),
+				"@assets": path.resolve(import.meta.dirname, "./src/assets"),
+				"@components": path.resolve(import.meta.dirname, "./src/components"),
+				"@constants": path.resolve(import.meta.dirname, "./src/constants"),
+				"@hooks": path.resolve(import.meta.dirname, "./src/hooks"),
+				"@stores": path.resolve(import.meta.dirname, "./src/stores"),
+				// "types/" is aliased as "@type" (singular) — tsc special-cases
+				// "@types/*" specifiers as DefinitelyTyped packages (TS6137).
+				"@type": path.resolve(import.meta.dirname, "./src/types"),
+				// Vendored component library (formerly @animo-gaming/ui), addressed
+				// like the npm package it replaced.
+				"@hooked-ui": path.resolve(import.meta.dirname, "./src/hooked-ui/index.ts")
 			}
 		},
 		test: {
@@ -59,7 +70,11 @@ export default defineConfig(({ mode }) => {
 					// it needs a real WebGL canvas happy-dom can't give.
 					"src/components/HarbourScene/HarbourScene.tsx",
 					"src/**/*.d.ts",
-					"src/**/index.ts"
+					"src/**/index.ts",
+					// hooked-ui (vendored from @animo-gaming/ui): stories aren't
+					// logic, and its vitest setup file mirrors src/vitest.setup.ts.
+					"src/hooked-ui/**/*.stories.tsx",
+					"src/hooked-ui/test/**"
 				],
 				// 80% is the team target. Adjust per-project only with a reason —
 				// this is meant to hold, not to be lowered on friction.

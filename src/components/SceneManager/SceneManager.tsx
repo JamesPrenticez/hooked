@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { useCrossfade } from "@/hooks/useCrossfade";
+import { useCrossfade } from "@hooks/useCrossfade";
 
 export interface SceneManagerProps<K extends string> {
 	/** Key of the scene to show. Changing it crossfades from the previous one. */

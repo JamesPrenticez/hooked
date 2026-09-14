@@ -2,14 +2,14 @@ import { act } from "react";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 
-import { useBalanceStore } from "@/stores/balanceStore";
+import { useBalanceStore } from "@stores/balanceStore";
 
 import Balance from "./Balance";
 
 // The ease is covered by useAnimatedNumber.test.ts — stub it to identity here
 // so these assert the display logic (null guard, formatting, store reactivity)
 // synchronously.
-vi.mock("@/hooks/useAnimatedNumber", () => ({
+vi.mock("@hooks/useAnimatedNumber", () => ({
 	useAnimatedNumber: (n: number) => n
 }));
 

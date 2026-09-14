@@ -1,5 +1,5 @@
-import { useAnimatedNumber } from "@/hooks/useAnimatedNumber";
-import { useBalanceStore } from "@/stores/balanceStore";
+import { useAnimatedNumber } from "@hooks/useAnimatedNumber";
+import { useBalanceStore } from "@stores/balanceStore";
 
 import styles from "./Balance.module.css";
 

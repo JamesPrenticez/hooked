@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@animo-gaming/ui";
 
-import { useDebugStore } from "@/stores/debugStore";
+import { Button } from "@hooked-ui";
+import { useDebugStore } from "@stores/debugStore";
 
 import styles from "./DebugPanel.module.css";
 

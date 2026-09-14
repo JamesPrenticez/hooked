@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { useDebugStore } from "@/stores/debugStore";
+import { useDebugStore } from "@stores/debugStore";
 
 /** Real seconds for one full midnight→noon→midnight cycle. Deliberately
  *  short so the effect is visible while building the harbour; wall-clock

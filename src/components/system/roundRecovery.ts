@@ -1,13 +1,13 @@
 // Boot / reconnect reconciliation (ARCHITECTURE §30, BUILD_PLAN §4.4). Sits
-// beside StoreSync as the other half of the "no store imports @/api" rule (§7,
+// beside StoreSync as the other half of the "no store imports @api" rule (§7,
 // §39): StoreSync handles the reactive onSessionExpired effect, this handles the
 // one-shot "pull authoritative state and make the stores match it" that the
 // Loading Screen (milestone 5) runs after initSession() and on every reconnect.
 
-import { getCurrent, getRound } from "@/api";
-import { useBalanceStore } from "@/stores/balanceStore";
-import { type RoundSnapshot, useRoundStore } from "@/stores/roundStore";
-import type { CurrentResponse, RoundDetailResponse } from "@/types/api";
+import { getCurrent, getRound } from "@api";
+import { useBalanceStore } from "@stores/balanceStore";
+import { type RoundSnapshot, useRoundStore } from "@stores/roundStore";
+import type { CurrentResponse, RoundDetailResponse } from "@type/api";
 
 // The roundId the client is currently presenting, persisted so a reload can
 // still find a round the server has already settled (§4.4 "Recover completed

@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { useApplication } from "@pixi/react";
 import { Assets, type Texture } from "pixi.js";
 
-import bgDesktopUrl from "@/assets/layers/hub/background/bg-desktop.webp";
-import bgLightsDesktopUrl from "@/assets/layers/hub/background/bg-lights-desktop.webp";
-import bgLightsMobileUrl from "@/assets/layers/hub/background/bg-lights-mobile.webp";
-import bgMobileUrl from "@/assets/layers/hub/background/bg-mobile.webp";
-import waterTileUrl from "@/assets/layers/hub/water/water-tile.webp";
-import { useDayNightClock } from "@/hooks/useDayNightClock";
-import { useElapsedSeconds } from "@/hooks/useElapsedSeconds";
+import bgDesktopUrl from "@assets/layers/hub/background/bg-desktop.webp";
+import bgLightsDesktopUrl from "@assets/layers/hub/background/bg-lights-desktop.webp";
+import bgLightsMobileUrl from "@assets/layers/hub/background/bg-lights-mobile.webp";
+import bgMobileUrl from "@assets/layers/hub/background/bg-mobile.webp";
+import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
+import { useDayNightClock } from "@hooks/useDayNightClock";
+import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
 
 import { computeAmbience } from "./ambience";
 import BackgroundLayer from "./BackgroundLayer";

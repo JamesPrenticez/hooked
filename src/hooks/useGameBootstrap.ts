@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { type Application, UPDATE_PRIORITY } from "pixi.js";
 
-import { useGameStore } from "@/stores/gameStore";
+import { useGameStore } from "@stores/gameStore";
 
 /**
  * Drives the loading → tutorial transition (BUILD_PLAN §0.2): advance only

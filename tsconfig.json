@@ -12,12 +12,26 @@
 		"noEmit": true,
 		"jsx": "react-jsx",
 		"strict": true,
-		// One alias for the whole tree — "@/" is src/. Per-bucket aliases
-		// (@utils, @typings, …) are deliberately not used: they multiply the
-		// tsconfig/vite sync burden and introduce prefix-matching order traps.
+		// One alias per src/ bucket, named after the folder — "@stores/x" is
+		// src/stores/x. Add a bucket's alias here only once something actually
+		// imports across into it. "@hooked-ui" is the vendored component
+		// library, addressed like the npm package it replaced.
+		//
+		// "types/" is aliased as "@type", not "@types" — tsc special-cases any
+		// specifier starting with "@types/" as a DefinitelyTyped declaration
+		// package and refuses to import it as a normal module (TS6137).
+		//
 		// Keep in sync with "resolve.alias" in vite.config.js.
 		"paths": {
-			"@/*": ["./src/*"]
+			"@api": ["./src/api/index.ts"],
+			"@api/*": ["./src/api/*"],
+			"@assets/*": ["./src/assets/*"],
+			"@components/*": ["./src/components/*"],
+			"@constants/*": ["./src/constants/*"],
+			"@hooks/*": ["./src/hooks/*"],
+			"@stores/*": ["./src/stores/*"],
+			"@type/*": ["./src/types/*"],
+			"@hooked-ui": ["./src/hooked-ui/index.ts"]
 		}
 	},
 	"include": ["src"]

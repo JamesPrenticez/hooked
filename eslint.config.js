@@ -80,9 +80,12 @@ export default defineConfig([
 					groups: [
 						["^node:"],
 						["^react", "^@?\\w"],
-						// "@/" is the only alias; it can't match "^@?\\w" above
-						// because "/" isn't a word character.
-						["^@/"],
+						// Local bucket aliases (@components, @stores, …) plus
+						// @hooked-ui. Listed explicitly so they don't fall into the
+						// "^@?\\w" third-party group above, which they'd otherwise
+						// match — unlike the old "@/" alias, these look exactly
+						// like scoped npm packages.
+						["^@(api|assets|components|constants|hooks|stores|type|hooked-ui)(/|$)"],
 						["^\\./", "^\\."]
 					]
 				}
@@ -107,6 +110,22 @@ export default defineConfig([
 					]
 				}
 			]
+		}
+	},
+	{
+		// Vendored component library (formerly @animo-gaming/ui): keeps its
+		// own internal relative imports rather than being rewritten onto the
+		// app's "@/" alias.
+		files: ["src/hooked-ui/**/*.{ts,tsx}"],
+		rules: {
+			"no-restricted-imports": "off"
+		}
+	},
+	{
+		// Storybook config, not app source — fast refresh doesn't apply.
+		files: [".storybook/**/*.{ts,tsx}"],
+		rules: {
+			"react-refresh/only-export-components": "off"
 		}
 	},
 	{

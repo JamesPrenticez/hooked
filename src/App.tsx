@@ -1,17 +1,17 @@
 import type { ReactNode } from "react";
-import { Button } from "@animo-gaming/ui";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Sprite, Text, TilingSprite } from "pixi.js";
 
-import Balance from "@/components/Balance";
-import DebugPanel from "@/components/DebugPanel";
-import HarbourScene from "@/components/HarbourScene";
-import LoadingScreen from "@/components/LoadingScreen";
-import PlaceholderScene from "@/components/PlaceholderScene/PlaceholderScene";
-import SceneManager from "@/components/SceneManager/SceneManager";
-import StoreSync from "@/components/system/StoreSync";
-import { useGameBootstrap } from "@/hooks/useGameBootstrap";
-import { type GamePhase, useGameStore } from "@/stores/gameStore";
+import Balance from "@components/Balance";
+import DebugPanel from "@components/DebugPanel";
+import HarbourScene from "@components/HarbourScene";
+import LoadingScreen from "@components/LoadingScreen";
+import PlaceholderScene from "@components/PlaceholderScene/PlaceholderScene";
+import SceneManager from "@components/SceneManager/SceneManager";
+import StoreSync from "@components/system/StoreSync";
+import { Button } from "@hooked-ui";
+import { useGameBootstrap } from "@hooks/useGameBootstrap";
+import { type GamePhase, useGameStore } from "@stores/gameStore";
 
 import styles from "./App.module.css";
 

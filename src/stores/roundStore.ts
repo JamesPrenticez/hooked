@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import type { BetResult, FishingOutcome, PayoutResult, RoundStatus } from "@/types/api";
+import type { BetResult, FishingOutcome, PayoutResult, RoundStatus } from "@type/api";
 
 // The authoritative round the client is presenting, mirrored from the server
 // (ARCHITECTURE §9, §12, §18). Every field arrives verbatim in a server

@@ -1,5 +1,5 @@
 // The wire contract (ARCHITECTURE.md §5). The mock server mirrors these shapes
-// by hand — there is no shared package. Only `@/api` imports this to talk to the
+// by hand — there is no shared package. Only `@api` imports this to talk to the
 // server; stores and components use the typed helpers instead (§7).
 //
 // Wire rules: camelCase fields; money is always a decimal string ("1.00"),

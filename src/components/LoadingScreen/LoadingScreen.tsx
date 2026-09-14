@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import background from "@/assets/loading/background.svg";
-import logo from "@/assets/loading/logo.svg";
+import background from "@assets/loading/background.svg";
+import logo from "@assets/loading/logo.svg";
 
 import styles from "./LoadingScreen.module.css";
 

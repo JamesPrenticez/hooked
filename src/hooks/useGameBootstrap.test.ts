@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import type { Application } from "pixi.js";
 import { beforeEach, expect, it } from "vitest";
 
-import { useGameStore } from "@/stores/gameStore";
+import { useGameStore } from "@stores/gameStore";
 
 import { useGameBootstrap } from "./useGameBootstrap";
 

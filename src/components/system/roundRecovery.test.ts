@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
-import { useBalanceStore } from "@/stores/balanceStore";
-import { useRoundStore } from "@/stores/roundStore";
+import { useBalanceStore } from "@stores/balanceStore";
+import { useRoundStore } from "@stores/roundStore";
 
 import { recoverFromServer, setInflightRoundId } from "./roundRecovery";
 
