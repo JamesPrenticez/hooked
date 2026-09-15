@@ -8,10 +8,18 @@ const MOBILE = { width: 942, height: 1670 };
 describe("computeBackgroundFit", () => {
 	it("draws the wide desktop strip fit to viewport width in landscape", () => {
 		const fit = computeBackgroundFit({ width: 1920, height: 1080 }, DESKTOP, MOBILE);
+		const scale = 1920 / 2149;
 
 		expect(fit.texture).toBe(DESKTOP);
-		expect(fit.scale).toBeCloseTo(1920 / 2149);
-		expect(fit).toMatchObject({ x: 960, y: 540 });
+		expect(fit.scale).toBeCloseTo(scale);
+		expect(fit.x).toBeCloseTo(960);
+		expect(fit.y).toBeCloseTo(1080 - (DESKTOP.height * scale) / 2);
+	});
+
+	it("anchors the landscape strip's bottom edge flush with the screen bottom", () => {
+		const fit = computeBackgroundFit({ width: 1920, height: 1080 }, DESKTOP, MOBILE);
+
+		expect(fit.y + (DESKTOP.height * fit.scale) / 2).toBeCloseTo(1080);
 	});
 
 	it("draws the portrait composition scaled to cover in portrait", () => {

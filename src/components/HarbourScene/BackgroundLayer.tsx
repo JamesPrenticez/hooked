@@ -1,9 +1,7 @@
 import type { Texture } from "pixi.js";
 
-import { computeBackgroundFit, textureToScreen } from "./backgroundFit";
+import { computeBackgroundFit } from "./backgroundFit";
 import type { HarbourView } from "./layers";
-import TowerBeacon from "./TowerBeacon";
-import { TOWER_LANDMARK_DESKTOP, TOWER_LANDMARK_MOBILE } from "./towerLandmarks";
 import { windowFlicker } from "./windowFlicker";
 
 interface BackgroundLayerProps {
@@ -46,7 +44,6 @@ function BackgroundLayer({
 	const bg = computeBackgroundFit(view, desktop, mobile);
 	const landscape = view.width >= view.height;
 	const lit = landscape ? litDesktop : litMobile;
-	const towerLandmark = landscape ? TOWER_LANDMARK_DESKTOP : TOWER_LANDMARK_MOBILE;
 	const alpha = Math.min(1, windowGlow * windowFlicker(seconds));
 
 	return (
@@ -54,15 +51,6 @@ function BackgroundLayer({
 			<pixiSprite texture={bg.texture} anchor={0.5} x={bg.x} y={bg.y} scale={bg.scale} tint={tint} />
 			{lit && windowGlow > 0.01 && (
 				<pixiSprite texture={lit} anchor={0.5} x={bg.x} y={bg.y} scale={bg.scale} alpha={alpha} />
-			)}
-			{towerLandmark && (
-				<TowerBeacon
-					landmark={towerLandmark}
-					toScreen={point => textureToScreen(bg, point)}
-					scale={bg.scale}
-					alpha={alpha}
-					seconds={seconds}
-				/>
 			)}
 		</>
 	);

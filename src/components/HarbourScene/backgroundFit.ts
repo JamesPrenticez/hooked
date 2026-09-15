@@ -19,8 +19,9 @@ export interface BackgroundFit<T extends Size> {
  * wide desktop also supported):
  *
  * - **landscape** (`w >= h`): the wide `bg-desktop` strip, fit to viewport
- *   width. Its transparent top/bottom bleed off-screen; nothing load-bearing
- *   sits there.
+ *   width and anchored to the bottom of the screen — the foreground dock is
+ *   painted at the bottom of the art and must always sit flush with the
+ *   bottom of the viewport, whatever the art's transparent top bleed does.
  * - **portrait** (`w < h`): the 9:16 `bg-mobile` composition, scaled to *cover*
  *   the viewport. On a phone taller than 9:16 the outer few percent crop — the
  *   skyline and market stay centred, only generic edge detail is lost.
@@ -31,8 +32,9 @@ export function computeBackgroundFit<T extends Size>(screen: Size, desktop: T, m
 	const scale = landscape
 		? screen.width / texture.width
 		: Math.max(screen.width / texture.width, screen.height / texture.height);
+	const y = landscape ? screen.height - (texture.height * scale) / 2 : screen.height / 2;
 
-	return { texture, scale, x: screen.width / 2, y: screen.height / 2 };
+	return { texture, scale, x: screen.width / 2, y };
 }
 
 /**
