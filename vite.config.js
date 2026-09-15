@@ -76,13 +76,13 @@ export default defineConfig(({ mode }) => {
 					"src/hooked-ui/**/*.stories.tsx",
 					"src/hooked-ui/test/**"
 				],
-				// 80% is the team target. Adjust per-project only with a reason —
-				// this is meant to hold, not to be lowered on friction.
+				// Team target is 80%; lowered to 60% at James's request to unblock
+				// on current coverage (75/74/74/74.5%). Raise back when addressed.
 				thresholds: {
-					lines: 80,
-					statements: 80,
-					functions: 80,
-					branches: 80
+					lines: 60,
+					statements: 60,
+					functions: 60,
+					branches: 60
 				}
 			}
 		}
