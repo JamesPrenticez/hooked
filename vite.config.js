@@ -69,6 +69,14 @@ export default defineConfig(({ mode }) => {
 					// logic of its own (that's in layers.ts, which IS covered), and
 					// it needs a real WebGL canvas happy-dom can't give.
 					"src/components/HarbourScene/HarbourScene.tsx",
+					// Same reasoning as HarbourScene.tsx — thin @pixi/react drawing
+					// wiring, no real logic (that's depthAmbience.ts/particles.ts,
+					// which ARE covered), needs a real WebGL canvas.
+					"src/components/DescentScene/DescentScene.tsx",
+					"src/components/DescentScene/ParallaxLayer.tsx",
+					"src/components/DescentScene/WaterLayer.tsx",
+					"src/components/DescentScene/FishingLine.tsx",
+					"src/components/DescentScene/DepthMarkers.tsx",
 					"src/**/*.d.ts",
 					"src/**/index.ts",
 					// hooked-ui (vendored from @animo-gaming/ui): stories aren't

@@ -52,8 +52,10 @@ const KEYFRAMES: Keyframe[] = [
 	{ at: 0.88, skyTop: 0x080c1a, skyHorizon: 0x141a30, bgTint: 0x2f3a58, windowGlow: 1 } // night
 ];
 
-/** Linear blend of two `0xRRGGBB` colours in RGB space. */
-function mix(a: number, b: number, u: number): number {
+/** Linear blend of two `0xRRGGBB` colours in RGB space. Exported for
+ *  DescentScene's depth ambience, which blends the same way by meters
+ *  instead of time-of-day. */
+export function mix(a: number, b: number, u: number): number {
 	const ar = (a >> 16) & 0xff;
 	const ag = (a >> 8) & 0xff;
 	const ab = a & 0xff;
