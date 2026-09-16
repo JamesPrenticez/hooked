@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "worldDepth": 9600,
+  "background": {
+    "id": "water-column",
+    "path": "assets/background/water-column-2560x9600.png",
+    "size": [2560, 9600],
+    "opaque": true,
+    "bottomExtensionColor": "#05080c"
+  },
+  "assets": [
+    {"id":"abyss-cliff-left","path":"assets/cliffs/abyss-cliff-left-1024x2048.png","size":[1024,2048],"plane":"farSilhouette","anchor":[0,0.5],"allowFlip":false,"zones":["deep","abyss"]},
+    {"id":"abyss-cliff-right","path":"assets/cliffs/abyss-cliff-right-1024x2048.png","size":[1024,2048],"plane":"distant","anchor":[1,0.5],"allowFlip":false,"zones":["deep","abyss"]},
+    {"id":"reef-edge-left","path":"assets/foreground/reef-edge-left-1024x2048.png","size":[1024,2048],"plane":"foreground","anchor":[0,0.5],"allowFlip":false,"zones":["shallow","reef"]},
+    {"id":"reef-edge-right","path":"assets/foreground/reef-edge-right-1024x2048.png","size":[1024,2048],"plane":"foreground","anchor":[1,0.5],"allowFlip":false,"zones":["shallow","reef"]},
+    {"id":"vent-cluster","path":"assets/vents/vent-cluster-1536x1536.png","size":[1536,1536],"plane":"midground","anchor":[0.5,1],"allowFlip":true,"zones":["deep","abyss"]},
+    {"id":"vent-smoke","path":"assets/vents/vent-smoke-1024x2048.png","size":[1024,2048],"plane":"midground","anchor":[0.5,1],"allowFlip":true,"zones":["deep","abyss"],"animated":true},
+    {"id":"shipwreck","path":"assets/landmarks/shipwreck-2048x1536.png","size":[2048,1536],"plane":"landmark","anchor":[0.5,0.5],"allowFlip":false,"zones":["deep"]},
+    {"id":"submarine","path":"assets/landmarks/submarine-2048x1024.png","size":[2048,1024],"plane":"distant","anchor":[0.5,0.5],"allowFlip":true,"zones":["deep","abyss"]},
+    {"id":"whale-fall","path":"assets/landmarks/whale-fall-2048x1024.png","size":[2048,1024],"plane":"landmark","anchor":[0.5,0.5],"allowFlip":true,"zones":["deep","abyss"]},
+    {"id":"treasure-cache","path":"assets/landmarks/treasure-cache-1536x1024.png","size":[1536,1024],"plane":"landmark","anchor":[0.5,1],"allowFlip":false,"zones":["abyss"]},
+    {"id":"drowned-shrine","path":"assets/landmarks/drowned-shrine-1536x2048.png","size":[1536,2048],"plane":"landmark","anchor":[0.5,0.5],"allowFlip":false,"zones":["abyss"]},
+    {"id":"bioluminescent-cluster","path":"assets/dressing/bioluminescent-cluster-1024x1536.png","size":[1024,1536],"plane":"midground","anchor":[0.5,1],"allowFlip":true,"zones":["abyss"]}
+  ]
+}
