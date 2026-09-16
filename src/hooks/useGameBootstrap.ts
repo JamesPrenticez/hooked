@@ -6,6 +6,7 @@ import { useGameStore } from "@stores/gameStore";
 /**
  * Drives the loading → tutorial transition (BUILD_PLAN §0.2): advance only
  * once the asset load has resolved AND Pixi has rendered its first frame.
+ * Skips straight to "game" if the player previously toggled "skip tutorial".
  * Returns the onInit handler to pass to <Application>.
  */
 export function useGameBootstrap() {
@@ -21,7 +22,12 @@ export function useGameBootstrap() {
 	}, []);
 
 	useEffect(() => {
-		if (assetsLoaded && frameRendered) setPhase("tutorial");
+		// Read skipTutorial via getState(), not a subscribed value: this effect
+		// is only meant to fire once, for the loading → tutorial/game
+		// transition. Subscribing would re-run it (and re-set the phase) every
+		// time the player toggles "skip tutorial" from within the tutorial
+		// screen itself, slamming them straight into "game".
+		if (assetsLoaded && frameRendered) setPhase(useGameStore.getState().skipTutorial ? "game" : "tutorial");
 	}, [assetsLoaded, frameRendered, setPhase]);
 
 	return useCallback((app: Application) => {

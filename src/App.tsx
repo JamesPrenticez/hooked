@@ -13,7 +13,7 @@ import LoadingScreen from "@components/LoadingScreen";
 import PlaceholderScene from "@components/PlaceholderScene/PlaceholderScene";
 import SceneManager from "@components/SceneManager/SceneManager";
 import StoreSync from "@components/system/StoreSync";
-import { Button } from "@hooked-ui";
+import { Button, Checkbox } from "@hooked-ui";
 import { useDescentDepth } from "@hooks/useDescentDepth";
 import { useGameBootstrap } from "@hooks/useGameBootstrap";
 import { type GamePhase, useGameStore } from "@stores/gameStore";
@@ -37,6 +37,8 @@ type SceneKey = GamePhase | "descent";
 function App() {
 	const phase = useGameStore(state => state.phase);
 	const setPhase = useGameStore(state => state.setPhase);
+	const skipTutorial = useGameStore(state => state.skipTutorial);
+	const setSkipTutorial = useGameStore(state => state.setSkipTutorial);
 	const onAppInit = useGameBootstrap();
 
 	const [descending, setDescending] = useState(false);
@@ -69,6 +71,10 @@ function App() {
 
 			{phase === "tutorial" && (
 				<div className={styles.overlay}>
+					<div className={styles.skipTutorial}>
+						<Checkbox value={skipTutorial} onValueChange={setSkipTutorial} aria-label="Skip tutorial next time" />
+						Skip tutorial next time
+					</div>
 					<Button variant="primary" onClick={() => setPhase("game")}>
 						Start Fishing
 					</Button>

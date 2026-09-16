@@ -7,7 +7,7 @@ import { useGameStore } from "@stores/gameStore";
 import { useGameBootstrap } from "./useGameBootstrap";
 
 beforeEach(() => {
-	useGameStore.setState({ phase: "loading" });
+	useGameStore.setState({ phase: "loading", skipTutorial: false });
 });
 
 /** A fake <Application> whose ticker fires addOnce callbacks synchronously. */
@@ -47,6 +47,41 @@ it("advances to tutorial once both the asset load and a frame are ready", async 
 	await act(async () => {
 		await Promise.resolve();
 		await Promise.resolve();
+	});
+
+	expect(useGameStore.getState().phase).toBe("tutorial");
+});
+
+it("skips straight to game when skipTutorial is set", async () => {
+	useGameStore.setState({ skipTutorial: true });
+	const { result } = renderHook(() => useGameBootstrap());
+
+	act(() => {
+		result.current(fakeApp());
+	});
+
+	await act(async () => {
+		await Promise.resolve();
+		await Promise.resolve();
+	});
+
+	expect(useGameStore.getState().phase).toBe("game");
+});
+
+it("does not jump to game if skipTutorial is toggled on after reaching tutorial", async () => {
+	const { result } = renderHook(() => useGameBootstrap());
+
+	act(() => {
+		result.current(fakeApp());
+	});
+	await act(async () => {
+		await Promise.resolve();
+		await Promise.resolve();
+	});
+	expect(useGameStore.getState().phase).toBe("tutorial");
+
+	act(() => {
+		useGameStore.getState().setSkipTutorial(true);
 	});
 
 	expect(useGameStore.getState().phase).toBe("tutorial");
