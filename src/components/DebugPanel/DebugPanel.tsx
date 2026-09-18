@@ -36,9 +36,9 @@ function DebugPanel() {
 
 	return (
 		<>
-			<button type="button" className={styles.trigger} onClick={() => setOpen(true)}>
+			<Button type="button" className={styles.trigger} onClick={() => setOpen(true)}>
 				DEBUG
-			</button>
+			</Button>
 
 			<dialog ref={dialogRef} className={styles.modal} onClose={() => setOpen(false)}>
 				<div className={styles.header}>

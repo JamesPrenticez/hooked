@@ -10,7 +10,7 @@
  *
  * This is also the supported way to give a single instance its own colours:
  * a class set directly on a component's root (not on some shared ancestor)
- * can freely redefine any `--animo-*` custom property, because the override
+ * can freely redefine any `--hooked-*` custom property, because the override
  * only cascades to that instance and its own descendants — never to a
  * sibling elsewhere in the subtree that happens to read the same token.
  */

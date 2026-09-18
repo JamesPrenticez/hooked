@@ -1,8 +1,8 @@
 .chrome {
 	backdrop-filter: blur(0.5rem);
-	background: var(--animo-black-transparent);
+	background: var(--hooked-black-transparent);
 	border-radius: 0.8rem;
-	border: 1px solid color-mix(in srgb, var(--animo-color-white) 30%, transparent);
+	border: 1px solid color-mix(in srgb, var(--hooked-color-white) 30%, transparent);
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
@@ -69,9 +69,8 @@
 
 .title {
 	font-size: 1.8rem;
-	font-family: var(--animo-font-primary);
-	font-weight: 700;
-	color: var(--animo-color-white);
+	font-family: var(--hooked-font-primary);
+	color: var(--hooked-color-white);
 	letter-spacing: 0.02em;
 }
 
@@ -85,9 +84,8 @@
 
 	background: none;
 	border: none;
-	color: var(--animo-color-white);
+	color: var(--hooked-color-white);
 	font-size: 2.4rem;
-	font-weight: 700;
 	line-height: 1;
 	cursor: pointer;
 	opacity: 0.6;
@@ -97,7 +95,7 @@
 	}
 
 	&:focus-visible {
-		outline: 2px solid var(--animo-color-primary);
+		outline: 2px solid var(--hooked-color-primary);
 		outline-offset: 2px;
 		opacity: 1;
 	}
@@ -112,7 +110,7 @@
 	padding-right: 1rem;
 	overflow-y: auto;
 	scrollbar-width: thin;
-	scrollbar-color: var(--animo-color-body-secondary) transparent;
+	scrollbar-color: var(--hooked-color-body-secondary) transparent;
 
 	&::-webkit-scrollbar {
 		width: 0.2rem;
@@ -123,37 +121,36 @@
 	}
 
 	&::-webkit-scrollbar-thumb {
-		background: var(--animo-color-body-secondary);
+		background: var(--hooked-color-body-secondary);
 	}
 }
 
 .option {
 	align-items: center;
-	background: var(--animo-color-black);
+	background: var(--hooked-color-black);
 	border-radius: 0.6rem;
 	border: none;
-	color: var(--animo-color-white);
+	color: var(--hooked-color-white);
 	cursor: pointer;
 	display: flex;
-	font-family: var(--animo-font-primary);
+	font-family: var(--hooked-font-primary);
 	font-size: 1.3rem;
-	font-weight: 700;
 	justify-content: center;
 	padding: 1rem 0.4rem;
 	width: 7.7rem;
 	/* margin-bottom: 0.2rem; */
 
 	&:hover:not([aria-pressed="true"]) {
-		background: var(--animo-color-soft-accent);
+		background: var(--hooked-color-soft-accent);
 	}
 
 	&:focus-visible {
-		outline: 2px solid var(--animo-color-primary);
+		outline: 2px solid var(--hooked-color-primary);
 		outline-offset: 2px;
 	}
 
 	&[aria-pressed="true"] {
-		background: var(--animo-color-primary);
-		color: var(--animo-color-black);
+		background: var(--hooked-color-primary);
+		color: var(--hooked-color-black);
 	}
 }

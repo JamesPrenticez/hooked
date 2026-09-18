@@ -2,13 +2,13 @@
 	align-items: center;
 	background: linear-gradient(
 		180deg,
-		var(--animo-button-bonus-gradient-start) 0%,
-		var(--animo-button-bonus-gradient-end) 100%
+		var(--hooked-button-bonus-gradient-start) 0%,
+		var(--hooked-button-bonus-gradient-end) 100%
 	);
 	border-radius: 0.6rem;
-	border: 0.1rem solid var(--animo-color-black);
-	box-shadow: var(--animo-button-bonus-shadow);
-	color: var(--animo-color-white);
+	border: 0.1rem solid var(--hooked-color-black);
+	box-shadow: var(--hooked-button-bonus-shadow);
+	color: var(--hooked-color-white);
 	cursor: pointer;
 	display: flex;
 	aspect-ratio: 1;
@@ -33,7 +33,7 @@
 	}
 
 	&:focus-visible {
-		outline: 2px solid var(--animo-color-primary);
+		outline: 2px solid var(--hooked-color-primary);
 		outline-offset: 2px;
 	}
 
@@ -80,9 +80,8 @@
 
 .textLabel {
 	display: none;
-	font-family: var(--animo-font-secondary);
+	font-family: var(--hooked-font-secondary);
 	font-size: 1.2rem;
-	font-weight: 500;
 	line-height: 120%;
 	text-transform: uppercase;
 	white-space: nowrap;

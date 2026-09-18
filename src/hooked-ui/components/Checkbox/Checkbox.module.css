@@ -23,7 +23,7 @@
 	width: 2.4rem;
 	height: 2.4rem;
 	border-radius: 0.4rem;
-	border: 0.2rem solid var(--animo-color-light-muted);
+	border: 0.2rem solid var(--hooked-color-light-muted);
 	box-sizing: border-box;
 	display: flex;
 	justify-content: center;
@@ -39,7 +39,7 @@
 	width: 1.4rem;
 	height: 1.4rem;
 	background: transparent;
-	stroke: var(--animo-color-black);
+	stroke: var(--hooked-color-black);
 	stroke-width: 3;
 	stroke-linecap: round;
 	stroke-linejoin: round;
@@ -55,8 +55,8 @@
 }
 
 .input:checked + .box {
-	border-color: var(--animo-color-primary);
-	background: var(--animo-color-primary);
+	border-color: var(--hooked-color-primary);
+	background: var(--hooked-color-primary);
 
 	& polyline {
 		display: block;
@@ -64,7 +64,7 @@
 }
 
 .input:focus-visible + .box {
-	outline: 2px solid var(--animo-color-primary);
+	outline: 2px solid var(--hooked-color-primary);
 	outline-offset: 2px;
 }
 
@@ -73,5 +73,5 @@
 }
 
 .container[data-theme="dark"] .input:not(:checked) + .box {
-	border-color: var(--animo-color-dark-muted);
+	border-color: var(--hooked-color-dark-muted);
 }

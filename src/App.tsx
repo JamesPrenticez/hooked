@@ -57,7 +57,14 @@ function App() {
 
 	return (
 		<div className={styles.root}>
-			<Application className={styles.canvas} background={0x000000} resizeTo={window} onInit={onAppInit}>
+			<Application
+				className={styles.canvas}
+				background={0x000000}
+				resizeTo={window}
+				resolution={window.devicePixelRatio}
+				autoDensity
+				onInit={onAppInit}
+			>
 				<SceneManager activeKey={sceneKey} scenes={scenes} />
 			</Application>
 

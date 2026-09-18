@@ -1,11 +1,11 @@
 .accordion {
-	border-bottom: 1px solid var(--animo-color-light-muted);
-	color: var(--animo-color-black);
-	font-family: var(--animo-font-primary);
+	border-bottom: 1px solid var(--hooked-color-light-muted);
+	color: var(--hooked-color-black);
+	font-family: var(--hooked-font-primary);
 
 	&[data-theme="dark"] {
-		border-bottom-color: var(--animo-color-dark-muted);
-		color: var(--animo-color-body);
+		border-bottom-color: var(--hooked-color-dark-muted);
+		color: var(--hooked-color-body);
 	}
 }
 
@@ -14,7 +14,6 @@
 	cursor: pointer;
 	display: flex;
 	font-size: 1.6rem;
-	font-weight: 600;
 	justify-content: space-between;
 	list-style: none;
 	padding: 1.2rem 0;
@@ -24,7 +23,7 @@
 	}
 
 	&:focus-visible {
-		outline: 2px solid var(--animo-color-primary);
+		outline: 2px solid var(--hooked-color-primary);
 		outline-offset: 2px;
 	}
 }

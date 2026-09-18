@@ -8,21 +8,21 @@
 	padding: 0;
 	border: none;
 	border-radius: 1.2rem;
-	background: var(--animo-button-bg-color);
+	background: var(--hooked-button-bg-color);
 	cursor: pointer;
 	transition: background 0.2s;
 
 	&[aria-checked="true"] {
-		background: var(--animo-color-primary);
+		background: var(--hooked-color-primary);
 	}
 
 	&:focus-visible {
-		outline: 2px solid var(--animo-color-primary);
+		outline: 2px solid var(--hooked-color-primary);
 		outline-offset: 2px;
 	}
 
 	&:disabled {
-		background: var(--animo-button-disabled-bg-color);
+		background: var(--hooked-button-disabled-bg-color);
 		cursor: not-allowed;
 	}
 
@@ -38,7 +38,7 @@
 	width: 2rem;
 	height: 2rem;
 	border-radius: 50%;
-	background: var(--animo-color-white);
+	background: var(--hooked-color-white);
 	transition: left 0.18s;
 	pointer-events: none;
 
@@ -52,5 +52,5 @@
 }
 
 .track:disabled .thumb {
-	background: var(--animo-color-grey);
+	background: var(--hooked-color-grey);
 }

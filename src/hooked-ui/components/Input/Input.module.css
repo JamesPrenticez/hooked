@@ -9,8 +9,8 @@
 }
 
 .label {
-	color: var(--animo-color-primary);
-	font-family: var(--animo-font-primary);
+	color: var(--hooked-color-primary);
+	font-family: var(--hooked-font-primary);
 	font-size: 1.2rem;
 	font-style: normal;
 	font-weight: 400;
@@ -21,8 +21,8 @@
 
 .field {
 	align-items: center;
-	background: var(--animo-input-bg-color);
-	border: 1px solid var(--animo-input-border-color);
+	background: var(--hooked-input-bg-color);
+	border: 1px solid var(--hooked-input-border-color);
 	border-radius: 0.8rem;
 	display: flex;
 	gap: 0.8rem;
@@ -30,22 +30,22 @@
 	width: 100%;
 
 	&:focus-within {
-		border-color: var(--animo-color-primary);
+		border-color: var(--hooked-color-primary);
 	}
 }
 
 .input {
 	background: none;
 	border: none;
-	color: var(--animo-color-white);
+	color: var(--hooked-color-white);
 	flex: 1;
-	font-family: var(--animo-font-primary);
+	font-family: var(--hooked-font-primary);
 	font-size: 1.6rem;
 	font-weight: 400;
 	line-height: 120%;
 	min-width: 0;
 	padding: 1.4rem 0.8rem;
-	text-shadow: var(--animo-input-text-shadow);
+	text-shadow: var(--hooked-input-text-shadow);
 
 	&:focus {
 		outline: none;
@@ -58,7 +58,7 @@
 
 .iconButton {
 	aspect-ratio: 1 / 1;
-	background: var(--animo-input-icon-bg-color);
+	background: var(--hooked-input-icon-bg-color);
 	backdrop-filter: blur(4px);
 	border: none;
 	border-radius: 0.8rem;

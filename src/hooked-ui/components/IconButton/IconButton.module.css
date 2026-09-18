@@ -1,9 +1,9 @@
 .button {
 	align-items: center;
-	background: var(--animo-button-bg-color);
-	border: 1px solid var(--animo-border-color);
+	background: var(--hooked-button-bg-color);
+	border: 1px solid var(--hooked-border-color);
 	border-radius: 0.8rem;
-	color: var(--animo-color-white);
+	color: var(--hooked-color-white);
 	cursor: pointer;
 	display: flex;
 	flex-shrink: 0;
@@ -17,17 +17,17 @@
 	width: 4rem;
 
 	&:hover:not(:disabled) {
-		border-color: var(--animo-color-soft-accent);
-		color: var(--animo-color-primary);
+		border-color: var(--hooked-color-soft-accent);
+		color: var(--hooked-color-primary);
 	}
 
 	&[aria-pressed="true"] {
-		background: var(--animo-color-white);
-		color: var(--animo-color-black);
+		background: var(--hooked-color-white);
+		color: var(--hooked-color-black);
 	}
 
 	&:focus-visible {
-		outline: 2px solid var(--animo-color-primary);
+		outline: 2px solid var(--hooked-color-primary);
 		outline-offset: 2px;
 	}
 

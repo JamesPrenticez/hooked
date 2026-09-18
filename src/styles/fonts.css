@@ -29,7 +29,7 @@
 
 	/* Display font — headings, buttons, anything punchy. Swap this one line to test a new font. */
 	--font-display: "Sigmar", sans-serif;
-	--font-display-legal: var(--font-weight-normal) var(--font-size-legal)/1 var(--font-display);
+	--font-display-legal: 100 1.2rem "Sigmar";
 	--font-display-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-display);
 	--font-display-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-display);
 	--font-display-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-display);
@@ -64,10 +64,10 @@
 	--font-text-bold-md: var(--font-weight-semibold) var(--font-size-md)/1 var(--font-text);
 	--font-text-bold-lg: var(--font-weight-semibold) var(--font-size-lg)/1 var(--font-text);
 
-	/* @animo-gaming/ui reads these for its own components — point them at ours
+	/* hooked-ui reads these for its own components — point them at ours
 	   instead of the library's Chakra Petch default. */
-	--animo-font-primary: var(--font-display);
-	--animo-font-secondary: var(--font-text);
+	--hooked-font-primary: var(--font-display);
+	--hooked-font-secondary: var(--font-text);
 }
 
 html,
@@ -76,6 +76,9 @@ body {
 	font-family: var(--font-text);
 	font-size: 10px;
 	line-height: 100%;
+	/* Sigmar only ships weight 400; without this the browser fake-bolds it for
+	   any 500+ weight (hooked-ui buttons, accordions...) and the glyphs smear. */
+	font-synthesis: none;
 }
 
 h1,

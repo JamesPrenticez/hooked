@@ -1,12 +1,8 @@
 /*
- * Animo UI Kit design tokens.
- *
- * Ships inside the kit's stylesheet, so importing
- *   import '@animo-gaming/ui/styles.css';
- * once at your app entry is all that is required.
+ * Hooked UI design tokens.
  *
  * Override any token by redefining it on :root (or any ancestor) in your own
- * CSS. The kit owns the --animo-* namespace and reads nothing outside it.
+ * CSS. The kit owns the --hooked-* namespace and reads nothing outside it.
  */
 
 :root {
@@ -20,58 +16,58 @@
    */
 
 	/* The kit does not load fonts. Point this at whatever your app has loaded. */
-	--animo-font-primary: "Chakra Petch", sans-serif;
-	--animo-font-secondary: "Chakra Petch", sans-serif;
+	--hooked-font-primary: "Chakra Petch", sans-serif;
+	--hooked-font-secondary: "Chakra Petch", sans-serif;
 
-	--animo-color-animo-red: #f82738;
-	--animo-color-animo-blue: #0028f8;
-	--animo-color-green: #27f854;
-	--animo-color-red: #ff0000;
+	--hooked-color-brand-red: #f82738;
+	--hooked-color-brand-blue: #0028f8;
+	--hooked-color-green: #27f854;
+	--hooked-color-red: #ff0000;
 
-	--animo-color-error-red: #ff3b30;
+	--hooked-color-error-red: #ff3b30;
 
 	/* BASE */
-	--animo-color-black: #080808;
-	--animo-color-white: #f8f8ff;
-	--animo-color-grey: #666666;
-	--animo-color-body: #e0e0e0;
-	--animo-color-body-secondary: #b3b3b3;
+	--hooked-color-black: #080808;
+	--hooked-color-white: #f8f8ff;
+	--hooked-color-grey: #666666;
+	--hooked-color-body: #e0e0e0;
+	--hooked-color-body-secondary: #b3b3b3;
 
-	--animo-color-dark-muted: color-mix(in srgb, var(--animo-color-white) 20%, transparent);
-	--animo-color-light-muted: color-mix(in srgb, var(--animo-color-black) 20%, transparent);
+	--hooked-color-dark-muted: color-mix(in srgb, var(--hooked-color-white) 20%, transparent);
+	--hooked-color-light-muted: color-mix(in srgb, var(--hooked-color-black) 20%, transparent);
 
-	--animo-text-blue: #90bde3;
-	--animo-border-color: rgba(255, 255, 255, 0.2);
-	--animo-border-disabled-color: rgba(255, 255, 255, 0.2);
+	--hooked-text-blue: #90bde3;
+	--hooked-border-color: rgba(255, 255, 255, 0.2);
+	--hooked-border-disabled-color: rgba(255, 255, 255, 0.2);
 
-	--animo-button-bg-color: rgba(4, 4, 4, 0.6);
-	--animo-button-disabled-bg-color: rgba(11, 11, 11, 0.4);
-	--animo-button-green-bg-color: #6ec278;
-	--animo-button-red-bg-color: #ee2923;
-	--animo-button-green-border-color: #64c278;
-	--animo-button-text-color: #ffffff;
-	--animo-button-default-bg-color: #000000;
-	--animo-button-shadow:
-		0.1rem 0.1rem 0rem var(--animo-color-black),
-		0rem -0.3rem 0rem color-mix(in srgb, var(--animo-color-black) 25%, transparent) inset,
-		0rem 0.3rem 0rem color-mix(in srgb, var(--animo-color-white) 20%, transparent) inset;
+	--hooked-button-bg-color: rgba(4, 4, 4, 0.6);
+	--hooked-button-disabled-bg-color: rgba(11, 11, 11, 0.4);
+	--hooked-button-green-bg-color: #6ec278;
+	--hooked-button-red-bg-color: #ee2923;
+	--hooked-button-green-border-color: #64c278;
+	--hooked-button-text-color: #ffffff;
+	--hooked-button-default-bg-color: #000000;
+	--hooked-button-shadow:
+		0.1rem 0.1rem 0rem var(--hooked-color-black),
+		0rem -0.3rem 0rem color-mix(in srgb, var(--hooked-color-black) 25%, transparent) inset,
+		0rem 0.3rem 0rem color-mix(in srgb, var(--hooked-color-white) 20%, transparent) inset;
 
-	--animo-button-bonus-gradient-start: #e89730;
-	--animo-button-bonus-gradient-end: #f1d44e;
-	--animo-button-bonus-shadow:
-		0.1rem 0.1rem 0rem var(--animo-color-black), 0rem 0.3rem 0rem #ffe7a7 inset, 0rem -0.3rem 0rem #844400 inset;
+	--hooked-button-bonus-gradient-start: #e89730;
+	--hooked-button-bonus-gradient-end: #f1d44e;
+	--hooked-button-bonus-shadow:
+		0.1rem 0.1rem 0rem var(--hooked-color-black), 0rem 0.3rem 0rem #ffe7a7 inset, 0rem -0.3rem 0rem #844400 inset;
 
-	--animo-input-bg-color: var(--animo-color-black);
-	--animo-input-border-color: #333333;
-	--animo-input-icon-bg-color: color-mix(in srgb, var(--animo-color-white) 10%, transparent);
-	--animo-input-text-shadow: 0 0.2rem 0 var(--animo-color-black);
+	--hooked-input-bg-color: var(--hooked-color-black);
+	--hooked-input-border-color: #333333;
+	--hooked-input-icon-bg-color: color-mix(in srgb, var(--hooked-color-white) 10%, transparent);
+	--hooked-input-text-shadow: 0 0.2rem 0 var(--hooked-color-black);
 
-	--animo-color-primary: #eaeaea;
-	--animo-color-soft-accent: color-mix(in srgb, var(--animo-color-primary) 50%, transparent);
-	--animo-color-hover: #000000;
-	--animo-black-transparent: color-mix(in srgb, var(--animo-color-black) 50%, transparent);
+	--hooked-color-primary: #eaeaea;
+	--hooked-color-soft-accent: color-mix(in srgb, var(--hooked-color-primary) 50%, transparent);
+	--hooked-color-hover: #000000;
+	--hooked-black-transparent: color-mix(in srgb, var(--hooked-color-black) 50%, transparent);
 
-	--animo-color-hard-accent: var(--animo-color-primary);
+	--hooked-color-hard-accent: var(--hooked-color-primary);
 }
 
 /*
@@ -86,23 +82,23 @@
 
 [data-theme="green"],
 .theme-green {
-	--animo-color-primary: #4fd18b;
+	--hooked-color-primary: #4fd18b;
 }
 
 [data-theme="neon-green"],
 .theme-neon-green {
-	--animo-color-primary: #2d9b68;
+	--hooked-color-primary: #2d9b68;
 }
 
 [data-theme="gold"],
 .theme-gold {
-	--animo-color-primary: #ffd29e;
+	--hooked-color-primary: #ffd29e;
 }
 
 [data-theme="purple"],
 .theme-purple {
-	--animo-color-primary: #6785ea;
-	--animo-color-soft-accent: color-mix(in srgb, var(--animo-color-primary) 50%, transparent);
-	--animo-color-hover: #7b96f0;
-	--animo-color-hard-accent: #af2ee0;
+	--hooked-color-primary: #6785ea;
+	--hooked-color-soft-accent: color-mix(in srgb, var(--hooked-color-primary) 50%, transparent);
+	--hooked-color-hover: #7b96f0;
+	--hooked-color-hard-accent: #af2ee0;
 }

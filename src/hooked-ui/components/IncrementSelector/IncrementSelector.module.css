@@ -3,8 +3,8 @@
 	grid-auto-flow: column;
 	grid-template-columns: repeat(auto-fit, minmax(3rem, 1fr));
 	border-radius: 10rem;
-	border: 1px solid var(--animo-color-primary);
-	background: var(--animo-color-black);
+	border: 1px solid var(--hooked-color-primary);
+	background: var(--hooked-color-black);
 
 	min-height: 2.4rem;
 	min-width: fit-content;
@@ -37,20 +37,19 @@
 	border-radius: 1.4rem;
 	white-space: nowrap;
 
-	color: var(--animo-color-grey);
-	font-family: var(--animo-font-primary);
+	color: var(--hooked-color-grey);
+	font-family: var(--hooked-font-primary);
 	font-size: 1.5rem;
 	font-weight: 400;
 	line-height: normal;
 }
 
 .input:checked + span {
-	background: var(--animo-color-primary);
-	color: var(--animo-color-black);
-	font-weight: 500;
+	background: var(--hooked-color-primary);
+	color: var(--hooked-color-black);
 }
 
 .input:focus-visible + span {
-	outline: 2px solid var(--animo-color-primary);
+	outline: 2px solid var(--hooked-color-primary);
 	outline-offset: -2px;
 }

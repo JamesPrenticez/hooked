@@ -48,7 +48,10 @@
 	flex: 1;
 	flex-direction: column;
 	gap: 6px;
-	font-size: var(--font-size-legal);
+	font-family: "League Spartan", sans-serif;
+	font-weight: 600;
+	font-size: 1.2rem;
+	text-transform: uppercase;
 }
 
 .checkField {
