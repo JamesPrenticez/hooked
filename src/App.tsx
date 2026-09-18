@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { Application, extend } from "@pixi/react";
-import { Container, Graphics, Sprite, Text, TilingSprite } from "pixi.js";
+import { Container, Graphics, Mesh, Sprite, Text, TilingSprite } from "pixi.js";
 
 import Balance from "@components/Balance";
 import BottomBar from "@components/BottomBar";
@@ -23,7 +23,7 @@ import styles from "./App.module.css";
 // Registers the Pixi classes used as JSX tags (pixiContainer, pixiGraphics,
 // pixiText) below and in every scene component — @pixi/react doesn't bundle
 // these by default.
-extend({ Container, Graphics, Sprite, Text, TilingSprite });
+extend({ Container, Graphics, Mesh, Sprite, Text, TilingSprite });
 
 // `game` covers both the harbour hub and the (client-only, no bets yet)
 // descent view the bottom bar's cast-line button toggles into.
