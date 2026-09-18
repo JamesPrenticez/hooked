@@ -42,7 +42,7 @@ function App() {
 	const onAppInit = useGameBootstrap();
 
 	const [descending, setDescending] = useState(false);
-	const depth = useDescentDepth(descending);
+	const depth = useDescentDepth(descending, () => setDescending(false));
 	const sceneKey: SceneKey = phase === "game" && descending ? "descent" : phase;
 
 	// `descent` needs the live `depth` value, so unlike a static map this is

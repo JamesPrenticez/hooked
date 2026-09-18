@@ -23,8 +23,9 @@ interface Keyframe {
 	darkness: number;
 }
 
-// One stop per DEPTH_ZONES entry, in the same order — `at` is read off the
-// zone itself so the colour shift and the zone label can never drift apart.
+// One stop per zone, in DEPTH_ZONES' order — `at` is read off the zone
+// itself so the colour shift and the zone label can never drift apart, even
+// when the debug panel moves zone boundaries around at runtime.
 const COLOR_STOPS = [
 	{ top: 0x6fd4f0, bottom: 0x1f7fae, darkness: 0 }, // shallow
 	{ top: 0x2d93c9, bottom: 0x145d85, darkness: 0.15 }, // reef
@@ -33,15 +34,15 @@ const COLOR_STOPS = [
 	{ top: 0x05080c, bottom: 0x000000, darkness: 0.9 } // trench
 ];
 
-const KEYFRAMES: Keyframe[] = DEPTH_ZONES.map((zone, i) => ({ at: zone.fromMeters, ...COLOR_STOPS[i] }));
+export function computeDepthAmbience(depth: number, zones: DepthZone[] = DEPTH_ZONES): DepthAmbience {
+	const keyframes: Keyframe[] = zones.map((zone, i) => ({ at: zone.fromMeters, ...COLOR_STOPS[i] }));
 
-export function computeDepthAmbience(depth: number): DepthAmbience {
-	let lo = KEYFRAMES[0];
-	let hi = KEYFRAMES[KEYFRAMES.length - 1];
-	for (let i = 0; i < KEYFRAMES.length; i++) {
-		if (KEYFRAMES[i].at <= depth) {
-			lo = KEYFRAMES[i];
-			hi = KEYFRAMES[i + 1] ?? KEYFRAMES[i];
+	let lo = keyframes[0];
+	let hi = keyframes[keyframes.length - 1];
+	for (let i = 0; i < keyframes.length; i++) {
+		if (keyframes[i].at <= depth) {
+			lo = keyframes[i];
+			hi = keyframes[i + 1] ?? keyframes[i];
 		}
 	}
 
@@ -52,6 +53,6 @@ export function computeDepthAmbience(depth: number): DepthAmbience {
 		waterTop: mix(lo.top, hi.top, u),
 		waterBottom: mix(lo.bottom, hi.bottom, u),
 		darkness: lo.darkness + (hi.darkness - lo.darkness) * u,
-		zone: zoneForDepth(depth)
+		zone: zoneForDepth(depth, zones)
 	};
 }

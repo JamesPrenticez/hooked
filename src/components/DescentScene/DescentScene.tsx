@@ -1,6 +1,7 @@
 import { useApplication } from "@pixi/react";
 
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
+import { useDebugStore } from "@stores/debugStore";
 
 import { computeDepthAmbience } from "./depthAmbience";
 import DepthMarkers from "./DepthMarkers";
@@ -23,16 +24,18 @@ interface DescentSceneProps {
 function DescentScene({ depth }: DescentSceneProps) {
 	const { app, isInitialised } = useApplication();
 	const seconds = useElapsedSeconds();
+	const depthZones = useDebugStore(state => state.depthZones);
+	const depthUnit = useDebugStore(state => state.depthUnit);
 
 	if (!isInitialised) return null;
 
 	const view = { width: app.screen.width, height: app.screen.height };
-	const ambience = computeDepthAmbience(depth);
+	const ambience = computeDepthAmbience(depth, depthZones);
 
 	return (
 		<pixiContainer>
 			<WaterLayer view={view} top={ambience.waterTop} bottom={ambience.waterBottom} darkness={ambience.darkness} />
-			<DepthMarkers view={view} depth={depth} />
+			<DepthMarkers view={view} depth={depth} zones={depthZones} unit={depthUnit} />
 			<FishingLine view={view} depth={depth} seconds={seconds} />
 		</pixiContainer>
 	);

@@ -1,6 +1,9 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 
+import { MAX_DEPTH_METERS } from "@constants/depthZones";
+import { useDebugStore } from "@stores/debugStore";
+
 import { useDescentDepth } from "./useDescentDepth";
 
 let rafCallbacks: Map<number, FrameRequestCallback>;
@@ -18,6 +21,10 @@ beforeEach(() => {
 		return id;
 	});
 	vi.stubGlobal("cancelAnimationFrame", (id: number) => rafCallbacks.delete(id));
+
+	for (const zone of useDebugStore.getState().depthZones) {
+		useDebugStore.getState().setZoneSpeed(zone.id, 220);
+	}
 });
 
 function flushFrame(atTime: number) {
@@ -45,4 +52,33 @@ it("resets to zero when it goes inactive again", () => {
 
 	rerender({ active: false });
 	expect(result.current).toBe(0);
+});
+
+it("stops at the max depth instead of overshooting it", () => {
+	for (const zone of useDebugStore.getState().depthZones) {
+		useDebugStore.getState().setZoneSpeed(zone.id, 1_000_000);
+	}
+	const { result } = renderHook(() => useDescentDepth(true));
+
+	flushFrame(1000);
+	expect(result.current).toBe(MAX_DEPTH_METERS);
+});
+
+it("holds at the bottom, then reels back to the surface and calls onSurfaced", () => {
+	for (const zone of useDebugStore.getState().depthZones) {
+		useDebugStore.getState().setZoneSpeed(zone.id, 1_000_000);
+	}
+	const onSurfaced = vi.fn();
+	const { result } = renderHook(() => useDescentDepth(true, onSurfaced));
+
+	flushFrame(1000); // reaches the bottom, starts the hold
+	flushFrame(1500); // still holding
+	expect(result.current).toBe(MAX_DEPTH_METERS);
+	expect(onSurfaced).not.toHaveBeenCalled();
+
+	flushFrame(2500); // hold elapsed, now ascending
+	flushFrame(2500 + Math.ceil(MAX_DEPTH_METERS / 600 + 1) * 1000); // long enough to reel all the way in
+
+	expect(result.current).toBe(0);
+	expect(onSurfaced).toHaveBeenCalledTimes(1);
 });

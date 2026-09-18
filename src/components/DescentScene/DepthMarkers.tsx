@@ -1,8 +1,10 @@
-import { DEPTH_ZONES } from "@constants/depthZones";
+import { type DepthUnit, type DepthZone, formatDepth } from "@constants/depthZones";
 
 interface DepthMarkersProps {
 	view: { width: number; height: number };
 	depth: number;
+	zones: DepthZone[];
+	unit: DepthUnit;
 }
 
 /** Screen pixels per metre of depth the markers scroll by. Independent of
@@ -17,12 +19,12 @@ const PX_PER_METER = 0.6;
  * level with sits at screen centre, matching `FishingLine`'s resting hook
  * height.
  */
-function DepthMarkers({ view, depth }: DepthMarkersProps) {
+function DepthMarkers({ view, depth, zones, unit }: DepthMarkersProps) {
 	const centerY = view.height * 0.5;
 
 	return (
 		<pixiContainer>
-			{DEPTH_ZONES.map(zone => {
+			{zones.map(zone => {
 				const y = centerY + (zone.fromMeters - depth) * PX_PER_METER;
 				return (
 					<pixiContainer key={zone.id}>
@@ -33,7 +35,7 @@ function DepthMarkers({ view, depth }: DepthMarkersProps) {
 							}}
 						/>
 						<pixiText
-							text={`${zone.label.toUpperCase()} · ${zone.fromMeters}m`}
+							text={`${zone.label.toUpperCase()} · ${formatDepth(zone.fromMeters, unit)}`}
 							x={12}
 							y={y - 16}
 							style={{ fill: 0xffffff, fontSize: 13, fontWeight: "bold", letterSpacing: 1 }}

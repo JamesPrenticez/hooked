@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+import { MAX_DEPTH_METERS, metersToFeet } from "@constants/depthZones";
 import { Button } from "@hooked-ui";
 import { useDebugStore } from "@stores/debugStore";
 
@@ -7,8 +8,9 @@ import styles from "./DebugPanel.module.css";
 
 /**
  * Dev-only DEBUG button (bottom-right, every phase) opening a modal of
- * debug categories. Only "Environment" exists so far — day/night time of
- * day and a freeze toggle. More categories land here as they're built.
+ * debug categories: "Environment" (day/night time of day, freeze toggle) and
+ * "Hook" (per-tier depth range + descent speed, display unit). More
+ * categories land here as they're built.
  *
  * A native `<dialog>` gets backdrop click-to-close and Escape for free.
  */
@@ -19,6 +21,13 @@ function DebugPanel() {
 	const setFrozen = useDebugStore(state => state.setFrozen);
 	const timeOfDay = useDebugStore(state => state.timeOfDay);
 	const setTimeOfDay = useDebugStore(state => state.setTimeOfDay);
+
+	const depthUnit = useDebugStore(state => state.depthUnit);
+	const setDepthUnit = useDebugStore(state => state.setDepthUnit);
+	const depthZones = useDebugStore(state => state.depthZones);
+	const zoneSpeeds = useDebugStore(state => state.zoneSpeeds);
+	const setZoneFromMeters = useDebugStore(state => state.setZoneFromMeters);
+	const setZoneSpeed = useDebugStore(state => state.setZoneSpeed);
 
 	useEffect(() => {
 		if (open) dialogRef.current?.showModal();
@@ -58,6 +67,48 @@ function DebugPanel() {
 						<input type="checkbox" checked={frozen} onChange={e => setFrozen(e.target.checked)} />
 						Freeze cycle (stop looping)
 					</label>
+				</section>
+
+				<section className={styles.category}>
+					<h3 className={styles.categoryTitle}>Hook</h3>
+
+					<label className={styles.field}>
+						Display unit
+						<select value={depthUnit} onChange={e => setDepthUnit(e.target.value as "m" | "ft")}>
+							<option value="m">Metres</option>
+							<option value="ft">Feet</option>
+						</select>
+					</label>
+
+					<p className={styles.field}>
+						Max depth: {Math.round(metersToFeet(MAX_DEPTH_METERS)).toLocaleString()}ft /{" "}
+						{MAX_DEPTH_METERS.toLocaleString()}m
+					</p>
+
+					{depthZones.map(zone => (
+						<div key={zone.id} className={styles.field}>
+							{zone.label}
+							<label className={styles.field}>
+								Starts at (m)
+								<input
+									type="number"
+									min={0}
+									max={MAX_DEPTH_METERS}
+									value={Math.round(zone.fromMeters)}
+									onChange={e => setZoneFromMeters(zone.id, Number(e.target.value))}
+								/>
+							</label>
+							<label className={styles.field}>
+								Speed (m/s)
+								<input
+									type="number"
+									min={0}
+									value={zoneSpeeds[zone.id]}
+									onChange={e => setZoneSpeed(zone.id, Number(e.target.value))}
+								/>
+							</label>
+						</div>
+					))}
 				</section>
 			</dialog>
 		</>
