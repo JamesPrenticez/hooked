@@ -1,5 +1,6 @@
 import "./styles/tokens.css";
 
+export { Accordion, type AccordionProps } from "./components/Accordion";
 export { BetInput, type BetInputProps } from "./components/BetInput";
 export { BonusButton, type BonusButtonProps } from "./components/BonusButton";
 export { Button, type ButtonProps } from "./components/Button";

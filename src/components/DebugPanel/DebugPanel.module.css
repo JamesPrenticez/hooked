@@ -37,21 +37,43 @@
 	font: var(--font-display-sm);
 }
 
-.category {
+.fields {
 	display: flex;
 	flex-direction: column;
 	gap: 14px;
 }
 
-.categoryTitle {
-	font: var(--font-display-xs);
-	letter-spacing: 0.08em;
-	color: var(--color-primary-accent);
-}
-
 .field {
 	display: flex;
+	flex: 1;
 	flex-direction: column;
 	gap: 6px;
 	font-size: var(--font-size-legal);
+}
+
+.checkField {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: var(--font-size-legal);
+}
+
+.note {
+	font-size: var(--font-size-legal);
+}
+
+.zone {
+	display: flex;
+	gap: 12px;
+	margin: 0;
+	padding: 8px 12px 12px;
+	border: 1px solid color-mix(in srgb, var(--color-white) 20%, transparent);
+	border-radius: 8px;
+}
+
+.zoneLabel {
+	padding: 0 4px;
+	font: var(--font-display-xs);
+	letter-spacing: 0.08em;
+	color: var(--color-primary-accent);
 }

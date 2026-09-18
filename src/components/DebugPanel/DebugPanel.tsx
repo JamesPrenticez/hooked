@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { MAX_DEPTH_METERS, metersToFeet } from "@constants/depthZones";
-import { Button } from "@hooked-ui";
+import { Accordion, Button } from "@hooked-ui";
 import { useDebugStore } from "@stores/debugStore";
 
 import styles from "./DebugPanel.module.css";
@@ -48,68 +48,68 @@ function DebugPanel() {
 					</Button>
 				</div>
 
-				<section className={styles.category}>
-					<h3 className={styles.categoryTitle}>Environment</h3>
+				<Accordion title="Environment" theme="dark" open>
+					<div className={styles.fields}>
+						<label className={styles.field}>
+							Time of day
+							<input
+								type="range"
+								min={0}
+								max={1}
+								step={0.01}
+								value={timeOfDay}
+								onChange={e => setTimeOfDay(Number(e.target.value))}
+							/>
+						</label>
 
-					<label className={styles.field}>
-						Time of day
-						<input
-							type="range"
-							min={0}
-							max={1}
-							step={0.01}
-							value={timeOfDay}
-							onChange={e => setTimeOfDay(Number(e.target.value))}
-						/>
-					</label>
+						<label className={styles.checkField}>
+							<input type="checkbox" checked={frozen} onChange={e => setFrozen(e.target.checked)} />
+							Freeze cycle (stop looping)
+						</label>
+					</div>
+				</Accordion>
 
-					<label className={styles.field}>
-						<input type="checkbox" checked={frozen} onChange={e => setFrozen(e.target.checked)} />
-						Freeze cycle (stop looping)
-					</label>
-				</section>
+				<Accordion title="Hook" theme="dark">
+					<div className={styles.fields}>
+						<label className={styles.field}>
+							Display unit
+							<select value={depthUnit} onChange={e => setDepthUnit(e.target.value as "m" | "ft")}>
+								<option value="m">Metres</option>
+								<option value="ft">Feet</option>
+							</select>
+						</label>
 
-				<section className={styles.category}>
-					<h3 className={styles.categoryTitle}>Hook</h3>
+						<p className={styles.note}>
+							Max depth: {Math.round(metersToFeet(MAX_DEPTH_METERS)).toLocaleString()}ft /{" "}
+							{MAX_DEPTH_METERS.toLocaleString()}m
+						</p>
 
-					<label className={styles.field}>
-						Display unit
-						<select value={depthUnit} onChange={e => setDepthUnit(e.target.value as "m" | "ft")}>
-							<option value="m">Metres</option>
-							<option value="ft">Feet</option>
-						</select>
-					</label>
-
-					<p className={styles.field}>
-						Max depth: {Math.round(metersToFeet(MAX_DEPTH_METERS)).toLocaleString()}ft /{" "}
-						{MAX_DEPTH_METERS.toLocaleString()}m
-					</p>
-
-					{depthZones.map(zone => (
-						<div key={zone.id} className={styles.field}>
-							{zone.label}
-							<label className={styles.field}>
-								Starts at (m)
-								<input
-									type="number"
-									min={0}
-									max={MAX_DEPTH_METERS}
-									value={Math.round(zone.fromMeters)}
-									onChange={e => setZoneFromMeters(zone.id, Number(e.target.value))}
-								/>
-							</label>
-							<label className={styles.field}>
-								Speed (m/s)
-								<input
-									type="number"
-									min={0}
-									value={zoneSpeeds[zone.id]}
-									onChange={e => setZoneSpeed(zone.id, Number(e.target.value))}
-								/>
-							</label>
-						</div>
-					))}
-				</section>
+						{depthZones.map(zone => (
+							<fieldset key={zone.id} className={styles.zone}>
+								<legend className={styles.zoneLabel}>{zone.label}</legend>
+								<label className={styles.field}>
+									Starts at (m)
+									<input
+										type="number"
+										min={0}
+										max={MAX_DEPTH_METERS}
+										value={Math.round(zone.fromMeters)}
+										onChange={e => setZoneFromMeters(zone.id, Number(e.target.value))}
+									/>
+								</label>
+								<label className={styles.field}>
+									Speed (m/s)
+									<input
+										type="number"
+										min={0}
+										value={zoneSpeeds[zone.id]}
+										onChange={e => setZoneSpeed(zone.id, Number(e.target.value))}
+									/>
+								</label>
+							</fieldset>
+						))}
+					</div>
+				</Accordion>
 			</dialog>
 		</>
 	);
