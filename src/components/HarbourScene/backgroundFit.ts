@@ -1,3 +1,5 @@
+import { HORIZON_Y } from "./framing";
+
 interface Size {
 	width: number;
 	height: number;
@@ -13,28 +15,33 @@ export interface BackgroundFit<T extends Size> {
 	y: number;
 }
 
+/** Where the docks' waterline sits in each export, as a fraction of the art's
+ *  height — the bottom edge of the pier that spans the middle of the frame.
+ *  Measured off the current art; retune if it's re-exported. */
+const DOCK_LINE = { desktop: 0.438, mobile: 0.411 };
+
 /**
- * Picks the harbour background export for the current viewport and places it.
- * Two art exports, each authored for its shape (docs/ASSETS.md — portrait-first,
- * wide desktop also supported):
+ * Picks the harbour background export for the current viewport and places it
+ * so the docks' waterline sits on the horizon (`HORIZON_Y`, the top third of
+ * the screen) — sky, city and docks above it, the harbour water below. Two art
+ * exports, each authored for its shape (docs/ASSETS.md — portrait-first, wide
+ * desktop also supported):
  *
- * - **landscape** (`w >= h`): the wide `bg-desktop` strip, fit to viewport
- *   width and anchored to the bottom of the screen — the foreground dock is
- *   painted at the bottom of the art and must always sit flush with the
- *   bottom of the viewport, whatever the art's transparent top bleed does.
- * - **portrait** (`w < h`): the 9:16 `bg-mobile` composition, scaled to *cover*
- *   the viewport. On a phone taller than 9:16 the outer few percent crop — the
- *   skyline and market stay centred, only generic edge detail is lost.
+ * - **landscape** (`w >= h`): the wide `bg-desktop` export.
+ * - **portrait** (`w < h`): the 9:16 `bg-mobile` composition.
+ *
+ * Both are fit to the viewport width. On a wide, short screen the top third
+ * can't hold the whole skyline, so the top of the sky (and the tower's tip)
+ * crops rather than the docks falling short of the screen edges.
  */
 export function computeBackgroundFit<T extends Size>(screen: Size, desktop: T, mobile: T): BackgroundFit<T> {
 	const landscape = screen.width >= screen.height;
 	const texture = landscape ? desktop : mobile;
-	const scale = landscape
-		? screen.width / texture.width
-		: Math.max(screen.width / texture.width, screen.height / texture.height);
-	const y = landscape ? screen.height - (texture.height * scale) / 2 : screen.height / 2;
+	const scale = screen.width / texture.width;
+	const dockLine = landscape ? DOCK_LINE.desktop : DOCK_LINE.mobile;
+	const top = screen.height * HORIZON_Y - dockLine * texture.height * scale;
 
-	return { texture, scale, x: screen.width / 2, y };
+	return { texture, scale, x: screen.width / 2, y: top + (texture.height * scale) / 2 };
 }
 
 /**

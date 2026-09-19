@@ -1,5 +1,7 @@
 import type { Graphics } from "pixi.js";
 
+import { HORIZON_Y, WATERLINE_Y } from "./framing";
+
 /** Screen the harbour is drawn into. Layers size themselves off this — no
  *  fixed art board yet, so a placeholder reads correctly at any aspect
  *  (desktop, landscape mobile, portrait mobile). */
@@ -32,8 +34,6 @@ const PILE = 0x3d2f20;
 const STEEL = 0x49555f;
 const ACCENT = 0xf2b93a;
 
-/** Fraction of height where sky meets water. */
-const HORIZON_Y = 0.52;
 /** Fraction of height where the dock deck starts. */
 const DECK_Y = 0.72;
 
@@ -65,9 +65,10 @@ export const HARBOUR_LAYERS: HarbourLayer[] = [
 		id: "sky",
 		covers: "Lighting (backdrop)",
 		draw: (g, { width: w, height: h }) => {
-			g.rect(0, 0, w, h * 0.2).fill(SKY_TOP);
-			g.rect(0, h * 0.2, w, h * 0.18).fill(SKY_MID);
-			g.rect(0, h * 0.38, w, h * (HORIZON_Y - 0.38)).fill(SKY_GLOW);
+			const horizon = h * HORIZON_Y;
+			g.rect(0, 0, w, horizon * 0.4).fill(SKY_TOP);
+			g.rect(0, horizon * 0.4, w, horizon * 0.35).fill(SKY_MID);
+			g.rect(0, horizon * 0.75, w, horizon * 0.25).fill(SKY_GLOW);
 		}
 	},
 	{
@@ -100,11 +101,12 @@ export const HARBOUR_LAYERS: HarbourLayer[] = [
 		covers: "Ocean",
 		draw: (g, { width: w, height: h }) => {
 			const top = h * HORIZON_Y;
-			g.rect(0, top, w, h - top).fill(WATER);
+			const bottom = h * WATERLINE_Y;
+			g.rect(0, top, w, bottom - top).fill(WATER);
 			g.rect(0, top, w, 3).fill(HORIZON);
-			g.rect(0, h * 0.72, w, h * 0.28).fill(WATER_DEEP);
-			g.rect(0, h * 0.6, w * 0.5, 2).fill({ color: HORIZON, alpha: 0.3 });
-			g.rect(w * 0.4, h * 0.66, w * 0.4, 2).fill({ color: HORIZON, alpha: 0.25 });
+			g.rect(0, h * 0.5, w, bottom - h * 0.5).fill(WATER_DEEP);
+			g.rect(0, h * 0.42, w * 0.5, 2).fill({ color: HORIZON, alpha: 0.3 });
+			g.rect(w * 0.4, h * 0.46, w * 0.4, 2).fill({ color: HORIZON, alpha: 0.25 });
 		}
 	},
 	{

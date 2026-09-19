@@ -567,17 +567,25 @@ frame budget: `docs/ASSETS.md`.
 
 Character + idle landed as two flat placeholder stills in `src/assets/player/`
 — `player.png` (boat, fisherman and rod as one image) and `hook.png` — no
-Blender/sprite-sheet pass yet, still `docs/ASSETS.md` work. `player.png` is
-drawn by `src/components/HarbourScene/Fisherman.tsx`: pinned to the background
-art (`textureToScreen`, so it holds its place on the water at any aspect),
-between the ocean and the strip so the foreground dock hides the hull, tinted
-with the day / night grade and bobbing on the existing `waterSwell` helper
-(reused as-is — same trick as the harbour's background boats). `hook.png`
-hangs from the end of the descent's code-drawn line in
-`src/components/DescentScene/FishingLine.tsx` (§13.1); there is no line or hook
-off the rod in the idle harbour yet. Both stills load with mipmaps, since
-they're drawn far smaller than their source. `player` swaps for an
-`AnimatedSprite` sheet later without touching the rest of the rig.
+Blender/sprite-sheet pass yet, still `docs/ASSETS.md` work.
+
+The screen is laid out in thirds (`src/components/HarbourScene/framing.ts`):
+sky, city and docks in the top third (the background strip is placed so the
+docks' waterline lands on `HORIZON_Y`); the boat and fisherman centred on the
+harbour water in the middle third (`boatLayout`, drawn by
+`Fisherman.tsx`, tinted with the day / night grade and bobbing on the existing
+`waterSwell` helper); the underwater (`DescentScene`) in the bottom third.
+
+The cast is a camera move through that one world, not a scene swap:
+`HarbourScene` puts its layers in a container scrolled up by
+`cameraScroll(depth)`, so the harbour slides off the top as the hook falls
+from the rod tip into the water and the underwater takes the whole screen
+(`CAST_METERS` of depth, ~1.5s at the default shallow speed). Ascending plays
+it in reverse. `hook.png` and the line hang from the rod tip
+(`src/components/DescentScene/FishingLine.tsx`), so the hook is visible on the
+rod at idle. Both stills load with mipmaps, since they're drawn far smaller
+than their source. `player` swaps for an `AnimatedSprite` sheet later without
+touching the rest of the rig.
 
 ### 7.3 Ambient Activity
 

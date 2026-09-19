@@ -1,4 +1,5 @@
-import { type DepthUnit, type DepthZone, formatDepth, PX_PER_METER } from "@constants/depthZones";
+import { castProgress, depthToScreenY } from "@components/HarbourScene/framing";
+import { type DepthUnit, type DepthZone, formatDepth } from "@constants/depthZones";
 
 interface DepthMarkersProps {
 	view: { width: number; height: number };
@@ -10,16 +11,14 @@ interface DepthMarkersProps {
 /**
  * One horizontal line + label per depth-zone boundary (`DEPTH_ZONES`),
  * scrolling past as `depth` increases — the zone the hook is currently
- * level with sits at screen centre, matching `FishingLine`'s resting hook
- * height.
+ * level with sits at screen centre, matching the hook's resting height. They
+ * fade in as the cast finishes, so the harbour's idle waterline stays clean.
  */
 function DepthMarkers({ view, depth, zones, unit }: DepthMarkersProps) {
-	const centerY = view.height * 0.5;
-
 	return (
-		<pixiContainer>
+		<pixiContainer alpha={castProgress(depth)}>
 			{zones.map(zone => {
-				const y = centerY + (zone.fromMeters - depth) * PX_PER_METER;
+				const y = depthToScreenY(zone.fromMeters, depth, view);
 				return (
 					<pixiContainer key={zone.id}>
 						<pixiGraphics

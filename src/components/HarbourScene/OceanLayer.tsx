@@ -1,6 +1,7 @@
 import type { Texture } from "pixi.js";
 
 import type { Celestial } from "./ambience";
+import { HORIZON_Y, waterlineY } from "./framing";
 import { HARBOUR_LAYERS, type HarbourView } from "./layers";
 import WaterReflections from "./WaterReflections";
 import { waterSwell } from "./waterSwell";
@@ -40,16 +41,26 @@ interface OceanLayerProps {
 }
 
 /**
- * The harbour's water. Real art is one seamless tile behind the background
- * strip's transparent lower zone, drawn as `LAYERS` stacked copies so the
- * surface doesn't read as one rigid sheet — see its comment. Until the
- * texture loads, the flat placeholder from `layers.ts` fills the same band.
+ * The harbour's water — the middle third, from the docks' horizon down to the
+ * waterline where the underwater begins. Real art is one seamless tile behind
+ * the background strip's transparent lower zone, drawn as `LAYERS` stacked
+ * copies so the surface doesn't read as one rigid sheet — see its comment.
+ * Until the texture loads, the flat placeholder from `layers.ts` fills the
+ * same band.
  * `WaterReflections` adds the moon / building-light shine on top either way.
  */
 function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow }: OceanLayerProps) {
-	const baseTop = view.height * 0.52; // HORIZON_Y, layers.ts
+	const baseTop = view.height * HORIZON_Y;
+	const bottom = waterlineY(view);
 	const reflections = (
-		<WaterReflections view={view} celestial={celestial} windowGlow={windowGlow} waterTop={baseTop} seconds={seconds} />
+		<WaterReflections
+			view={view}
+			celestial={celestial}
+			windowGlow={windowGlow}
+			waterTop={baseTop}
+			waterBottom={bottom}
+			seconds={seconds}
+		/>
 	);
 
 	if (texture) {
@@ -64,7 +75,7 @@ function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow }: Oce
 							x={0}
 							y={top}
 							width={view.width}
-							height={view.height - top}
+							height={bottom - top}
 							tileScale={{ x: layer.tileScale, y: layer.tileScale }}
 							tilePosition={{ x: seconds * layer.driftX, y: seconds * layer.driftY }}
 							tint={tint}

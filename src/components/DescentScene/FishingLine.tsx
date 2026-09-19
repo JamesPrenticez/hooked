@@ -2,40 +2,42 @@ import { useEffect, useState } from "react";
 import { Assets, type Texture } from "pixi.js";
 
 import hookUrl from "@assets/player/hook.png";
+import { castProgress } from "@components/HarbourScene/framing";
 
 import { lineDrift } from "./lineDrift";
 
 interface FishingLineProps {
-	view: { width: number; height: number };
+	/** Rod tip in world space (`boatLayout`) — the line always hangs from it. */
+	tip: { x: number; y: number };
+	/** World y of the hook (`hookWorldY`). */
+	hookY: number;
+	viewWidth: number;
+	/** The boat's sprite scale (`boatLayout`) — the hook is sized off it. */
+	boatScale: number;
 	depth: number;
 	seconds: number;
 }
-
-/** Depth at which the line has fully paid out to its resting length — past
- *  this the hook holds and the parallax layers behind it keep scrolling to
- *  sell the continued descent (BUILD_PLAN §13.2 "camera follows hook", without
- *  an actual camera). */
-const PAYOUT_METERS = 150;
 
 /** How far `lineDrift`'s `-1..1` swings the line, as a fraction of the
  *  screen width either side of centre. */
 const DRIFT_FRACTION = 0.35;
 
 /** `hook.png` is a 1254px square with the hook drawn small inside it (~1076px
- *  tall), so this puts the hook at about 110px tall on screen. */
-const HOOK_SCALE = 0.1;
+ *  tall). This is its scale relative to the boat's, which puts the hook at
+ *  about a third of the boat's height — ~110px on a 1080p screen. */
+const HOOK_SCALE_PER_BOAT_SCALE = 0.3;
 
 /** The eyelet the line ties through, as a fraction of the hook texture. */
 const HOOK_EYE = { x: 0.545, y: 0.067 };
 
 /**
- * The line + hook — the only part of the rig still visible once it's in the
- * water (the boat/player/rod stay in HarbourScene, at the surface). The line is
- * drawn straight and taut, not swaying: the whole line drifts left/right
- * together from an anchor point above the top edge, per `lineDrift`, with the
- * hook sprite hanging from its end. The hook is placeholder art.
+ * The line + hook, drawn in the harbour's world space so it hangs from the rod
+ * tip and scrolls with the camera as the descent starts. The line is straight
+ * and taut, not swaying: the hook starts under the rod tip and, as the cast
+ * plays out, eases over to `lineDrift`'s slow left/right wander. The hook is
+ * placeholder art.
  */
-function FishingLine({ view, depth, seconds }: FishingLineProps) {
+function FishingLine({ tip, hookY, viewWidth, boatScale, depth, seconds }: FishingLineProps) {
 	const [hook, setHook] = useState<Texture>();
 
 	useEffect(() => {
@@ -51,20 +53,27 @@ function FishingLine({ view, depth, seconds }: FishingLineProps) {
 		};
 	}, []);
 
-	const payout = Math.min(depth / PAYOUT_METERS, 1);
-	const restY = view.height * 0.5;
-	const x = view.width / 2 + lineDrift(seconds) * view.width * DRIFT_FRACTION;
-	const hookY = restY * payout;
+	const drifted = viewWidth / 2 + lineDrift(seconds) * viewWidth * DRIFT_FRACTION;
+	const cast = castProgress(depth);
+	const hookX = tip.x + (drifted - tip.x) * cast;
 
 	return (
 		<>
 			<pixiGraphics
 				draw={g => {
 					g.clear();
-					g.moveTo(x, 0).lineTo(x, hookY).stroke({ width: 1.5, color: 0xe8e8e8, alpha: 0.8 });
+					g.moveTo(tip.x, tip.y).lineTo(hookX, hookY).stroke({ width: 1.5, color: 0xe8e8e8, alpha: 0.8 });
 				}}
 			/>
-			{hook && <pixiSprite texture={hook} anchor={HOOK_EYE} x={x} y={hookY} scale={HOOK_SCALE} />}
+			{hook && (
+				<pixiSprite
+					texture={hook}
+					anchor={HOOK_EYE}
+					x={hookX}
+					y={hookY}
+					scale={boatScale * HOOK_SCALE_PER_BOAT_SCALE}
+				/>
+			)}
 		</>
 	);
 }
