@@ -4,7 +4,7 @@
 // routes don't exist in production at all.
 //
 // Covers: force outcome (depth/fish/tier — "Force Kraken" is just
-// { depth: "trench", fish: "kraken", tier: "jackpot" } from the toolbar),
+// { depth: "jackpot", fish: "kraken", tier: "jackpot" } from the toolbar),
 // reset balance, reset session, and simulated latency/errors. Deterministic
 // seeded outcomes are the provably-fair RNG instead — see server/src/rng.ts
 // and the /api/seed/* endpoints.
@@ -17,7 +17,7 @@ import { resetRounds } from "../rounds.ts";
 import { resetSeeds } from "../seeds.ts";
 import { resetBalances, resetSessions } from "../sessions.ts";
 
-const DEPTHS = ["shallow", "reef", "deep", "abyss", "trench"];
+const DEPTHS = ["shallow", "reef", "deep", "abyss", "jackpot"];
 const TIERS = ["small", "large", "epic", "legendary", "jackpot"];
 
 function optEnum(value: unknown, allowed: string[], field: string): string | undefined {

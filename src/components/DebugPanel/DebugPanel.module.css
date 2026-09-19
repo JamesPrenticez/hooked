@@ -37,6 +37,11 @@
 	margin-bottom: 16px;
 }
 
+.actions {
+	display: flex;
+	gap: 8px;
+}
+
 .title {
 	font: var(--font-display-sm);
 }

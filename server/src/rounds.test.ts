@@ -47,12 +47,12 @@ test("the weighted roll reaches every depth and every fish over enough draws", (
 });
 
 test("common depths outrank rare ones at the first-pass weights", () => {
-	const count: Record<string, number> = { shallow: 0, reef: 0, deep: 0, abyss: 0, trench: 0 };
+	const count: Record<string, number> = { shallow: 0, reef: 0, deep: 0, abyss: 0, jackpot: 0 };
 	for (let nonce = 0; nonce < 6000; nonce++) count[rollOutcome("ordering", "check", nonce).depth]++;
 	assert.ok(count.shallow > count.reef, `shallow ${count.shallow} !> reef ${count.reef}`);
 	assert.ok(count.reef > count.deep, `reef ${count.reef} !> deep ${count.deep}`);
 	assert.ok(count.deep > count.abyss, `deep ${count.deep} !> abyss ${count.abyss}`);
-	assert.ok(count.abyss > count.trench, `abyss ${count.abyss} !> trench ${count.trench}`);
+	assert.ok(count.abyss > count.jackpot, `abyss ${count.abyss} !> jackpot ${count.jackpot}`);
 });
 
 // --- Payout resolution (BUILD_PLAN 3.3) ---
@@ -74,8 +74,8 @@ test("resolveBet — depth bet pays DEPTH_MULTIPLIERS on a hit, zero on a miss",
 test("resolveBet — fish bet pays the roster multiplier on a hit, zero on a miss", () => {
 	const hit = resolveBet({ type: "fish", selection: "shark", amount: "4.00" }, OUTCOME);
 	assert.equal(hit.won, true);
-	assert.equal(hit.multiplier, "28.24"); // FISH shark multiplier
-	assert.equal(hit.payout, "112.96"); // 4.00 × 28.24
+	assert.equal(hit.multiplier, "31.06"); // FISH shark multiplier
+	assert.equal(hit.payout, "124.24"); // 4.00 × 31.06
 
 	const miss = resolveBet({ type: "fish", selection: "whale", amount: "4.00" }, OUTCOME);
 	assert.equal(miss.won, false);
@@ -83,9 +83,9 @@ test("resolveBet — fish bet pays the roster multiplier on a hit, zero on a mis
 });
 
 test("resolveBet — fractional multiplier and odd stake round to whole cents", () => {
-	// sardine ×8.53 on 3.33 = 28.4049 → 28.40 (banker-free Math.round, half up)
+	// sardine ×7.68 on 3.33 = 25.5744 → 25.57 (banker-free Math.round, half up)
 	const r = resolveBet({ type: "fish", selection: "sardine", amount: "3.33" }, { ...OUTCOME, fish: "sardine" });
-	assert.equal(r.payout, "28.40");
+	assert.equal(r.payout, "25.57");
 });
 
 test("every depth id and every fish id has a payout multiplier above 1x", () => {

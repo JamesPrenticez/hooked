@@ -1,12 +1,15 @@
 import type { DepthId } from "@type/api";
 
+/** Every band of the descent. "trench" is scenery only — the bettable id at the bottom is "jackpot". */
+export type ZoneId = DepthId | "trench";
+
 /** Presentation data for each depth zone. The betting-board reference
  *  (mobile-reference.webp) uses real metre ranges (200/1,000/3,000/6,000),
  *  but at `useDescentDepth`'s pace those flew by in under a second — these
  *  are paced instead. Overridable at runtime via the debug panel's "Hook"
  *  category (`debugStore.depthZones`); this array is just the default. */
 export interface DepthZone {
-	id: DepthId;
+	id: ZoneId;
 	label: string;
 	/** Meters where this zone begins. */
 	fromMeters: number;
@@ -27,7 +30,8 @@ export const DEPTH_ZONES: DepthZone[] = [
 	{ id: "reef", label: "Reef", fromMeters: 1500 },
 	{ id: "deep", label: "Deep", fromMeters: 4000 },
 	{ id: "abyss", label: "Abyss", fromMeters: 7000 },
-	{ id: "trench", label: "Trench", fromMeters: 9500 }
+	{ id: "trench", label: "Trench", fromMeters: 9500 },
+	{ id: "jackpot", label: "Jackpot", fromMeters: 10_600 }
 ];
 
 /** The zone `depth` metres currently sits in. */

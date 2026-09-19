@@ -159,7 +159,7 @@ test("simulated blended RTP — a unit bet on every selection, over 200k rounds 
 
 test("simulated RTP of the frequently-hit selections (P ≥ 9%) lands within 2% of 96%", () => {
 	// These come up often enough that 200k rounds pin them tight. Rarer, higher-
-	// multiplier selections (trench, swordfish, whale, kraken, ...) stay noisy at
+	// multiplier selections (jackpot, swordfish, whale, kraken, ...) stay noisy at
 	// this N — the theoretical-band test above is their guarantee, and the
 	// runaway check below is their floor/ceiling.
 	const steady = allSelections.filter(b => pSelection(b) >= 0.09);
@@ -201,7 +201,7 @@ test("a depth bet and a fish bet on the same outcome both win and both pay", () 
 		results.map(r => r.won),
 		[true, true]
 	);
-	assert.equal(total, Math.round(1000 * DEPTH_MULTIPLIERS.deep) + Math.round(1000 * 28.24));
+	assert.equal(total, Math.round(1000 * DEPTH_MULTIPLIERS.deep) + Math.round(1000 * 31.06));
 	assert.equal(net, total - 2000);
 });
 
@@ -257,9 +257,9 @@ test("stake at the configured min and max resolves cleanly on the biggest multip
 });
 
 test("half-a-cent payouts round up, not to even", () => {
-	// 0.50 × shrimp 7.11 = 3.555 exactly → 3.56 (Math.round is half-up, not banker's).
-	const r = resolveBet({ type: "fish", selection: "shrimp", amount: "0.50" }, outcomeFor("shrimp"));
-	assert.equal(r.payout, "3.56");
+	// 0.50 × bluefin-tuna 20.71 = 10.355 exactly → 10.36 (Math.round is half-up, not banker's).
+	const r = resolveBet({ type: "fish", selection: "bluefin-tuna", amount: "0.50" }, outcomeFor("bluefin-tuna"));
+	assert.equal(r.payout, "10.36");
 });
 
 test("a round where every bet loses pays zero and nets the full wager back as negative", () => {
@@ -277,9 +277,9 @@ test("a round where every bet loses pays zero and nets the full wager back as ne
 });
 
 test("the rarest outcome (kraken, P≈0.01) still pays its exact multiplier", () => {
-	const outcome = outcomeFor("kraken"); // trench / kraken / jackpot
+	const outcome = outcomeFor("kraken"); // jackpot / kraken / jackpot
 	assert.equal(resolveBet({ type: "fish", selection: "kraken", amount: "1.00" }, outcome).payout, "96.00");
-	assert.equal(resolveBet({ type: "depth", selection: "trench", amount: "1.00" }, outcome).payout, "96.00");
+	assert.equal(resolveBet({ type: "depth", selection: "jackpot", amount: "1.00" }, outcome).payout, "96.00");
 });
 
 test("resolveBet on an off-table selection is a zero, not a NaN, into the wallet", () => {

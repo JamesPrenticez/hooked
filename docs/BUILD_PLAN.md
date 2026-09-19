@@ -192,7 +192,7 @@ suite (create → bets → outcome → payout → balance → history, plus
 - [x] Force specific depth (`POST /api/debug/force-outcome { depth }`, `server/src/debug-state.ts` applied in `rounds.ts` `generateOutcome`)
 - [x] Force specific fish (`force-outcome { fish }` — free string until the roster lands in milestone 3)
 - [x] Force specific tier (`force-outcome { tier }`)
-- [x] Force Kraken — not a separate endpoint: `force-outcome { depth: "trench", fish: "kraken", tier: "jackpot" }` (client helper `forceOutcome(...)`, a toolbar button later)
+- [x] Force Kraken — not a separate endpoint: `force-outcome { depth: "jackpot", fish: "kraken", tier: "jackpot" }` (client helper `forceOutcome(...)`, a toolbar button later)
 - [x] Seeded outcomes — the provably-fair RNG (`server/src/rng.ts`) is the seed mechanism; every round's outcome is now derived deterministically from its `(serverSeed, clientSeed, nonce)` triple (milestone 2.5). Forced outcomes remain the alternative for pinning a specific fish/tier (ARCHITECTURE.md §17 treats `seed:` and `forcedFish:` as alternatives — a forced round won't verify)
 - [x] Reset player balance (`POST /api/debug/reset-balance { balance? }`, `server/src/sessions.ts` `resetBalances`)
 - [x] Reset session (`POST /api/debug/reset-session` — wipes sessions + rounds + debug state; token dies, client re-launches)

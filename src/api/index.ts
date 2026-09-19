@@ -243,7 +243,7 @@ function debugRequest<T>(path: string, body?: unknown): Promise<T> {
 }
 
 /** Pin any subset of the next outcome; `{}` clears the override. "Force Kraken"
- *  is `forceOutcome({ depth: "trench", fish: "kraken", tier: "jackpot" })`. */
+ *  is `forceOutcome({ depth: "jackpot", fish: "kraken", tier: "jackpot" })`. */
 export function forceOutcome(outcome: ForcedOutcome): Promise<DebugStateResponse> {
 	return debugRequest<DebugStateResponse>("/api/debug/force-outcome", outcome);
 }

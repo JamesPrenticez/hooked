@@ -5,12 +5,12 @@ import { DEPTH_ZONES, type DepthZone, zoneForDepth } from "@constants/depthZones
  * Depth-driven ambience for the underwater environment — the water gradient
  * darkens and the top/bottom hues cool as the hook sinks, same keyframe +
  * blend technique as the harbour's day/night `computeAmbience`, but indexed
- * by metres instead of time of day (no wraparound: trench holds).
+ * by metres instead of time of day (no wraparound: the jackpot layer holds).
  */
 export interface DepthAmbience {
 	waterTop: number;
 	waterBottom: number;
-	/** `0` at the surface (no darkening) .. `1` in the trench (near black) —
+	/** `0` at the surface (no darkening) .. `1` in the jackpot layer (near black) —
 	 *  drives a dark overlay's alpha, standing in for light falloff. */
 	darkness: number;
 	/** `1` at the surface .. `0` in the dark — strength of `WaterTiles`' caustics.
@@ -43,7 +43,8 @@ const COLOR_STOPS = [
 	{ top: 0x005684, bottom: 0x00486c, darkness: 0.15 }, // reef
 	{ top: 0x054368, bottom: 0x033154, darkness: 0.4 }, // deep
 	{ top: 0x032a42, bottom: 0x021a2b, darkness: 0.68 }, // abyss
-	{ top: 0x05080c, bottom: 0x000000, darkness: 0.9 } // trench
+	{ top: 0x05080c, bottom: 0x000000, darkness: 0.9 }, // trench
+	{ top: 0x0b0405, bottom: 0x000000, darkness: 0.95 } // jackpot
 ];
 
 export function computeDepthAmbience(depth: number, zones: DepthZone[] = DEPTH_ZONES): DepthAmbience {
