@@ -5,11 +5,11 @@ import { cameraScroll, waterlineY } from "@components/HarbourScene/framing";
 import { MAX_DEPTH_METERS } from "@constants/depthZones";
 import { useDebugStore } from "@stores/debugStore";
 
+import Creatures from "./Creatures";
 import { computeDepthAmbience } from "./depthAmbience";
 import DepthMarkers from "./DepthMarkers";
 import Kraken from "./Kraken";
 import { preloadKrakenFight } from "./krakenSheets";
-import Mackerel from "./Mackerel";
 import WaterLayer from "./WaterLayer";
 import WaterTiles from "./WaterTiles";
 
@@ -26,8 +26,8 @@ interface DescentSceneProps {
 
 /**
  * The underwater environment (BUILD_PLAN §11/§13) — water gradient with its
- * caustic / light-shaft tiles, depth-zone markers and the first fish (a
- * mackerel), all driven off `depth`.
+ * caustic / light-shaft tiles, depth-zone markers and the sea creatures (shrimp to
+ * whale), all driven off `depth`.
  * It's the bottom third of the harbour screen at rest and sits behind
  * HarbourScene's layers, which scroll up off it as the cast plays out
  * (`framing.ts`) — so the harbour and the descent are one continuous world,
@@ -66,7 +66,7 @@ function DescentScene({ depth, tint, seconds }: DescentSceneProps) {
 			/>
 			<WaterTiles view={view} y={waterY} scroll={scroll} ambience={ambience} tint={tint} seconds={seconds} />
 			<DepthMarkers view={view} depth={depth} zones={depthZones} unit={depthUnit} />
-			<Mackerel view={view} depth={depth} seconds={seconds} />
+			<Creatures view={view} depth={depth} seconds={seconds} />
 			{bossEncounter && <Kraken view={view} seconds={seconds} />}
 		</pixiContainer>
 	);
