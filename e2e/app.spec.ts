@@ -81,3 +81,20 @@ test("the debug panel's Kraken section forces the trench dive, then plays every 
 	await expect(page.locator("canvas")).toBeVisible();
 	expect(errors).toEqual([]);
 });
+
+test("bets on a depth and a fish add to the total, clear, and lock while casting", async ({ page }) => {
+	// Every click waits on software-rendered Pixi frames, which crawl under parallel load.
+	test.slow();
+	await startFishing(page);
+
+	await page.getByRole("button", { name: "Shallow", exact: true }).click();
+	await page.getByRole("button", { name: "Shark (deep)" }).click();
+	await expect(page.getByRole("button", { name: "Shallow", exact: true })).toHaveAttribute("aria-pressed", "true");
+	await expect(page.getByText("$2.00", { exact: true })).toBeVisible();
+
+	await page.getByRole("button", { name: "Clear" }).click();
+	await expect(page.getByText("$0.00", { exact: true })).toBeVisible();
+
+	await page.getByRole("button", { name: "Cast Line" }).click();
+	await expect(page.getByRole("button", { name: "Shallow", exact: true })).toBeDisabled();
+});

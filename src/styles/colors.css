@@ -14,3 +14,12 @@
 	--color-negative-hover: #ff3b3b;
 	--color-negative-accent: #ff6f61;
 }
+
+/* Depth-zone tile colours on the betting board. */
+:root {
+	--color-depth-shallow: #16a37a;
+	--color-depth-reef: #1c6fc9;
+	--color-depth-deep: #6a3fd1;
+	--color-depth-abyss: #c02fb0;
+	--color-depth-trench: #c02b2b;
+}

@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => {
 				"@constants": path.resolve(import.meta.dirname, "./src/constants"),
 				"@hooks": path.resolve(import.meta.dirname, "./src/hooks"),
 				"@stores": path.resolve(import.meta.dirname, "./src/stores"),
+				"@utils": path.resolve(import.meta.dirname, "./src/utils"),
 				// "types/" is aliased as "@type" (singular) — tsc special-cases
 				// "@types/*" specifiers as DefinitelyTyped packages (TS6137).
 				"@type": path.resolve(import.meta.dirname, "./src/types"),
