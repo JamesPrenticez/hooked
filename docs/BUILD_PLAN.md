@@ -569,6 +569,18 @@ Character + idle landed as two flat placeholder stills in `src/assets/player/`
 — `player.png` (boat, fisherman and rod as one image) and `hook.png` — no
 Blender/sprite-sheet pass yet, still `docs/ASSETS.md` work.
 
+Placeholder animation sheets have since landed beside them:
+`player-idle-cast-reel.png` (cast, idle, reel, celebrate) and
+`player-succes-fail.png` (battle, celebrate_big, disappointed, angry, sad), with
+`player-animations.json` giving each clip's frames, fps, loop and what plays
+next. `Fisherman` plays whichever clip `usePlayerStore` cues — idle by default.
+Nothing in the game cues one yet, so the DEBUG panel's "Player" category is how
+to see them. The sheets aren't on the grid the JSON describes — rows sit at
+uneven heights, frames wander sideways and the second sheet is squashed ~15% —
+so `playerFrames.ts` cuts each frame from measured positions and sets it in one
+shared box (re-measure if the sheets are redrawn). `player.png` is no longer
+used.
+
 The screen is laid out in thirds (`src/components/HarbourScene/framing.ts`):
 sky, city and docks in the top third (the background strip is placed so the
 docks' waterline lands on `HORIZON_Y`); the boat and fisherman centred on the
@@ -583,9 +595,10 @@ from the rod tip into the water and the underwater takes the whole screen
 (`CAST_METERS` of depth, ~1.5s at the default shallow speed). Ascending plays
 it in reverse. `hook.png` and the line hang from the rod tip
 (`src/components/DescentScene/FishingLine.tsx`), so the hook is visible on the
-rod at idle. Both stills load with mipmaps, since they're drawn far smaller
-than their source. `player` swaps for an `AnimatedSprite` sheet later without
-touching the rest of the rig.
+rod at idle. The hook loads with mipmaps, since it's drawn far smaller than its
+source; the player sheets don't, being drawn larger than their 256px frames. The
+line and hook hang from the idle pose's rod tip whichever clip is playing, so
+casting will need a rod tip per frame.
 
 ### 7.3 Ambient Activity
 

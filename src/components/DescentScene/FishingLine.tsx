@@ -19,9 +19,10 @@ interface FishingLineProps {
 }
 
 /** `hook.png` is a 1254px square with the hook drawn small inside it (~1076px
- *  tall). This is its scale relative to the boat's, which puts the hook at
- *  about a third of the boat's height — ~110px on a 1080p screen. */
-const HOOK_SCALE_PER_BOAT_SCALE = 0.3;
+ *  tall). This is its scale relative to the boat's (which is per pixel of a
+ *  256px sprite frame), which puts the hook at about a third of the resting
+ *  boat's height — ~105px on a 1080p screen. */
+const HOOK_SCALE_PER_BOAT_SCALE = 0.055;
 
 /** The eyelet the line ties through, as a fraction of the hook texture. */
 const HOOK_EYE = { x: 0.545, y: 0.067 };

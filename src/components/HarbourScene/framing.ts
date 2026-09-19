@@ -23,14 +23,25 @@ const HOOK_REST_Y = 0.5;
  *  half. */
 export const CAST_METERS = 300;
 
-/** Rod tip on `player.png`, as a fraction of the texture. */
-const ROD_TIP = { x: 0.915, y: 0.068 };
-/** The point on `player.png` that sits on the waterline: bottom-centre, a touch
- *  up so the hull's underside dips into the water. */
-export const BOAT_ANCHOR = { x: 0.5, y: 0.96 };
-/** How much of the middle third the boat may fill, and of the width. */
+/** Every frame of the fisherman is cut into this box (`playerFrames.ts`), in
+ *  sheet pixels, with the hull centred on it and its bottom edge on `HULL_Y` —
+ *  so the boat sits still while the animations play. Tall enough for the
+ *  highest pose (cast, jump), wide enough for the rod tip past the stern. */
+export const PLAYER_FRAME = { width: 280, height: 240 };
+export const HULL_Y = 236;
+
+/** The point in that box that sits on the waterline: the hull's centre, a touch
+ *  above its bottom edge so the underside dips into the water. */
+export const BOAT_ANCHOR = { x: 0.5, y: (HULL_Y - 2) / PLAYER_FRAME.height };
+/** How tall the resting (idle) pose is above that point, in sheet pixels — what
+ *  `BOAT_MAX_HEIGHT` fits to the middle third. The cast, battle and jump poses
+ *  reach higher and may rise into the docks. */
+export const REST_HEIGHT = 190;
+/** Rod tip in the idle pose, as a fraction of the box. */
+const ROD_TIP = { x: 269 / PLAYER_FRAME.width, y: 79 / PLAYER_FRAME.height };
+/** How much of the middle third the resting boat may fill, and of the width. */
 const BOAT_MAX_HEIGHT = 0.92;
-const BOAT_MAX_WIDTH = 0.8;
+const BOAT_MAX_WIDTH = 0.85;
 
 /** Screen y of the waterline while the camera is at rest. */
 export function waterlineY(view: Size): number {
@@ -71,23 +82,24 @@ export interface BoatLayout {
 	tip: { x: number; y: number };
 }
 
-/** The boat, centred on screen and floating on the waterline, filling the
- *  middle third. `bob` is the swell offset in px. */
-export function boatLayout(view: Size, texture: Size, bob: number): BoatLayout {
+/** The boat, centred on screen and floating on the waterline, its resting pose
+ *  filling the middle third. `scale` is screen px per sheet pixel; `bob` is the
+ *  swell offset in px. */
+export function boatLayout(view: Size, bob: number): BoatLayout {
 	const scale = Math.min(
-		((view.height / 3) * BOAT_MAX_HEIGHT) / texture.height,
-		(view.width * BOAT_MAX_WIDTH) / texture.width
+		((view.height / 3) * BOAT_MAX_HEIGHT) / REST_HEIGHT,
+		(view.width * BOAT_MAX_WIDTH) / PLAYER_FRAME.width
 	);
 	const x = view.width / 2;
 	const y = waterlineY(view) + bob;
-	const left = x - texture.width * scale * BOAT_ANCHOR.x;
-	const top = y - texture.height * scale * BOAT_ANCHOR.y;
+	const left = x - PLAYER_FRAME.width * scale * BOAT_ANCHOR.x;
+	const top = y - PLAYER_FRAME.height * scale * BOAT_ANCHOR.y;
 
 	return {
 		x,
 		y,
 		scale,
-		tip: { x: left + ROD_TIP.x * texture.width * scale, y: top + ROD_TIP.y * texture.height * scale }
+		tip: { x: left + ROD_TIP.x * PLAYER_FRAME.width * scale, y: top + ROD_TIP.y * PLAYER_FRAME.height * scale }
 	};
 }
 

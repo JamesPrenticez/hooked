@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 
 import { MAX_DEPTH_METERS, metersToFeet } from "@constants/depthZones";
+import { PLAYER_ANIMATION_NAMES, PLAYER_ANIMATIONS } from "@constants/playerAnimations";
 import { Accordion, Button } from "@hooked-ui";
 import { useDebugStore } from "@stores/debugStore";
+import { usePlayerStore } from "@stores/playerStore";
 
 import styles from "./DebugPanel.module.css";
 
 /**
  * Dev-only DEBUG button (bottom-right, every phase) opening a modal of
- * debug categories: "Environment" (day/night time of day, freeze toggle) and
- * "Hook" (per-tier depth range + descent speed, display unit). More
- * categories land here as they're built.
+ * debug categories: "Environment" (day/night time of day, freeze toggle),
+ * "Hook" (per-tier depth range + descent speed, display unit) and "Player"
+ * (play any of the fisherman's animations). More categories land here as
+ * they're built.
  *
  * A native `<dialog>` gets backdrop click-to-close and Escape for free.
  */
@@ -28,6 +31,8 @@ function DebugPanel() {
 	const zoneSpeeds = useDebugStore(state => state.zoneSpeeds);
 	const setZoneFromMeters = useDebugStore(state => state.setZoneFromMeters);
 	const setZoneSpeed = useDebugStore(state => state.setZoneSpeed);
+
+	const playAnimation = usePlayerStore(state => state.play);
 
 	useEffect(() => {
 		if (open) dialogRef.current?.showModal();
@@ -107,6 +112,22 @@ function DebugPanel() {
 									/>
 								</label>
 							</fieldset>
+						))}
+					</div>
+				</Accordion>
+
+				<Accordion title="Player" theme="dark">
+					<div className={styles.animations}>
+						{PLAYER_ANIMATION_NAMES.map(name => (
+							<Button
+								key={name}
+								variant="secondary"
+								className={styles.animation}
+								title={PLAYER_ANIMATIONS[name].description}
+								onClick={() => playAnimation(name)}
+							>
+								{name.replaceAll("_", " ")}
+							</Button>
 						))}
 					</div>
 				</Accordion>

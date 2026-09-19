@@ -3,19 +3,19 @@ import { describe, expect, it } from "vitest";
 import { PX_PER_METER } from "@constants/depthZones";
 
 import {
-	BOAT_ANCHOR,
 	boatLayout,
 	cameraScroll,
 	CAST_METERS,
 	castProgress,
 	depthToScreenY,
 	hookWorldY,
+	PLAYER_FRAME,
+	REST_HEIGHT,
 	waterlineY
 } from "./framing";
 
 const VIEW = { width: 1920, height: 1080 };
 const PORTRAIT = { width: 390, height: 844 };
-const PLAYER = { width: 1536, height: 1024 };
 
 describe("castProgress", () => {
 	it("runs 0 at the boat to 1 once the cast is done, and holds", () => {
@@ -86,31 +86,30 @@ describe("hookWorldY", () => {
 
 describe("boatLayout", () => {
 	it("centres the boat on screen with its hull on the waterline", () => {
-		const { x, y } = boatLayout(VIEW, PLAYER, 0);
+		const { x, y } = boatLayout(VIEW, 0);
 		expect(x).toBe(VIEW.width / 2);
 		expect(y).toBeCloseTo(waterlineY(VIEW));
 	});
 
-	it("keeps the whole boat inside the middle third", () => {
+	it("keeps the whole resting boat inside the middle third", () => {
 		for (const view of [VIEW, PORTRAIT, { width: 844, height: 390 }]) {
-			const { y, scale } = boatLayout(view, PLAYER, 0);
-			const top = y - PLAYER.height * scale * BOAT_ANCHOR.y;
-			expect(top).toBeGreaterThanOrEqual(view.height / 3 - 1);
+			const { y, scale } = boatLayout(view, 0);
+			expect(y - REST_HEIGHT * scale).toBeGreaterThanOrEqual(view.height / 3 - 1);
 		}
 	});
 
 	it("fits within the screen width on a narrow portrait screen", () => {
-		const { scale } = boatLayout(PORTRAIT, PLAYER, 0);
-		expect(PLAYER.width * scale).toBeLessThanOrEqual(PORTRAIT.width);
+		const { scale } = boatLayout(PORTRAIT, 0);
+		expect(PLAYER_FRAME.width * scale).toBeLessThanOrEqual(PORTRAIT.width);
 	});
 
 	it("hangs the line from the rod tip, above and right of the boat's centre", () => {
-		const { x, y, tip } = boatLayout(VIEW, PLAYER, 0);
+		const { x, y, tip } = boatLayout(VIEW, 0);
 		expect(tip.x).toBeGreaterThan(x);
 		expect(tip.y).toBeLessThan(y);
 	});
 
 	it("moves the rod tip with the bob", () => {
-		expect(boatLayout(VIEW, PLAYER, 6).tip.y - boatLayout(VIEW, PLAYER, 0).tip.y).toBeCloseTo(6);
+		expect(boatLayout(VIEW, 6).tip.y - boatLayout(VIEW, 0).tip.y).toBeCloseTo(6);
 	});
 });

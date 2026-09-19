@@ -34,3 +34,23 @@ test("casting and surfacing play out in the one canvas, without leaving the game
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
 	await expect(page.locator("canvas")).toBeVisible();
 });
+
+test("the debug panel's Player section plays every fisherman animation without errors", async ({ page }) => {
+	// Every click waits on software-rendered Pixi frames, which crawl on mobile viewports.
+	test.slow();
+	const errors: string[] = [];
+	page.on("pageerror", error => errors.push(error.message));
+
+	await startFishing(page);
+	await page.getByRole("button", { name: "DEBUG" }).click();
+
+	const player = page.locator("details").filter({ hasText: "Player" });
+	await player.getByText("Player", { exact: true }).click();
+
+	const animations = player.getByRole("button");
+	await expect(animations).not.toHaveCount(0);
+	for (const animation of await animations.all()) await animation.click();
+
+	await expect(page.locator("canvas")).toBeVisible();
+	expect(errors).toEqual([]);
+});

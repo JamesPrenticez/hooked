@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useApplication } from "@pixi/react";
 import { Assets, type Texture } from "pixi.js";
 
@@ -8,7 +8,8 @@ import bgLightsMobileUrl from "@assets/layers/hub/background/bg-lights-mobile.we
 import bgMobileUrl from "@assets/layers/hub/background/bg-mobile.webp";
 import seamUrl from "@assets/layers/hub/water/seam.png";
 import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
-import playerUrl from "@assets/player/player.png";
+import basicSheetUrl from "@assets/player/player-idle-cast-reel.png";
+import extendedSheetUrl from "@assets/player/player-succes-fail.png";
 import DescentScene from "@components/DescentScene";
 import FishingLine from "@components/DescentScene/FishingLine";
 import { useDayNightClock } from "@hooks/useDayNightClock";
@@ -20,6 +21,7 @@ import CelestialBody from "./CelestialBody";
 import Fisherman from "./Fisherman";
 import { boatLayout, cameraScroll, hookWorldY, waterlineY } from "./framing";
 import OceanLayer from "./OceanLayer";
+import { buildPlayerFrames } from "./playerFrames";
 import SeamWaves from "./SeamWaves";
 import SkyLayer from "./SkyLayer";
 import { waterSwell } from "./waterSwell";
@@ -46,8 +48,9 @@ import { waterSwell } from "./waterSwell";
  * `layers.ts` until then); the other placeholders stay in `layers.ts` as the
  * spec for their own passes (docs/ASSETS.md).
  *
- * `Fisherman` (§7.2) is the placeholder boat + player. §7.3 ambient activity
- * is a separate sub-milestone and is not here yet.
+ * `Fisherman` (§7.2) is the boat + player, animated from two placeholder sprite
+ * sheets and cued by `usePlayerStore`. §7.3 ambient activity is a separate
+ * sub-milestone and is not here yet.
  */
 interface HarbourSceneProps {
 	/** Metres below the boat — owned by App so the HTML depth readout can share
@@ -66,8 +69,9 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 		// ponytail: loaded on scene mount, not via the boot manifest — one small
 		// pop the first time the hub shows. Route through §5's Assets.load(manifest)
 		// when the harbour asset set is real.
-		// The player still is drawn ~2-7x smaller than its 1536px source, and the
-		// water tile ~1-3x smaller than its 1024px one, so both get mipmaps.
+		// The water tile is drawn ~1-3x smaller than its 1024px source, so it gets
+		// mipmaps. The player sheets are drawn larger than their 256px frames, so
+		// they don't.
 		Assets.load([
 			bgDesktopUrl,
 			bgMobileUrl,
@@ -75,7 +79,8 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 			bgLightsMobileUrl,
 			{ src: waterTileUrl, data: { autoGenerateMipmaps: true } },
 			{ src: seamUrl, data: { autoGenerateMipmaps: true } },
-			{ src: playerUrl, data: { autoGenerateMipmaps: true } }
+			basicSheetUrl,
+			extendedSheetUrl
 		]).then(loaded => {
 			if (live) setTextures(loaded);
 		});
@@ -84,14 +89,18 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 		};
 	}, []);
 
+	const player = useMemo(
+		() => textures && buildPlayerFrames({ basic: textures[basicSheetUrl], extended: textures[extendedSheetUrl] }),
+		[textures]
+	);
+
 	// Children mount before <Application>'s async init resolves.
 	if (!isInitialised) return null;
 
 	const view = { width: app.screen.width, height: app.screen.height };
 	const { skyTop, skyHorizon, bgTint, windowGlow, celestial } = computeAmbience(t, view);
 	const scroll = cameraScroll(depth, view);
-	const player = textures?.[playerUrl];
-	const boat = player && boatLayout(view, player, waterSwell(seconds));
+	const boat = player && boatLayout(view, waterSwell(seconds));
 
 	return (
 		<pixiContainer>
@@ -132,7 +141,7 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 						seconds={seconds}
 					/>
 				)}
-				{boat && <Fisherman texture={player} boat={boat} tint={bgTint} />}
+				{player && boat && <Fisherman frames={player} boat={boat} tint={bgTint} seconds={seconds} />}
 			</pixiContainer>
 		</pixiContainer>
 	);
