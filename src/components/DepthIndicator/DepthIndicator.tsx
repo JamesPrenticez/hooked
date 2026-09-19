@@ -1,4 +1,4 @@
-import { formatDepth, zoneForDepth } from "@constants/depthZones";
+import { DEPTH_DISPLAY_STEP, formatDepth, zoneForDepth } from "@constants/depthZones";
 import { useDebugStore } from "@stores/debugStore";
 
 import styles from "./DepthIndicator.module.css";
@@ -20,7 +20,7 @@ function DepthIndicator({ depth }: DepthIndicatorProps) {
 	return (
 		<div className={styles.indicator}>
 			<span className={styles.zone}>{zone.label}</span>
-			<span className={styles.meters}>{formatDepth(depth, depthUnit)}</span>
+			<span className={styles.meters}>{formatDepth(depth, depthUnit, DEPTH_DISPLAY_STEP)}</span>
 		</div>
 	);
 }

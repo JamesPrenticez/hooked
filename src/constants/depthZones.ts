@@ -34,6 +34,9 @@ export function zoneForDepth(depth: number, zones: DepthZone[] = DEPTH_ZONES): D
 	return zone;
 }
 
+/** How coarsely `DepthIndicator`'s counter ticks, in the displayed unit. */
+export const DEPTH_DISPLAY_STEP = 10;
+
 export type DepthUnit = "m" | "ft";
 
 const METERS_PER_FOOT = 0.3048;
@@ -44,8 +47,12 @@ export function metersToFeet(meters: number): number {
 
 const METERS_FORMAT = new Intl.NumberFormat("en-US");
 
-/** `1,234m` or `4,050ft`, rounded — shared by `DepthIndicator` and `DepthMarkers`. */
-export function formatDepth(meters: number, unit: DepthUnit): string {
+/**
+ * `1,234m` or `4,050ft`, rounded — shared by `DepthIndicator` and `DepthMarkers`.
+ * With `step`, floors to a multiple of it in the displayed unit (`1,200m` for step 100).
+ */
+export function formatDepth(meters: number, unit: DepthUnit, step?: number): string {
 	const value = unit === "ft" ? metersToFeet(meters) : meters;
-	return `${METERS_FORMAT.format(Math.round(value))}${unit}`;
+	const shown = step ? Math.floor(value / step) * step : Math.round(value);
+	return `${METERS_FORMAT.format(shown)}${unit}`;
 }
