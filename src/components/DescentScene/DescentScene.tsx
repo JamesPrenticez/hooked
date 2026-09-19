@@ -8,6 +8,7 @@ import { computeDepthAmbience } from "./depthAmbience";
 import DepthMarkers from "./DepthMarkers";
 import Mackerel from "./Mackerel";
 import WaterLayer from "./WaterLayer";
+import WaterTiles from "./WaterTiles";
 
 interface DescentSceneProps {
 	/** Metres below the boat — owned by App so the HTML depth readout can
@@ -18,8 +19,9 @@ interface DescentSceneProps {
 }
 
 /**
- * The underwater environment (BUILD_PLAN §11/§13) — water gradient,
- * depth-zone markers and the first fish (a mackerel), all driven off `depth`.
+ * The underwater environment (BUILD_PLAN §11/§13) — water gradient with its
+ * caustic / light-shaft tiles, depth-zone markers and the first fish (a
+ * mackerel), all driven off `depth`.
  * It's the bottom third of the harbour screen at rest and sits behind
  * HarbourScene's layers, which scroll up off it as the cast plays out
  * (`framing.ts`) — so the harbour and the descent are one continuous world,
@@ -37,17 +39,20 @@ function DescentScene({ depth, tint }: DescentSceneProps) {
 
 	const view = { width: app.screen.width, height: app.screen.height };
 	const ambience = computeDepthAmbience(depth, depthZones);
+	const scroll = cameraScroll(depth, view);
+	const waterY = Math.max(0, waterlineY(view) - scroll);
 
 	return (
 		<pixiContainer>
 			<WaterLayer
 				view={view}
-				y={Math.max(0, waterlineY(view) - cameraScroll(depth, view))}
+				y={waterY}
 				top={ambience.waterTop}
 				bottom={ambience.waterBottom}
 				darkness={ambience.darkness}
 				tint={tint}
 			/>
+			<WaterTiles view={view} y={waterY} scroll={scroll} ambience={ambience} tint={tint} seconds={seconds} />
 			<DepthMarkers view={view} depth={depth} zones={depthZones} unit={depthUnit} />
 			<Mackerel view={view} depth={depth} seconds={seconds} />
 		</pixiContainer>

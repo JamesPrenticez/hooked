@@ -6,6 +6,7 @@ import bgDesktopUrl from "@assets/layers/hub/background/bg-desktop.webp";
 import bgLightsDesktopUrl from "@assets/layers/hub/background/bg-lights-desktop.webp";
 import bgLightsMobileUrl from "@assets/layers/hub/background/bg-lights-mobile.webp";
 import bgMobileUrl from "@assets/layers/hub/background/bg-mobile.webp";
+import seamUrl from "@assets/layers/hub/water/seam.png";
 import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
 import playerUrl from "@assets/player/player.png";
 import DescentScene from "@components/DescentScene";
@@ -19,6 +20,7 @@ import CelestialBody from "./CelestialBody";
 import Fisherman from "./Fisherman";
 import { boatLayout, cameraScroll, hookWorldY, waterlineY } from "./framing";
 import OceanLayer from "./OceanLayer";
+import SeamWaves from "./SeamWaves";
 import SkyLayer from "./SkyLayer";
 import { waterSwell } from "./waterSwell";
 
@@ -64,13 +66,15 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 		// ponytail: loaded on scene mount, not via the boot manifest — one small
 		// pop the first time the hub shows. Route through §5's Assets.load(manifest)
 		// when the harbour asset set is real.
-		// The player still is drawn ~2-7x smaller than its 1536px source, so it gets mipmaps.
+		// The player still is drawn ~2-7x smaller than its 1536px source, and the
+		// water tile ~1-3x smaller than its 1024px one, so both get mipmaps.
 		Assets.load([
 			bgDesktopUrl,
 			bgMobileUrl,
 			bgLightsDesktopUrl,
 			bgLightsMobileUrl,
-			waterTileUrl,
+			{ src: waterTileUrl, data: { autoGenerateMipmaps: true } },
+			{ src: seamUrl, data: { autoGenerateMipmaps: true } },
 			{ src: playerUrl, data: { autoGenerateMipmaps: true } }
 		]).then(loaded => {
 			if (live) setTextures(loaded);
@@ -116,6 +120,7 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 						windowGlow={windowGlow}
 						seconds={seconds}
 					/>
+					<SeamWaves view={view} tint={bgTint} texture={textures?.[seamUrl]} seconds={seconds} />
 				</pixiContainer>
 				{boat && (
 					<FishingLine

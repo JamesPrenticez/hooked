@@ -15,12 +15,13 @@ const ocean = HARBOUR_LAYERS.find(layer => layer.id === "ocean");
  * differently-scaled, differently-timed copies makes the overlaps read as
  * independent chop instead, without a wave-physics simulation: cheap, and
  * the water is small and half-obscured by the dock in this scene, so it
- * doesn't need to hold up to a close, static look.
+ * doesn't need to hold up to a close, static look. (`tileScale` is for the
+ * 1024px tile.)
  */
 const LAYERS = [
-	{ alpha: 1, tileScale: 1, driftX: 1.5, driftY: 4, swellPhase: 0, swellAmp: 1 },
-	{ alpha: 0.5, tileScale: 1.7, driftX: -2.2, driftY: 2.6, swellPhase: 2.4, swellAmp: 0.6 },
-	{ alpha: 0.35, tileScale: 0.6, driftX: 3.1, driftY: -1.8, swellPhase: 4.1, swellAmp: 0.8 }
+	{ alpha: 1, tileScale: 0.5, driftX: 1.5, driftY: 4, swellPhase: 0, swellAmp: 1 },
+	{ alpha: 0.5, tileScale: 0.85, driftX: -2.2, driftY: 2.6, swellPhase: 2.4, swellAmp: 0.6 },
+	{ alpha: 0.35, tileScale: 0.3, driftX: 3.1, driftY: -1.8, swellPhase: 4.1, swellAmp: 0.8 }
 ];
 
 interface OceanLayerProps {

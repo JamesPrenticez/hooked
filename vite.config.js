@@ -75,6 +75,7 @@ export default defineConfig(({ mode }) => {
 					"src/components/DescentScene/DescentScene.tsx",
 					"src/components/DescentScene/ParallaxLayer.tsx",
 					"src/components/DescentScene/WaterLayer.tsx",
+					"src/components/DescentScene/WaterTiles.tsx",
 					"src/components/DescentScene/FishingLine.tsx",
 					"src/components/DescentScene/DepthMarkers.tsx",
 					"src/**/*.d.ts",
