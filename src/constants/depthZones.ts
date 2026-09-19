@@ -16,6 +16,12 @@ export interface DepthZone {
  *  35,876ft / 10,935m. The hook decelerates to a stop as it nears this. */
 export const MAX_DEPTH_METERS = 10_935;
 
+/** Screen pixels per metre of depth that world objects (depth markers, fish)
+ *  scroll by. Independent of `FishingLine`'s short payout animation — this is
+ *  a literal world scale, chosen so 6,000m of trench crosses the screen at a
+ *  readable pace rather than flashing past or taking forever. */
+export const PX_PER_METER = 0.6;
+
 export const DEPTH_ZONES: DepthZone[] = [
 	{ id: "shallow", label: "Shallow", fromMeters: 0 },
 	{ id: "reef", label: "Reef", fromMeters: 1500 },

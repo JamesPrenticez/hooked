@@ -1,4 +1,4 @@
-import { type DepthUnit, type DepthZone, formatDepth } from "@constants/depthZones";
+import { type DepthUnit, type DepthZone, formatDepth, PX_PER_METER } from "@constants/depthZones";
 
 interface DepthMarkersProps {
 	view: { width: number; height: number };
@@ -6,12 +6,6 @@ interface DepthMarkersProps {
 	zones: DepthZone[];
 	unit: DepthUnit;
 }
-
-/** Screen pixels per metre of depth the markers scroll by. Independent of
- *  `FishingLine`'s short payout animation — this is a literal world scale,
- *  chosen so 6,000m of trench crosses the screen at a readable pace rather
- *  than flashing past or taking forever. */
-const PX_PER_METER = 0.6;
 
 /**
  * One horizontal line + label per depth-zone boundary (`DEPTH_ZONES`),
