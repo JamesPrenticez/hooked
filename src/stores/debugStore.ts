@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 import { DEPTH_ZONES, type DepthUnit, type DepthZone } from "@constants/depthZones";
 import type { DepthId } from "@type/api";
@@ -38,20 +39,26 @@ interface DebugStore {
 	setZoneSpeed: (id: DepthId, metersPerSecond: number) => void;
 }
 
-export const useDebugStore = create<DebugStore>(set => ({
-	timeOfDay: 0.5,
-	frozen: false,
-	setTimeOfDay: t => set({ timeOfDay: t }),
-	setFrozen: frozen => set({ frozen }),
+export const useDebugStore = create<DebugStore>()(
+	persist(
+		set => ({
+			timeOfDay: 0.5,
+			frozen: false,
+			setTimeOfDay: t => set({ timeOfDay: t }),
+			setFrozen: frozen => set({ frozen }),
 
-	depthUnit: "m",
-	setDepthUnit: unit => set({ depthUnit: unit }),
+			depthUnit: "m",
+			setDepthUnit: unit => set({ depthUnit: unit }),
 
-	depthZones: DEPTH_ZONES.map(zone => ({ ...zone })),
-	zoneSpeeds: { ...DEFAULT_ZONE_SPEEDS },
-	setZoneFromMeters: (id, meters) =>
-		set(state => ({
-			depthZones: state.depthZones.map(zone => (zone.id === id ? { ...zone, fromMeters: meters } : zone))
-		})),
-	setZoneSpeed: (id, metersPerSecond) => set(state => ({ zoneSpeeds: { ...state.zoneSpeeds, [id]: metersPerSecond } }))
-}));
+			depthZones: DEPTH_ZONES.map(zone => ({ ...zone })),
+			zoneSpeeds: { ...DEFAULT_ZONE_SPEEDS },
+			setZoneFromMeters: (id, meters) =>
+				set(state => ({
+					depthZones: state.depthZones.map(zone => (zone.id === id ? { ...zone, fromMeters: meters } : zone))
+				})),
+			setZoneSpeed: (id, metersPerSecond) =>
+				set(state => ({ zoneSpeeds: { ...state.zoneSpeeds, [id]: metersPerSecond } }))
+		}),
+		{ name: "deepcatch.debug" }
+	)
+);
