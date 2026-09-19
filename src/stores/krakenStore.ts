@@ -5,8 +5,8 @@ import { FIRST_KRAKEN_ANIMATION } from "@constants/krakenAnimations";
 // Debug-only for now: no jackpot outcome drives the boss encounter yet, so the
 // DEBUG panel's "Kraken" category forces it and cues the sheets' animations.
 interface KrakenStore {
-	/** Sends the hook straight down to the trench and holds it there, which is
-	 *  where the Kraken shows up. */
+	/** Parks the hook at the bottom of the trench (`App` overrides the depth),
+	 *  which is where the Kraken shows up. */
 	forceTrench: boolean;
 	setForceTrench: (force: boolean) => void;
 	/** The animation to show. `id` changes on every `play`, so picking the one

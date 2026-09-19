@@ -14,8 +14,8 @@ import styles from "./DebugPanel.module.css";
  * Dev-only DEBUG button (bottom-right, every phase) opening a modal of
  * debug categories: "Environment" (day/night time of day, freeze toggle),
  * "Hook" (per-tier depth range + descent speed, display unit), "Player"
- * (play any of the fisherman's animations) and "Kraken" (force the trench
- * dive, play any of the boss's sheet animations). More categories land here
+ * (play any of the fisherman's animations) and "Kraken" (park the hook at the
+ * trench, play any of the boss's sheet animations). More categories land here
  * as they're built.
  *
  * A native `<dialog>` gets backdrop click-to-close and Escape for free.
@@ -143,11 +143,11 @@ function DebugPanel() {
 					<div className={styles.fields}>
 						<label className={styles.checkField}>
 							<input type="checkbox" checked={forceTrench} onChange={e => setForceTrench(e.target.checked)} />
-							Force hook to the trench (then Cast Line)
+							Force hook to the trench
 						</label>
 						<p className={styles.note}>
-							The dive skips to the bottom and holds there — that's where the Kraken appears. Untick it to let the hook
-							back up.
+							Jumps straight to the max depth and holds there — that's where the Kraken appears. Untick it (or hit
+							Surface) to go back to the harbour.
 						</p>
 
 						{KRAKEN_SHEETS.map(sheet => (

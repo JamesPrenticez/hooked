@@ -936,8 +936,9 @@ Extraction is selected from the server-provided catch tier.
 
 Design: `docs/JACKPOT.md`. The seven sheets in `src/assets/kraken/` (`krak-1`..`krak-7`, 29
 animations described by `kraken-animations.json`) are wired for preview only: the DEBUG
-panel's "Kraken" category force-dives the hook to the trench and holds it there, where
-`DescentScene` shows `Kraken`, playing whichever animation is picked. Nothing else drives it —
+panel's "Kraken" category jumps the hook to the trench at once (no cast needed; `App` overrides
+the depth) and holds it there until unticked or Surface, where `DescentScene` shows `Kraken`,
+playing whichever animation is picked. Nothing else drives it —
 no jackpot outcome, no encounter script yet. The PNGs carry real alpha (the manifest's
 "purple background" warning doesn't apply). Rows and columns aren't on an even grid, so
 `krakenFrames.ts` cuts each frame from edges measured off the alpha channel and sets it in

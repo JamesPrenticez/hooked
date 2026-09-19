@@ -55,7 +55,7 @@ test("the debug panel's Player section plays every fisherman animation without e
 	expect(errors).toEqual([]);
 });
 
-test("the debug panel's Kraken section forces the trench dive, then plays every Kraken animation without errors", async ({
+test("the debug panel's Kraken section parks the hook at the trench, plays every Kraken animation, and Surface brings it back", async ({
 	page
 }) => {
 	test.slow();
@@ -70,13 +70,21 @@ test("the debug panel's Kraken section forces the trench dive, then plays every 
 	await kraken.getByRole("checkbox", { name: /Force hook to the trench/ }).check();
 	await page.keyboard.press("Escape");
 
-	await page.getByRole("button", { name: "Cast Line" }).click();
-	await expect(page.getByText("10,930m")).toBeVisible({ timeout: 30_000 });
+	// Straight to the bottom: no Cast Line, no dive to wait out.
+	await expect(page.getByText("10,930m")).toBeVisible();
+	await expect(page.getByRole("button", { name: "Surface" })).toBeVisible();
 
 	await page.getByRole("button", { name: "DEBUG" }).click();
 	const animations = kraken.locator("fieldset").getByRole("button");
 	await expect(animations).toHaveCount(29);
 	for (const animation of await animations.all()) await animation.click();
+	await page.keyboard.press("Escape");
+
+	// Still there after all that; only Surface (or unticking) lets it go.
+	await expect(page.getByText("10,930m")).toBeVisible();
+	await page.getByRole("button", { name: "Surface" }).click();
+	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
+	await expect(page.getByText("10,930m")).not.toBeVisible();
 
 	await expect(page.locator("canvas")).toBeVisible();
 	expect(errors).toEqual([]);

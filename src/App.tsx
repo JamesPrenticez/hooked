@@ -12,10 +12,12 @@ import LoadingScreen from "@components/LoadingScreen";
 import PlaceholderScene from "@components/PlaceholderScene/PlaceholderScene";
 import SceneManager from "@components/SceneManager/SceneManager";
 import StoreSync from "@components/system/StoreSync";
+import { MAX_DEPTH_METERS } from "@constants/depthZones";
 import { Button, Checkbox } from "@hooked-ui";
 import { useDescentDepth } from "@hooks/useDescentDepth";
 import { useGameBootstrap } from "@hooks/useGameBootstrap";
 import { type GamePhase, useGameStore } from "@stores/gameStore";
+import { useKrakenStore } from "@stores/krakenStore";
 
 import styles from "./App.module.css";
 
@@ -37,7 +39,14 @@ function App() {
 	const onAppInit = useGameBootstrap();
 
 	const [descending, setDescending] = useState(false);
-	const depth = useDescentDepth(descending, () => setDescending(false));
+	const descentDepth = useDescentDepth(descending, () => setDescending(false));
+
+	// DEBUG panel's Kraken toggle: the hook is parked at the bottom of the trench
+	// at once, whatever the cast is doing, until it's unticked or Surface is hit.
+	const forceTrench = useKrakenStore(state => state.forceTrench);
+	const setForceTrench = useKrakenStore(state => state.setForceTrench);
+	const depth = forceTrench ? MAX_DEPTH_METERS : descentDepth;
+	const underwater = descending || forceTrench;
 
 	// The harbour needs the live `depth` value (the cast is a camera move
 	// through one continuous world, not a scene swap), so unlike a static map
@@ -67,8 +76,16 @@ function App() {
 			{phase === "loading" && <LoadingScreen />}
 
 			{phase === "game" && <Balance />}
-			{phase === "game" && descending && <DepthIndicator depth={depth} />}
-			{phase === "game" && <BottomBar descending={descending} onCast={() => setDescending(d => !d)} />}
+			{phase === "game" && underwater && <DepthIndicator depth={depth} />}
+			{phase === "game" && (
+				<BottomBar
+					descending={underwater}
+					onCast={() => {
+						setForceTrench(false);
+						setDescending(!underwater);
+					}}
+				/>
+			)}
 
 			{phase === "tutorial" && (
 				<div className={styles.overlay}>

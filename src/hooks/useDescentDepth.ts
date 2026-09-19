@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 
 import { MAX_DEPTH_METERS, zoneForDepth } from "@constants/depthZones";
 import { useDebugStore } from "@stores/debugStore";
-import { useKrakenStore } from "@stores/krakenStore";
 
 // Final fraction of the descent that decelerates to a stop at MAX_DEPTH_METERS,
 // on top of whatever speed the current tier is set to.
@@ -15,9 +14,6 @@ const MIN_DESCENT_METERS_PER_SECOND = 25;
 const ASCEND_METERS_PER_SECOND = 600;
 // How long the hook holds at the bottom before heading back up.
 const BOTTOM_HOLD_SECONDS = 1;
-// Debug "force the trench" dive (krakenStore): straight down at this speed,
-// ignoring the tiers', and held at the bottom until it's switched off.
-const FORCE_TRENCH_METERS_PER_SECOND = 2000;
 
 type Phase = "down" | "bottom" | "up";
 
@@ -52,9 +48,8 @@ export function useDescentDepth(active: boolean, onSurfaced?: () => void): numbe
 
 			if (phase === "down") {
 				const { depthZones, zoneSpeeds } = useDebugStore.getState();
-				const { forceTrench } = useKrakenStore.getState();
 				const zone = zoneForDepth(current, depthZones);
-				const speed = forceTrench ? FORCE_TRENCH_METERS_PER_SECOND : (zoneSpeeds[zone.id] ?? 0);
+				const speed = zoneSpeeds[zone.id] ?? 0;
 
 				const decelStart = MAX_DEPTH_METERS * (1 - DECEL_FRACTION);
 				const factor =
@@ -65,7 +60,7 @@ export function useDescentDepth(active: boolean, onSurfaced?: () => void): numbe
 				if (current >= MAX_DEPTH_METERS) phase = "bottom";
 			} else if (phase === "bottom") {
 				bottomElapsed += dt;
-				if (bottomElapsed >= BOTTOM_HOLD_SECONDS && !useKrakenStore.getState().forceTrench) phase = "up";
+				if (bottomElapsed >= BOTTOM_HOLD_SECONDS) phase = "up";
 			} else {
 				current = Math.max(0, current - ASCEND_METERS_PER_SECOND * dt);
 				if (current <= 0) {
