@@ -7,12 +7,14 @@ import bgLightsDesktopUrl from "@assets/layers/hub/background/bg-lights-desktop.
 import bgLightsMobileUrl from "@assets/layers/hub/background/bg-lights-mobile.webp";
 import bgMobileUrl from "@assets/layers/hub/background/bg-mobile.webp";
 import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
+import playerUrl from "@assets/player/player.png";
 import { useDayNightClock } from "@hooks/useDayNightClock";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
 
 import { computeAmbience } from "./ambience";
 import BackgroundLayer from "./BackgroundLayer";
 import CelestialBody from "./CelestialBody";
+import Fisherman from "./Fisherman";
 import OceanLayer from "./OceanLayer";
 import SkyLayer from "./SkyLayer";
 
@@ -30,8 +32,9 @@ import SkyLayer from "./SkyLayer";
  * `ocean` placeholder from `layers.ts` until then); the other placeholders
  * stay in `layers.ts` as the spec for their own passes (docs/ASSETS.md).
  *
- * §7.2 fisherman and §7.3 ambient activity are separate sub-milestones and
- * are not here yet.
+ * `Fisherman` (§7.2) sits the placeholder boat + player between the ocean and
+ * the strip, so the strip's foreground dock hides the hull. §7.3 ambient
+ * activity is a separate sub-milestone and is not here yet.
  */
 function HarbourScene() {
 	const { app, isInitialised } = useApplication();
@@ -44,7 +47,15 @@ function HarbourScene() {
 		// ponytail: loaded on scene mount, not via the boot manifest — one small
 		// pop the first time the hub shows. Route through §5's Assets.load(manifest)
 		// when the harbour asset set is real.
-		Assets.load([bgDesktopUrl, bgMobileUrl, bgLightsDesktopUrl, bgLightsMobileUrl, waterTileUrl]).then(loaded => {
+		// The player still is drawn ~2-7x smaller than its 1536px source, so it gets mipmaps.
+		Assets.load([
+			bgDesktopUrl,
+			bgMobileUrl,
+			bgLightsDesktopUrl,
+			bgLightsMobileUrl,
+			waterTileUrl,
+			{ src: playerUrl, data: { autoGenerateMipmaps: true } }
+		]).then(loaded => {
 			if (live) setTextures(loaded);
 		});
 		return () => {
@@ -70,6 +81,14 @@ function HarbourScene() {
 				windowGlow={windowGlow}
 			/>
 			<CelestialBody view={view} celestial={celestial} />
+			<Fisherman
+				view={view}
+				desktop={textures?.[bgDesktopUrl]}
+				mobile={textures?.[bgMobileUrl]}
+				texture={textures?.[playerUrl]}
+				tint={bgTint}
+				seconds={seconds}
+			/>
 			<BackgroundLayer
 				view={view}
 				desktop={textures?.[bgDesktopUrl]}

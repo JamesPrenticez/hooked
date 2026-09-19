@@ -565,14 +565,19 @@ Pixi `AnimatedSprite`. No skeletal runtime, no new dependency. Simple parts
 (rod, cranes, boats) are code-transformed sprites, not sheets. Full spec +
 frame budget: `docs/ASSETS.md`.
 
-Character + idle landed as four flat stills (`src/assets/player/`: boat,
-player, rod, hook — no Blender/sprite-sheet pass yet, still `docs/ASSETS.md`
-work) composed by `src/components/HarbourScene/Fisherman.tsx`: one rig,
-positioned and scaled off the boat, rocking on the water with the existing
-`waterSwell` helper (reused as-is — same trick as the harbour's background
-boats). The line-and-hook is a code-drawn `Graphics` stroke to a small hook
-sprite, per `docs/ASSETS.md` §13, with its own small sway. `player` swaps for
-an `AnimatedSprite` sheet later without touching the rest of the rig.
+Character + idle landed as two flat placeholder stills in `src/assets/player/`
+— `player.png` (boat, fisherman and rod as one image) and `hook.png` — no
+Blender/sprite-sheet pass yet, still `docs/ASSETS.md` work. `player.png` is
+drawn by `src/components/HarbourScene/Fisherman.tsx`: pinned to the background
+art (`textureToScreen`, so it holds its place on the water at any aspect),
+between the ocean and the strip so the foreground dock hides the hull, tinted
+with the day / night grade and bobbing on the existing `waterSwell` helper
+(reused as-is — same trick as the harbour's background boats). `hook.png`
+hangs from the end of the descent's code-drawn line in
+`src/components/DescentScene/FishingLine.tsx` (§13.1); there is no line or hook
+off the rod in the idle harbour yet. Both stills load with mipmaps, since
+they're drawn far smaller than their source. `player` swaps for an
+`AnimatedSprite` sheet later without touching the rest of the rig.
 
 ### 7.3 Ambient Activity
 

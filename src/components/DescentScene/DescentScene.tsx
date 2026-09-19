@@ -17,9 +17,9 @@ interface DescentSceneProps {
 
 /**
  * The underwater environment (BUILD_PLAN §11/§13) — water gradient,
- * depth-zone markers, the first fish (a mackerel) and the line/hook
- * placeholder (the boat/player/rod stay behind in HarbourScene, at the
- * surface), all driven off `depth`. No catch mechanic, target outcome or
+ * depth-zone markers, the first fish (a mackerel) and the fishing line + hook
+ * (the boat/player/rod stay behind in HarbourScene, at the surface), all
+ * driven off `depth`. No catch mechanic, target outcome or
  * server round yet: this is the visual descent loop only.
  */
 function DescentScene({ depth }: DescentSceneProps) {
