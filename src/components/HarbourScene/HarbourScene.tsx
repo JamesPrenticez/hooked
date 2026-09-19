@@ -104,7 +104,7 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 
 	return (
 		<pixiContainer>
-			<DescentScene depth={depth} tint={bgTint} />
+			<DescentScene depth={depth} tint={bgTint} seconds={seconds} />
 			{/* The harbour layers have nothing to draw once the camera has scrolled them
 			    off-screen, but the fishing line and hook follow the hook down. */}
 			<pixiContainer y={-scroll}>
@@ -135,6 +135,7 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 					<FishingLine
 						tip={boat.tip}
 						hookY={hookWorldY(depth, boat.tip.y, view)}
+						scroll={scroll}
 						waterY={waterlineY(view)}
 						view={view}
 						boatScale={boat.scale}

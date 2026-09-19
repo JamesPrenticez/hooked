@@ -1,8 +1,8 @@
-import { expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { KRAKEN_SHEETS } from "@constants/krakenAnimations";
+import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT, KRAKEN_SHEETS } from "@constants/krakenAnimations";
 
-import { krakenFrameRect, SHEET_CUTS } from "./krakenFrames";
+import { krakenBox, krakenFrameRect, krakenGrip, SHEET_CUTS } from "./krakenFrames";
 
 const rising = (edges: number[]) => edges.every((edge, i) => i === 0 || edge > edges[i - 1]);
 
@@ -40,4 +40,23 @@ it("sets every cut inside the sheet, positioned against the even-grid box it was
 			expect(Math.abs(r.trimY), `${id} ${frame}`).toBeLessThan(r.boxHeight);
 		}
 	}
+});
+
+describe("the hook grips", () => {
+	const sheet = KRAKEN_SHEETS.find(({ id }) => id === KRAKEN_ANIMATIONS[KRAKEN_FIGHT[0]].sheet)!;
+	const box = krakenBox(sheet.columns, sheet.rows);
+	const grip = (frame: number) => krakenGrip(sheet.id, sheet.columns, sheet.rows, frame);
+
+	it("has one for every frame the fight plays, inside that frame's box", () => {
+		for (const frame of KRAKEN_FIGHT.flatMap(id => KRAKEN_ANIMATIONS[id].frames)) {
+			expect(Math.abs(grip(frame).x), `frame ${frame}`).toBeLessThan(box.width / 2);
+			expect(Math.abs(grip(frame).y), `frame ${frame}`).toBeLessThan(box.height / 2);
+		}
+	});
+
+	it("measures from the middle of the box: the yank's coil starts up high and is pulled down to the beak", () => {
+		const { frames } = KRAKEN_ANIMATIONS[KRAKEN_FIGHT[1]];
+		expect(grip(frames[0]).y).toBeLessThan(-box.height / 4);
+		expect(grip(frames[frames.length - 1]).y).toBeGreaterThan(box.height / 8);
+	});
 });

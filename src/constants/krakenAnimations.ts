@@ -51,3 +51,29 @@ export function krakenFrame(id: string, elapsed: number): number {
 	const step = Math.max(0, Math.floor(elapsed * fps));
 	return frames[loop ? step % frames.length : Math.min(step, frames.length - 1)];
 }
+
+/** The fight at the bottom of the trench: the Kraken grabs the hook, yanks it once, then keeps
+ *  tugging — the last beat repeats until the fight ends. `repeat_tug` opens where `hard_yank`
+ *  finishes and closes where it opens, so the loop has no seam. One sheet, so it loads once and
+ *  never flickers between beats. */
+export const KRAKEN_FIGHT = [
+	"coiled_yanks_full_body.double_wrap",
+	"coiled_yanks_full_body.hard_yank",
+	"coiled_yanks_full_body.repeat_tug"
+];
+
+/** How long the Kraken stays on screen with the hook — the hook holds at the bottom of the trench that long. */
+export const KRAKEN_FIGHT_SECONDS = 8;
+
+const seconds = (id: string) => KRAKEN_ANIMATIONS[id].frames.length / KRAKEN_ANIMATIONS[id].fps;
+
+/** The fight beat playing `elapsed` seconds in, and how far into that beat we are. */
+export function krakenFightBeat(elapsed: number): { id: string; elapsed: number } {
+	let start = 0;
+	for (const id of KRAKEN_FIGHT.slice(0, -1)) {
+		if (elapsed < start + seconds(id)) return { id, elapsed: elapsed - start };
+		start += seconds(id);
+	}
+	const last = KRAKEN_FIGHT[KRAKEN_FIGHT.length - 1];
+	return { id: last, elapsed: (elapsed - start) % seconds(last) };
+}

@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { Assets, type Texture } from "pixi.js";
 
 import hookUrl from "@assets/player/hook.png";
+import { useKrakenStore } from "@stores/krakenStore";
 
+import { krakenFightPose, krakenHold } from "./krakenFight";
 import { hookX } from "./lineDrift";
 
 interface FishingLineProps {
@@ -10,6 +12,8 @@ interface FishingLineProps {
 	tip: { x: number; y: number };
 	/** World y of the hook (`hookWorldY`). */
 	hookY: number;
+	/** Pixels the world has scrolled up (`cameraScroll`) — turns a screen y into a world y. */
+	scroll: number;
 	/** World y of the water surface (`waterlineY`). */
 	waterY: number;
 	view: { width: number; height: number };
@@ -34,10 +38,14 @@ const HOOK_EYE = { x: 0.545, y: 0.067 };
  * underwater part vertical. The hook then sweeps left and right (`hookX`), the
  * surface point sliding with it — so as the camera pans down, the tip and the
  * diagonal leave the screen and what's left is a vertical line hanging from the
- * top of the water, moving horizontally. The hook is placeholder art.
+ * top of the water, moving horizontally. While the Kraken has hold of it
+ * (`useKrakenStore`'s `fightStart`) the hook comes off that sweep and rides in
+ * its coil instead (`krakenFightPose`), the line following it. The hook is
+ * placeholder art.
  */
-function FishingLine({ tip, hookY, waterY, view, boatScale, seconds }: FishingLineProps) {
+function FishingLine({ tip, hookY, scroll, waterY, view, boatScale, seconds }: FishingLineProps) {
 	const [hook, setHook] = useState<Texture>();
+	const fightStart = useKrakenStore(state => state.fightStart);
 
 	useEffect(() => {
 		let live = true;
@@ -52,7 +60,15 @@ function FishingLine({ tip, hookY, waterY, view, boatScale, seconds }: FishingLi
 		};
 	}, []);
 
-	const x = hookX(tip.x, view, hookY - waterY, seconds);
+	let x = hookX(tip.x, view, hookY - waterY, seconds);
+	let y = hookY;
+	if (fightStart !== undefined) {
+		const elapsed = seconds - fightStart;
+		const { grip } = krakenFightPose(view, elapsed);
+		const hold = krakenHold(elapsed);
+		x += (grip.x - x) * hold;
+		y += (grip.y + scroll - y) * hold;
+	}
 
 	return (
 		<>
@@ -60,12 +76,12 @@ function FishingLine({ tip, hookY, waterY, view, boatScale, seconds }: FishingLi
 				draw={g => {
 					g.clear();
 					g.moveTo(tip.x, tip.y);
-					if (hookY >= waterY) g.lineTo(x, waterY);
-					g.lineTo(x, hookY).stroke({ width: 1.5, color: 0xe8e8e8, alpha: 0.8 });
+					if (y >= waterY) g.lineTo(x, waterY);
+					g.lineTo(x, y).stroke({ width: 1.5, color: 0xe8e8e8, alpha: 0.8 });
 				}}
 			/>
 			{hook && (
-				<pixiSprite texture={hook} anchor={HOOK_EYE} x={x} y={hookY} scale={boatScale * HOOK_SCALE_PER_BOAT_SCALE} />
+				<pixiSprite texture={hook} anchor={HOOK_EYE} x={x} y={y} scale={boatScale * HOOK_SCALE_PER_BOAT_SCALE} />
 			)}
 		</>
 	);

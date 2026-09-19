@@ -938,13 +938,21 @@ Design: `docs/JACKPOT.md`. The seven sheets in `src/assets/kraken/` (`krak-1`..`
 animations described by `kraken-animations.json`) are wired for preview only: the DEBUG
 panel's "Kraken" category jumps the hook to the trench at once (no cast needed; `App` overrides
 the depth) and holds it there until unticked or Surface, where `DescentScene` shows `Kraken`,
-playing whichever animation is picked. Nothing else drives it —
-no jackpot outcome, no encounter script yet. The PNGs carry real alpha (the manifest's
+playing whichever animation is picked.
+A normal cast that bottoms out also shows `Kraken`, drawn 2x the size that fits the screen, playing
+`KRAKEN_FIGHT` (`double_wrap` grab → `hard_yank` → `repeat_tug` on repeat) for `KRAKEN_FIGHT_SECONDS`
+(8s) while the hook holds at the bottom, then reels back up. The
+sheet preloads once the cast starts. Every bottomed-out round fights it — no jackpot outcome drives
+it yet. The hook rides the coil: `krakenFight.ts` places the sprite from a per-frame grip point
+(`SHEET_GRIPS` in `krakenFrames.ts`, read off the art by eye and only for the fight's sheet), sharing the
+coil's travel between the hook and the Kraken sliding the other way (`HOOK_FOLLOW`) so the hook stays
+on screen above the bottom bar, and `FishingLine` eases the hook onto the coil as it closes and off it
+before the fight ends. The debug preview still fits whole frames and has no grip. The PNGs carry real alpha (the manifest's
 "purple background" warning doesn't apply). Rows and columns aren't on an even grid, so
 `krakenFrames.ts` cuts each frame from edges measured off the alpha channel and sets it in
 its even-grid box; a few tentacles still cross a cut and leave a sliver of a neighbour
-(re-measure if a sheet is redrawn). Hook/line attachment points, pivots and the fps/loop
-values (the manifest's suggestions) are still unvalidated.
+(re-measure if a sheet is redrawn). Pivots and the fps/loop values (the manifest's suggestions)
+are still unvalidated, and hook grips exist only for the fight's 18 frames.
 
 - [ ] Trench reveal
 - [ ] Tentacles

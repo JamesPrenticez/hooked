@@ -1,26 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Assets, Rectangle, Texture } from "pixi.js";
 
-import krak1 from "@assets/kraken/krak-1.png";
-import krak2 from "@assets/kraken/krak-2.png";
-import krak3 from "@assets/kraken/krak-3.png";
-import krak4 from "@assets/kraken/krak-4.png";
-import krak5 from "@assets/kraken/krak-5.png";
-import krak6 from "@assets/kraken/krak-6.png";
-import krak7 from "@assets/kraken/krak-7.png";
-import { KRAKEN_ANIMATIONS, KRAKEN_SHEETS, krakenFrame } from "@constants/krakenAnimations";
+import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT, KRAKEN_SHEETS, krakenFrame } from "@constants/krakenAnimations";
 import { useKrakenStore } from "@stores/krakenStore";
 
+import { krakenFightPose, krakenFitScale } from "./krakenFight";
 import { krakenFrameRect } from "./krakenFrames";
-
-/** Sheet id → image, in the order `kraken-animations.json` lists them. */
-const SHEET_URLS: Record<string, string> = Object.fromEntries(
-	[krak1, krak2, krak3, krak4, krak5, krak6, krak7].map((url, i) => [KRAKEN_SHEETS[i].id, url])
-);
-
-/** Share of the screen a frame may fill. */
-const MAX_WIDTH = 0.9;
-const MAX_HEIGHT = 0.5;
+import { SHEET_URLS } from "./krakenSheets";
 
 interface KrakenProps {
 	view: { width: number; height: number };
@@ -29,14 +15,18 @@ interface KrakenProps {
 }
 
 /**
- * The jackpot Kraken at the bottom of the trench (docs/JACKPOT.md), playing
- * whichever sheet animation `useKrakenStore` cues, centred on screen. Sheets
- * load when first cued, not up front — they're ~3MB each and only the debug
- * panel picks between them so far.
+ * The jackpot Kraken at the bottom of the trench (docs/JACKPOT.md). It plays the
+ * grab-and-yank fight (`KRAKEN_FIGHT`) from the moment it mounts, far bigger than
+ * the screen and holding the hook in its coil (`krakenFightPose`; `FishingLine`
+ * draws the hook there) — unless the debug panel forced the trench, where it
+ * plays whichever sheet animation `useKrakenStore` cues, centred and fitted to
+ * the screen. Other sheets load when first cued, not up front — they're ~3MB each.
  */
 function Kraken({ view, seconds }: KrakenProps) {
+	const forced = useKrakenStore(state => state.forceTrench);
 	const cue = useKrakenStore(state => state.cue);
-	const animation = KRAKEN_ANIMATIONS[cue.animation];
+	const setFightStart = useKrakenStore(state => state.setFightStart);
+	const animation = KRAKEN_ANIMATIONS[forced ? cue.animation : KRAKEN_FIGHT[0]];
 	const sheet = KRAKEN_SHEETS.find(({ id }) => id === animation.sheet)!;
 
 	const [loaded, setLoaded] = useState<{ id: string; texture: Texture }>();
@@ -69,12 +59,27 @@ function Kraken({ view, seconds }: KrakenProps) {
 	const [clip, setClip] = useState({ cue, ready, startedAt: seconds });
 	if (clip.cue !== cue || clip.ready !== ready) setClip({ cue, ready, startedAt: seconds });
 
+	// `FishingLine` runs the hook off the same start, so it stays in the coil.
+	const fighting = ready && !forced;
+	useEffect(() => {
+		if (!fighting) return;
+		setFightStart(clip.startedAt);
+		return () => setFightStart(undefined);
+	}, [fighting, clip.startedAt, setFightStart]);
+
 	if (!frames) return null;
 
-	const texture = frames[krakenFrame(animation.id, seconds - clip.startedAt)];
-	const scale = Math.min((view.width * MAX_WIDTH) / texture.width, (view.height * MAX_HEIGHT) / texture.height);
+	const elapsed = seconds - clip.startedAt;
+	if (forced) {
+		const texture = frames[krakenFrame(animation.id, elapsed)];
+		const scale = krakenFitScale(view, texture);
+		return <pixiSprite texture={texture} anchor={0.5} x={view.width / 2} y={view.height / 2} scale={scale} />;
+	}
 
-	return <pixiSprite texture={texture} anchor={0.5} x={view.width / 2} y={view.height / 2} scale={scale} />;
+	const pose = krakenFightPose(view, elapsed);
+	return (
+		<pixiSprite texture={frames[pose.frame]} anchor={0.5} x={pose.sprite.x} y={pose.sprite.y} scale={pose.scale} />
+	);
 }
 
 export default Kraken;

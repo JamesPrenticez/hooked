@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { FIRST_KRAKEN_ANIMATION, KRAKEN_ANIMATIONS, KRAKEN_SHEETS, krakenFrame } from "./krakenAnimations";
+import {
+	FIRST_KRAKEN_ANIMATION,
+	KRAKEN_ANIMATIONS,
+	KRAKEN_FIGHT,
+	KRAKEN_FIGHT_SECONDS,
+	KRAKEN_SHEETS,
+	krakenFightBeat,
+	krakenFrame
+} from "./krakenAnimations";
 
 // Mid-frame times, so a float landing a hair either side of a boundary can't flip a result.
 const midFrame = (fps: number, frame: number) => (frame + 0.5) / fps;
@@ -42,5 +50,35 @@ describe("kraken-animations.json", () => {
 				for (const frame of animation.frames) expect(frame, animation.id).toBeLessThan(sheet.columns * sheet.rows);
 			}
 		}
+	});
+});
+
+describe("the trench fight", () => {
+	const [grab, yank, tug] = KRAKEN_FIGHT;
+	const beatSeconds = (id: string) => KRAKEN_ANIMATIONS[id].frames.length / KRAKEN_ANIMATIONS[id].fps;
+
+	it("keeps every beat on one sheet, so the fight loads a single image", () => {
+		expect(new Set(KRAKEN_FIGHT.map(id => KRAKEN_ANIMATIONS[id].sheet)).size).toBe(1);
+	});
+
+	it("keeps the Kraken on screen for 8 seconds", () => {
+		expect(KRAKEN_FIGHT_SECONDS).toBe(8);
+	});
+
+	it("runs the grab, then the yank, then the tug", () => {
+		expect(krakenFightBeat(0).id).toBe(grab);
+		expect(krakenFightBeat(beatSeconds(grab) + 0.01).id).toBe(yank);
+		expect(krakenFightBeat(beatSeconds(grab) + beatSeconds(yank) + 0.01).id).toBe(tug);
+	});
+
+	it("keeps tugging until the fight ends, from the top of the tug each time", () => {
+		const tugStart = beatSeconds(grab) + beatSeconds(yank);
+		expect(krakenFightBeat(KRAKEN_FIGHT_SECONDS).id).toBe(tug);
+		expect(krakenFightBeat(tugStart + beatSeconds(tug) + 0.25).elapsed).toBeCloseTo(0.25);
+		expect(krakenFightBeat(tugStart + beatSeconds(tug) * 5 + 0.25).elapsed).toBeCloseTo(0.25);
+	});
+
+	it("counts each beat's own time from zero", () => {
+		expect(krakenFightBeat(beatSeconds(grab) + 0.25).elapsed).toBeCloseTo(0.25);
 	});
 });

@@ -90,6 +90,35 @@ test("the debug panel's Kraken section parks the hook at the trench, plays every
 	expect(errors).toEqual([]);
 });
 
+test("a cast that reaches the bottom of the trench fights the Kraken, then reels back to the harbour", async ({
+	page
+}) => {
+	test.slow();
+	const errors: string[] = [];
+	page.on("pageerror", error => errors.push(error.message));
+
+	await startFishing(page);
+	await page.getByRole("button", { name: "DEBUG" }).click();
+	const hook = page.locator("details").filter({ hasText: "Display unit" });
+	await hook.getByText("Hook", { exact: true }).click();
+	for (const speed of await hook.getByLabel("Speed (m/s)").all()) await speed.fill("1000000");
+	await page.keyboard.press("Escape");
+
+	await page.getByRole("button", { name: "Cast Line" }).click();
+	await expect(page.getByText("10,930m")).toBeVisible();
+
+	// The Kraken keeps the hook down there for its 8s fight, not a beat.
+	await page.waitForTimeout(6_000);
+	await expect(page.getByText("10,930m")).toBeVisible();
+
+	// Then the long reel back up.
+	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible({ timeout: 45_000 });
+	await expect(page.getByText("10,930m")).not.toBeVisible();
+
+	await expect(page.locator("canvas")).toBeVisible();
+	expect(errors).toEqual([]);
+});
+
 test("bets on a depth and a fish add to the total, clear, and lock while casting", async ({ page }) => {
 	// Every click waits on software-rendered Pixi frames, which crawl under parallel load.
 	test.slow();

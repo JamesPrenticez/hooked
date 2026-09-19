@@ -81,6 +81,54 @@ export const SHEET_CUTS: Record<string, { rows: number[]; cols: number[][] }> = 
 };
 
 /**
+ * Where a tentacle has the hook in each frame of a sheet the fight plays, in
+ * sheet pixels: the middle of the coil, or the curl by the beak once it's pulled
+ * down. Read off the art against a grid, so good to ~8px. Re-measure if a sheet
+ * is redrawn.
+ */
+export const SHEET_GRIPS: Record<string, [x: number, y: number][]> = {
+	coiled_yanks_full_body: [
+		// double_wrap: reach, C curl, closed loop, second wrap, tighten, secure grip
+		[203, 78],
+		[428, 90],
+		[658, 96],
+		[893, 100],
+		[1148, 78],
+		[1405, 80],
+		// hard_yank: high grip, windup, taut pull, downstroke, low pull, brace
+		[133, 392],
+		[370, 432],
+		[600, 452],
+		[890, 580],
+		[1140, 595],
+		[1428, 588],
+		// repeat_tug: low grip, raise, high anticipation, diagonal yank, recoil, settle
+		[155, 890],
+		[378, 762],
+		[643, 706],
+		[904, 890],
+		[1207, 895],
+		[1436, 906]
+	]
+};
+
+/** The nominal even-grid cell of a `columns` x `rows` sheet — what each frame is set in. */
+export function krakenBox(columns: number, rows: number) {
+	return { width: SHEET_WIDTH / columns, height: SHEET_HEIGHT / rows };
+}
+
+/** Where the hook is in `frame`, in sheet pixels from the middle of the frame's box (`krakenFrameRect`'s) —
+ *  the box a sprite is anchored on, so this is the grip's offset from the sprite's position. */
+export function krakenGrip(sheetId: string, columns: number, rows: number, frame: number) {
+	const [x, y] = SHEET_GRIPS[sheetId][frame];
+	const box = krakenBox(columns, rows);
+	return {
+		x: x - ((frame % columns) + 0.5) * box.width,
+		y: y - (Math.floor(frame / columns) + 0.5) * box.height
+	};
+}
+
+/**
  * Cell `frame` (numbered left to right, top to bottom) of a `columns` x `rows`
  * sheet: the pixels to cut, and where they sit in the sheet's nominal even-grid
  * cell (`boxWidth` x `boxHeight`). A texture set in that box keeps each frame
@@ -91,8 +139,7 @@ export function krakenFrameRect(sheetId: string, columns: number, rows: number, 
 	const cuts = SHEET_CUTS[sheetId];
 	const row = Math.floor(frame / columns);
 	const col = frame % columns;
-	const boxWidth = SHEET_WIDTH / columns;
-	const boxHeight = SHEET_HEIGHT / rows;
+	const { width: boxWidth, height: boxHeight } = krakenBox(columns, rows);
 	const x = cuts.cols[row][col];
 	const y = cuts.rows[row];
 

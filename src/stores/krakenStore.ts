@@ -2,8 +2,9 @@ import { create } from "zustand";
 
 import { FIRST_KRAKEN_ANIMATION } from "@constants/krakenAnimations";
 
-// Debug-only for now: no jackpot outcome drives the boss encounter yet, so the
-// DEBUG panel's "Kraken" category forces it and cues the sheets' animations.
+// `forceTrench` and `cue` are debug-only for now: no jackpot outcome drives the
+// boss encounter yet, so the DEBUG panel's "Kraken" category forces it and cues
+// the sheets' animations.
 interface KrakenStore {
 	/** Parks the hook at the bottom of the trench (`App` overrides the depth),
 	 *  which is where the Kraken shows up. */
@@ -13,11 +14,20 @@ interface KrakenStore {
 	 *  that's already running starts it again from the top. */
 	cue: { animation: string; id: number };
 	play: (animation: string) => void;
+
+	/** When the fight's first frame was drawn, in `useElapsedSeconds` time, and
+	 *  unset when there's no fight. `Kraken` sets it; `FishingLine` reads it to
+	 *  hold the hook in the Kraken's grip in step with the frames. */
+	fightStart: number | undefined;
+	setFightStart: (seconds: number | undefined) => void;
 }
 
 export const useKrakenStore = create<KrakenStore>(set => ({
 	forceTrench: false,
 	setForceTrench: forceTrench => set({ forceTrench }),
 	cue: { animation: FIRST_KRAKEN_ANIMATION, id: 0 },
-	play: animation => set(state => ({ cue: { animation, id: state.cue.id + 1 } }))
+	play: animation => set(state => ({ cue: { animation, id: state.cue.id + 1 } })),
+
+	fightStart: undefined,
+	setFightStart: fightStart => set({ fightStart })
 }));
