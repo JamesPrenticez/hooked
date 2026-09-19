@@ -3,6 +3,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 import { MAX_DEPTH_METERS } from "@constants/depthZones";
 import { useDebugStore } from "@stores/debugStore";
+import { useKrakenStore } from "@stores/krakenStore";
 
 import { useDescentDepth } from "./useDescentDepth";
 
@@ -25,6 +26,7 @@ beforeEach(() => {
 	for (const zone of useDebugStore.getState().depthZones) {
 		useDebugStore.getState().setZoneSpeed(zone.id, 220);
 	}
+	useKrakenStore.setState({ forceTrench: false });
 });
 
 function flushFrame(atTime: number) {
@@ -81,4 +83,31 @@ it("holds at the bottom, then reels back to the surface and calls onSurfaced", (
 
 	expect(result.current).toBe(0);
 	expect(onSurfaced).toHaveBeenCalledTimes(1);
+});
+
+it("with the trench forced, dives at its own speed rather than the tier's and holds at the bottom", () => {
+	useKrakenStore.setState({ forceTrench: true });
+	const onSurfaced = vi.fn();
+	const { result } = renderHook(() => useDescentDepth(true, onSurfaced));
+
+	flushFrame(1000);
+	expect(result.current).toBeGreaterThan(1000); // the tier's 220m/s would give 220
+
+	flushFrame(60_000); // plenty to reach the bottom, and far past the usual 1s hold
+	flushFrame(120_000);
+	expect(result.current).toBe(MAX_DEPTH_METERS);
+	expect(onSurfaced).not.toHaveBeenCalled();
+});
+
+it("heads back up once the forced trench is switched off", () => {
+	useKrakenStore.setState({ forceTrench: true });
+	const { result } = renderHook(() => useDescentDepth(true));
+	flushFrame(60_000);
+	flushFrame(120_000);
+	expect(result.current).toBe(MAX_DEPTH_METERS);
+
+	useKrakenStore.setState({ forceTrench: false });
+	flushFrame(121_000); // the frame it notices the switch
+	flushFrame(122_000);
+	expect(result.current).toBeLessThan(MAX_DEPTH_METERS);
 });

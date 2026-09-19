@@ -54,3 +54,30 @@ test("the debug panel's Player section plays every fisherman animation without e
 	await expect(page.locator("canvas")).toBeVisible();
 	expect(errors).toEqual([]);
 });
+
+test("the debug panel's Kraken section forces the trench dive, then plays every Kraken animation without errors", async ({
+	page
+}) => {
+	test.slow();
+	const errors: string[] = [];
+	page.on("pageerror", error => errors.push(error.message));
+
+	await startFishing(page);
+	await page.getByRole("button", { name: "DEBUG" }).click();
+
+	const kraken = page.locator("details").filter({ hasText: "Kraken" });
+	await kraken.getByText("Kraken", { exact: true }).click();
+	await kraken.getByRole("checkbox", { name: /Force hook to the trench/ }).check();
+	await page.keyboard.press("Escape");
+
+	await page.getByRole("button", { name: "Cast Line" }).click();
+	await expect(page.getByText("10,930m")).toBeVisible({ timeout: 30_000 });
+
+	await page.getByRole("button", { name: "DEBUG" }).click();
+	const animations = kraken.locator("fieldset").getByRole("button");
+	await expect(animations).toHaveCount(29);
+	for (const animation of await animations.all()) await animation.click();
+
+	await expect(page.locator("canvas")).toBeVisible();
+	expect(errors).toEqual([]);
+});

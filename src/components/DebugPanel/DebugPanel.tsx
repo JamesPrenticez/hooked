@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
 import { MAX_DEPTH_METERS, metersToFeet } from "@constants/depthZones";
+import { KRAKEN_SHEETS } from "@constants/krakenAnimations";
 import { PLAYER_ANIMATION_NAMES, PLAYER_ANIMATIONS } from "@constants/playerAnimations";
 import { Accordion, Button } from "@hooked-ui";
 import { useDebugStore } from "@stores/debugStore";
+import { useKrakenStore } from "@stores/krakenStore";
 import { usePlayerStore } from "@stores/playerStore";
 
 import styles from "./DebugPanel.module.css";
@@ -11,9 +13,10 @@ import styles from "./DebugPanel.module.css";
 /**
  * Dev-only DEBUG button (bottom-right, every phase) opening a modal of
  * debug categories: "Environment" (day/night time of day, freeze toggle),
- * "Hook" (per-tier depth range + descent speed, display unit) and "Player"
- * (play any of the fisherman's animations). More categories land here as
- * they're built.
+ * "Hook" (per-tier depth range + descent speed, display unit), "Player"
+ * (play any of the fisherman's animations) and "Kraken" (force the trench
+ * dive, play any of the boss's sheet animations). More categories land here
+ * as they're built.
  *
  * A native `<dialog>` gets backdrop click-to-close and Escape for free.
  */
@@ -33,6 +36,10 @@ function DebugPanel() {
 	const setZoneSpeed = useDebugStore(state => state.setZoneSpeed);
 
 	const playAnimation = usePlayerStore(state => state.play);
+
+	const forceTrench = useKrakenStore(state => state.forceTrench);
+	const setForceTrench = useKrakenStore(state => state.setForceTrench);
+	const playKraken = useKrakenStore(state => state.play);
 
 	useEffect(() => {
 		if (open) dialogRef.current?.showModal();
@@ -128,6 +135,38 @@ function DebugPanel() {
 							>
 								{name.replaceAll("_", " ")}
 							</Button>
+						))}
+					</div>
+				</Accordion>
+
+				<Accordion title="Kraken" theme="dark">
+					<div className={styles.fields}>
+						<label className={styles.checkField}>
+							<input type="checkbox" checked={forceTrench} onChange={e => setForceTrench(e.target.checked)} />
+							Force hook to the trench (then Cast Line)
+						</label>
+						<p className={styles.note}>
+							The dive skips to the bottom and holds there — that's where the Kraken appears. Untick it to let the hook
+							back up.
+						</p>
+
+						{KRAKEN_SHEETS.map(sheet => (
+							<fieldset key={sheet.id} className={styles.sheet}>
+								<legend className={styles.zoneLabel}>{sheet.label}</legend>
+								<div className={styles.animations}>
+									{sheet.animations.map(animation => (
+										<Button
+											key={animation.id}
+											variant="secondary"
+											className={styles.animation}
+											title={animation.description}
+											onClick={() => playKraken(animation.id)}
+										>
+											{animation.name.replaceAll("_", " ")}
+										</Button>
+									))}
+								</div>
+							</fieldset>
 						))}
 					</div>
 				</Accordion>

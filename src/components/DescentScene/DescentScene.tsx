@@ -1,11 +1,14 @@
 import { useApplication } from "@pixi/react";
 
 import { cameraScroll, waterlineY } from "@components/HarbourScene/framing";
+import { MAX_DEPTH_METERS } from "@constants/depthZones";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
 import { useDebugStore } from "@stores/debugStore";
+import { useKrakenStore } from "@stores/krakenStore";
 
 import { computeDepthAmbience } from "./depthAmbience";
 import DepthMarkers from "./DepthMarkers";
+import Kraken from "./Kraken";
 import Mackerel from "./Mackerel";
 import WaterLayer from "./WaterLayer";
 import WaterTiles from "./WaterTiles";
@@ -34,6 +37,9 @@ function DescentScene({ depth, tint }: DescentSceneProps) {
 	const seconds = useElapsedSeconds();
 	const depthZones = useDebugStore(state => state.depthZones);
 	const depthUnit = useDebugStore(state => state.depthUnit);
+	// No server-picked jackpot outcome exists yet, so only the debug panel's
+	// forced trench dive summons the Kraken (it never shows on a normal round).
+	const bossEncounter = useKrakenStore(state => state.forceTrench) && depth >= MAX_DEPTH_METERS;
 
 	if (!isInitialised) return null;
 
@@ -55,6 +61,7 @@ function DescentScene({ depth, tint }: DescentSceneProps) {
 			<WaterTiles view={view} y={waterY} scroll={scroll} ambience={ambience} tint={tint} seconds={seconds} />
 			<DepthMarkers view={view} depth={depth} zones={depthZones} unit={depthUnit} />
 			<Mackerel view={view} depth={depth} seconds={seconds} />
+			{bossEncounter && <Kraken view={view} seconds={seconds} />}
 		</pixiContainer>
 	);
 }

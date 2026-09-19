@@ -69,13 +69,18 @@
 	font-size: var(--font-size-legal);
 }
 
-.zone {
+.zone,
+.sheet {
 	display: flex;
 	gap: 12px;
 	margin: 0;
 	padding: 8px 12px 12px;
 	border: 1px solid color-mix(in srgb, var(--color-white) 20%, transparent);
 	border-radius: 8px;
+}
+
+.sheet {
+	display: block;
 }
 
 .zoneLabel {
