@@ -92,35 +92,38 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	return (
 		<pixiContainer>
 			<DescentScene depth={depth} tint={bgTint} />
-			{/* Nothing to draw once the camera has scrolled the harbour off-screen. */}
-			<pixiContainer y={-scroll} visible={scroll < waterlineY(view)}>
-				<SkyLayer view={view} skyTop={skyTop} skyHorizon={skyHorizon} />
-				<OceanLayer
-					view={view}
-					tint={bgTint}
-					texture={textures?.[waterTileUrl]}
-					seconds={seconds}
-					celestial={celestial}
-					windowGlow={windowGlow}
-				/>
-				<CelestialBody view={view} celestial={celestial} />
-				<BackgroundLayer
-					view={view}
-					desktop={textures?.[bgDesktopUrl]}
-					mobile={textures?.[bgMobileUrl]}
-					litDesktop={textures?.[bgLightsDesktopUrl]}
-					litMobile={textures?.[bgLightsMobileUrl]}
-					tint={bgTint}
-					windowGlow={windowGlow}
-					seconds={seconds}
-				/>
+			{/* The harbour layers have nothing to draw once the camera has scrolled them
+			    off-screen, but the fishing line and hook follow the hook down. */}
+			<pixiContainer y={-scroll}>
+				<pixiContainer visible={scroll < waterlineY(view)}>
+					<SkyLayer view={view} skyTop={skyTop} skyHorizon={skyHorizon} />
+					<OceanLayer
+						view={view}
+						tint={bgTint}
+						texture={textures?.[waterTileUrl]}
+						seconds={seconds}
+						celestial={celestial}
+						windowGlow={windowGlow}
+					/>
+					<CelestialBody view={view} celestial={celestial} />
+					<BackgroundLayer
+						view={view}
+						desktop={textures?.[bgDesktopUrl]}
+						mobile={textures?.[bgMobileUrl]}
+						litDesktop={textures?.[bgLightsDesktopUrl]}
+						litMobile={textures?.[bgLightsMobileUrl]}
+						tint={bgTint}
+						windowGlow={windowGlow}
+						seconds={seconds}
+					/>
+				</pixiContainer>
 				{boat && (
 					<FishingLine
 						tip={boat.tip}
 						hookY={hookWorldY(depth, boat.tip.y, view)}
-						viewWidth={view.width}
+						waterY={waterlineY(view)}
+						view={view}
 						boatScale={boat.scale}
-						depth={depth}
 						seconds={seconds}
 					/>
 				)}
