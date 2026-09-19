@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { MAX_DEPTH_METERS, zoneForDepth } from "@constants/depthZones";
+import { KRAKEN_FIGHT_SECONDS } from "@constants/krakenAnimations";
 import { useDebugStore } from "@stores/debugStore";
 
 // Final fraction of the descent that decelerates to a stop at MAX_DEPTH_METERS,
@@ -12,8 +13,9 @@ const MIN_DESCENT_METERS_PER_SECOND = 25;
 // Fixed speed for the "reel back in" leg — not a per-tier debug control, just
 // enough to sell the return without a second full descent's wait.
 const ASCEND_METERS_PER_SECOND = 600;
-// How long the hook holds at the bottom before heading back up.
-const BOTTOM_HOLD_SECONDS = 1;
+// How long the hook holds at the bottom before heading back up: the Kraken's
+// grab-and-tug fight, which `Kraken` plays off its own clock in step with this.
+const BOTTOM_HOLD_SECONDS = KRAKEN_FIGHT_SECONDS;
 
 type Phase = "down" | "bottom" | "up";
 
@@ -23,7 +25,7 @@ type Phase = "down" | "bottom" | "up";
  * store's per-tier `zoneSpeeds`/`depthZones` (BUILD_PLAN §13), decelerating
  * over the final `DECEL_FRACTION` of the range so the hook slows to a stop
  * at `MAX_DEPTH_METERS` instead of snapping to it. Once it bottoms out it
- * holds briefly, then reels back to the surface and calls `onSurfaced` —
+ * holds for the Kraken fight, then reels back to the surface and calls `onSurfaced` —
  * for now that's the whole round, no fish/target depth yet.
  */
 export function useDescentDepth(active: boolean, onSurfaced?: () => void): number {

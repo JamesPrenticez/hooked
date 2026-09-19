@@ -85,7 +85,7 @@ export default defineConfig([
 						// "^@?\\w" third-party group above, which they'd otherwise
 						// match — unlike the old "@/" alias, these look exactly
 						// like scoped npm packages.
-						["^@(api|assets|components|constants|hooks|stores|type|hooked-ui)(/|$)"],
+						["^@(api|assets|components|constants|hooks|stores|type|utils|hooked-ui)(/|$)"],
 						["^\\./", "^\\."]
 					]
 				}

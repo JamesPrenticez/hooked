@@ -80,21 +80,29 @@ function setWater(top: number, bottom: number, darkness: number) {
 
 interface WaterLayerProps {
 	view: { width: number; height: number };
+	/** Screen y of the water's top edge — the waterline until the camera has
+	 *  scrolled past it, then the top of the screen. */
+	y: number;
 	top: number;
 	bottom: number;
 	/** `0`..`1` dark overlay strength — light falloff with depth. */
 	darkness: number;
+	/** Day / night multiply tint from the harbour's `computeAmbience`, so the
+	 *  water under the boat matches the light above it. */
+	tint: number;
 }
 
-/** The underwater backdrop: a vertical gradient that darkens with depth. Drawn
+/** The underwater backdrop: a vertical gradient that darkens with depth. It's
+ *  one screen tall and hangs from `y`, so it slides up with the harbour as the
+ *  camera pans and the colour under any point holds steady. Drawn
  *  per pixel in a fragment shader — no gradient texture — so the drifting
  *  `top`/`bottom` colours cost a few uniform writes per frame instead of the
  *  canvas fill + texture upload a rebuilt `FillGradient` needs
  *  (docs/PERFORMANCE.md). */
-function WaterLayer({ view, top, bottom, darkness }: WaterLayerProps) {
+function WaterLayer({ view, y, top, bottom, darkness, tint }: WaterLayerProps) {
 	useLayoutEffect(() => setWater(top, bottom, darkness), [top, bottom, darkness]);
 
-	return <pixiMesh geometry={quad} shader={shader} scale={{ x: view.width, y: view.height }} />;
+	return <pixiMesh geometry={quad} shader={shader} y={y} tint={tint} scale={{ x: view.width, y: view.height }} />;
 }
 
 export default WaterLayer;

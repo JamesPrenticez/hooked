@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Assets, Rectangle, Texture } from "pixi.js";
 
 import mackerelUrl from "@assets/creatures/mackeral.png";
-import { PX_PER_METER } from "@constants/depthZones";
+import { depthToScreenY } from "@components/HarbourScene/framing";
 
 import { cellRect, frameIndex, type SheetAnimation } from "./spriteSheet";
 
@@ -56,7 +56,7 @@ function Mackerel({ view, depth, seconds }: MackerelProps) {
 	const fishWidth = frames[0].width * FISH_SCALE;
 	const travel = view.width + fishWidth;
 	const x = view.width + fishWidth / 2 - ((seconds * SPEED_PX_PER_SECOND) % travel);
-	const y = view.height * 0.5 + (FISH_DEPTH_METERS - depth) * PX_PER_METER;
+	const y = depthToScreenY(FISH_DEPTH_METERS, depth, view);
 
 	return <pixiSprite texture={frames[frameIndex(seconds, SWIM)]} anchor={0.5} x={x} y={y} scale={FISH_SCALE} />;
 }

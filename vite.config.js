@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => {
 				"@constants": path.resolve(import.meta.dirname, "./src/constants"),
 				"@hooks": path.resolve(import.meta.dirname, "./src/hooks"),
 				"@stores": path.resolve(import.meta.dirname, "./src/stores"),
+				"@utils": path.resolve(import.meta.dirname, "./src/utils"),
 				// "types/" is aliased as "@type" (singular) — tsc special-cases
 				// "@types/*" specifiers as DefinitelyTyped packages (TS6137).
 				"@type": path.resolve(import.meta.dirname, "./src/types"),
@@ -75,6 +76,7 @@ export default defineConfig(({ mode }) => {
 					"src/components/DescentScene/DescentScene.tsx",
 					"src/components/DescentScene/ParallaxLayer.tsx",
 					"src/components/DescentScene/WaterLayer.tsx",
+					"src/components/DescentScene/WaterTiles.tsx",
 					"src/components/DescentScene/FishingLine.tsx",
 					"src/components/DescentScene/DepthMarkers.tsx",
 					"src/**/*.d.ts",

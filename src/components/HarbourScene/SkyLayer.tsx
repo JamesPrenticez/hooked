@@ -1,5 +1,6 @@
 import { FillGradient } from "pixi.js";
 
+import { HORIZON_Y } from "./framing";
 import type { HarbourView } from "./layers";
 
 interface SkyLayerProps {
@@ -40,7 +41,8 @@ function skyGradient(top: number, horizon: number): FillGradient {
 }
 
 /**
- * The vertical sky gradient behind the harbour strip. Colours come from
+ * The vertical sky gradient behind the harbour strip — the top third of the
+ * screen, down to the docks' horizon. Colours come from
  * `computeAmbience` and shift across the day / night cycle; this component
  * just paints the fill.
  */
@@ -49,7 +51,7 @@ function SkyLayer({ view, skyTop, skyHorizon }: SkyLayerProps) {
 		<pixiGraphics
 			draw={g => {
 				g.clear();
-				g.rect(0, 0, view.width, view.height).fill(skyGradient(skyTop, skyHorizon));
+				g.rect(0, 0, view.width, view.height * HORIZON_Y).fill(skyGradient(skyTop, skyHorizon));
 			}}
 		/>
 	);

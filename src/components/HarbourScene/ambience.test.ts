@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { computeAmbience } from "./ambience";
+import { HORIZON_Y } from "./framing";
 
 const channels = (c: number) => [(c >> 16) & 0xff, (c >> 8) & 0xff, c & 0xff];
 const brightness = (c: number) => channels(c).reduce((a, b) => a + b, 0);
@@ -62,10 +63,20 @@ describe("computeAmbience", () => {
 			expect(celestial.intensity).toBeCloseTo(0);
 		});
 
-		it("rises and sets at the scene horizon, not below it", () => {
+		it("rises and sets at the docks' horizon on any viewport", () => {
 			for (const t of [0.25, 0.75]) {
-				expect(computeAmbience(t, { width: 400, height: 800 }).celestial.y).toBeCloseTo(0.4);
-				expect(computeAmbience(t, { width: 1200, height: 600 }).celestial.y).toBeCloseTo(0.6);
+				expect(computeAmbience(t, { width: 400, height: 800 }).celestial.y).toBeCloseTo(HORIZON_Y);
+				expect(computeAmbience(t, { width: 1200, height: 600 }).celestial.y).toBeCloseTo(HORIZON_Y);
+			}
+		});
+
+		it("never climbs out of the sky's top third", () => {
+			for (const view of [
+				{ width: 400, height: 800 },
+				{ width: 1200, height: 600 },
+				{ width: 3000, height: 600 }
+			]) {
+				expect(computeAmbience(0.5, view).celestial.y).toBeGreaterThan(0);
 			}
 		});
 

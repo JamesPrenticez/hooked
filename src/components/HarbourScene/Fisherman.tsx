@@ -1,52 +1,49 @@
-import type { Texture } from "pixi.js";
+import { useState } from "react";
 
-import { computeBackgroundFit, textureToScreen } from "./backgroundFit";
-import type { HarbourView } from "./layers";
-import { waterSwell } from "./waterSwell";
+import { playerPose } from "@constants/playerAnimations";
+import { usePlayerStore } from "@stores/playerStore";
 
-/**
- * Where the boat sits in each background export — the centre and width of its
- * image box as fractions of the art, so it survives a re-export at another
- * resolution. The two strips have differently shaped water gaps, so each gets
- * its own spot.
- *
- * ponytail: hand-placed against the current strips (fisherman clear of the far
- * pier, hull behind the near dock) — retune if the gap's shape changes.
- */
-const BOAT_SPOT = {
-	desktop: { x: 0.41, y: 0.72, width: 0.3 },
-	mobile: { x: 0.41, y: 0.78, width: 0.6 }
-};
+import { BOAT_ANCHOR, type BoatLayout } from "./framing";
+import type { PlayerFrames } from "./playerFrames";
 
 interface FishermanProps {
-	view: HarbourView;
-	/** The two background exports, only used to pin the boat to the same fit
-	 *  the strip is drawn with; `undefined` until they load. */
-	desktop?: Texture;
-	mobile?: Texture;
-	/** `player.png` — boat, fisherman and rod as one still. */
-	texture?: Texture;
+	/** The animation sheets, cut into frames (`buildPlayerFrames`). */
+	frames: PlayerFrames;
+	/** Where and how big to draw it — `boatLayout`, already bobbing. */
+	boat: BoatLayout;
 	/** Day / night multiply tint from `computeAmbience`. */
 	tint: number;
-	/** Wall-clock seconds (`useElapsedSeconds`), driving the bob. */
+	/** Wall-clock seconds — the animation's clock. */
 	seconds: number;
 }
 
 /**
- * The fisherman in his boat (BUILD_PLAN §7.2) — one placeholder still, pinned
- * to the background art so it holds its place on the water at any aspect.
- * Drawn between the ocean and the strip, so the strip's foreground dock hides
- * the hull's lower half. Bobs on the same `waterSwell` as the water surface.
+ * The fisherman in his boat (BUILD_PLAN §7.2), centred in the middle third of
+ * the screen with his hull on the waterline (`boatLayout`) and drawn above the
+ * ocean and the background strip. Plays whichever animation `usePlayerStore`
+ * cues — idle until something says otherwise.
  */
-function Fisherman({ view, desktop, mobile, texture, tint, seconds }: FishermanProps) {
-	if (!desktop || !mobile || !texture) return null;
+function Fisherman({ frames, boat, tint, seconds }: FishermanProps) {
+	const cue = usePlayerStore(state => state.cue);
 
-	const fit = computeBackgroundFit(view, desktop, mobile);
-	const spot = fit.texture === desktop ? BOAT_SPOT.desktop : BOAT_SPOT.mobile;
-	const { x, y } = textureToScreen(fit, { x: spot.x * fit.texture.width, y: spot.y * fit.texture.height });
-	const scale = (spot.width * fit.texture.width * fit.scale) / texture.width;
+	// A new cue starts its clip from the top. Adjusted during render rather than
+	// in an effect, so the first frame of the new clip isn't the old one.
+	const [clip, setClip] = useState({ cue, startedAt: seconds });
+	if (clip.cue !== cue) setClip({ cue, startedAt: seconds });
 
-	return <pixiSprite texture={texture} anchor={0.5} x={x} y={y + waterSwell(seconds)} scale={scale} tint={tint} />;
+	const { sheet, frame } = playerPose(cue.animation, seconds - clip.startedAt);
+	const { textures, stretchY } = frames[sheet];
+
+	return (
+		<pixiSprite
+			texture={textures[frame]}
+			anchor={BOAT_ANCHOR}
+			x={boat.x}
+			y={boat.y}
+			scale={{ x: boat.scale, y: boat.scale * stretchY }}
+			tint={tint}
+		/>
+	);
 }
 
 export default Fisherman;

@@ -20,6 +20,15 @@ describe("computeDepthAmbience", () => {
 		);
 	});
 
+	it("fades the caustics out faster than the light shafts", () => {
+		const surface = computeDepthAmbience(0);
+		const atDeep = computeDepthAmbience(deep.fromMeters);
+		expect(surface.caustics).toBe(1);
+		expect(surface.shafts).toBe(1);
+		expect(atDeep.caustics).toBeLessThan(atDeep.shafts);
+		expect(atDeep.shafts).toBeLessThan(1);
+	});
+
 	it("holds the trench keyframe past its boundary", () => {
 		const atBoundary = computeDepthAmbience(trench.fromMeters);
 		const wayPast = computeDepthAmbience(trench.fromMeters + 1_000_000);

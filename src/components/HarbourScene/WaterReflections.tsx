@@ -15,6 +15,8 @@ interface WaterReflectionsProps {
 	 *  anchor here rather than the wobbling per-layer waterline, so they
 	 *  don't jitter with the swell. */
 	waterTop: number;
+	/** Where the harbour water ends and the underwater begins. */
+	waterBottom: number;
 	/** Wall-clock seconds (`useElapsedSeconds`), driving the shimmer. */
 	seconds: number;
 }
@@ -77,8 +79,8 @@ const windowGlowGradient = new FillGradient({
  * doesn't get one). Good enough to make the water shine at night; not
  * aiming for physically accurate reflection.
  */
-function WaterReflections({ view, celestial, windowGlow, waterTop, seconds }: WaterReflectionsProps) {
-	const span = view.height - waterTop;
+function WaterReflections({ view, celestial, windowGlow, waterTop, waterBottom, seconds }: WaterReflectionsProps) {
+	const span = waterBottom - waterTop;
 
 	return (
 		<pixiGraphics

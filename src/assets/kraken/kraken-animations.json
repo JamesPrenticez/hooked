@@ -1,0 +1,1459 @@
+{
+	"schemaVersion": "1.0.0",
+	"game": "HOOKED",
+	"character": "jackpot_kraken",
+	"documentType": "animation_description_manifest",
+	"status": "descriptive_mapping_not_validated_texture_atlas",
+	"scope": "Seven accepted sheets; excludes the rejected initial full-body sheet and uses the latest partial-reveal version instead of its duplicate.",
+	"conventions": {
+		"rowIndexBase": 0,
+		"columnIndexBase": 0,
+		"frameIndexBase": 0,
+		"readingOrder": "left_to_right_then_top_to_bottom",
+		"timings": "Suggested starting values, not measured or playback-tested.",
+		"frameDescriptions": "Intended keyframe beats based on the generated artwork and agreed sequences; generated poses may not reproduce every beat exactly.",
+		"looping": "Suggested only; inspect seams and align pivots before enabling loops."
+	},
+	"integration": {
+		"background": "Purple painted background remains in all seven images; RGBA file mode does not establish usable transparency.",
+		"slicing": "Rows and subjects are not guaranteed uniformly spaced. Grid describes logical frame order only; author verified pixel rectangles before loading into an engine.",
+		"frameRects": null,
+		"pivots": null,
+		"hookAttachmentTracks": null,
+		"hookAttachmentInstructions": "After slicing, mark a per-frame local attachment point at the tentacle coil or beak. Keep line attached through grip/yank; detach on release. For swats, move hook away at contact. Do not infer exact attachment coordinates from this manifest.",
+		"rendering": "Render hook, line, tension meter, rocks, particles and environment separately. Scale and translate Kraken in scene code; preserve sprite aspect ratio.",
+		"scale": "Use partial sheets oversized for the initial reveal, then full-body sheets for the wider reveal. No physical scale is encoded.",
+		"timing": "Optional brief hold on bite snap and impact poses; hook motion and screen shake should follow the animation, not change the payout.",
+		"validationNeeded": [
+			"Background removal",
+			"Pixel crop rectangles",
+			"Stable pivot per frame",
+			"Hook and line attachment tracks",
+			"Loop seam review",
+			"Tentacle and character continuity review"
+		]
+	},
+	"sheets": [
+		{
+			"id": "reveal_parts",
+			"suggestedAssetName": "kraken_reveal_parts.png",
+			"sourceFile": "exec-221ee855-0098-4661-a0a9-5f65480b3d59.png",
+			"label": "Partial tentacles and eyes",
+			"imageSize": {
+				"width": 1536,
+				"height": 1024
+			},
+			"logicalGrid": {
+				"columns": 6,
+				"rows": 5
+			},
+			"frameCount": 30,
+			"animations": [
+				{
+					"id": "reveal_parts.foreground_sweep",
+					"name": "foreground_sweep",
+					"row": 0,
+					"rowDisplay": 1,
+					"startFrame": 0,
+					"endFrame": 5,
+					"frameCount": 6,
+					"frames": [0, 1, 2, 3, 4, 5],
+					"suggestedFps": 6,
+					"suggestedDurationMs": 1000,
+					"suggestedLoop": false,
+					"description": "Huge foreground tentacle sweeps and curls.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 0,
+							"beat": "low sweep"
+						},
+						{
+							"column": 1,
+							"frameIndex": 1,
+							"beat": "rising sweep"
+						},
+						{
+							"column": 2,
+							"frameIndex": 2,
+							"beat": "curl rises"
+						},
+						{
+							"column": 3,
+							"frameIndex": 3,
+							"beat": "high arc"
+						},
+						{
+							"column": 4,
+							"frameIndex": 4,
+							"beat": "crossing arc"
+						},
+						{
+							"column": 5,
+							"frameIndex": 5,
+							"beat": "upright curl"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "reveal_parts.distant_tentacle_reveal",
+					"name": "distant_tentacle_reveal",
+					"row": 1,
+					"rowDisplay": 2,
+					"startFrame": 6,
+					"endFrame": 11,
+					"frameCount": 6,
+					"frames": [6, 7, 8, 9, 10, 11],
+					"suggestedFps": 6,
+					"suggestedDurationMs": 1000,
+					"suggestedLoop": false,
+					"description": "Distant slender tentacle unfurls behind the foreground.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 6,
+							"beat": "low extension"
+						},
+						{
+							"column": 1,
+							"frameIndex": 7,
+							"beat": "tip rises"
+						},
+						{
+							"column": 2,
+							"frameIndex": 8,
+							"beat": "extended curl"
+						},
+						{
+							"column": 3,
+							"frameIndex": 9,
+							"beat": "upright bend"
+						},
+						{
+							"column": 4,
+							"frameIndex": 10,
+							"beat": "S curve"
+						},
+						{
+							"column": 5,
+							"frameIndex": 11,
+							"beat": "tight upper curl"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "reveal_parts.eyes_awaken",
+					"name": "eyes_awaken",
+					"row": 2,
+					"rowDisplay": 3,
+					"startFrame": 12,
+					"endFrame": 17,
+					"frameCount": 6,
+					"frames": [12, 13, 14, 15, 16, 17],
+					"suggestedFps": 5,
+					"suggestedDurationMs": 1200,
+					"suggestedLoop": false,
+					"description": "Isolated magenta eyes open; fade the layer in with code.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 12,
+							"beat": "closed slits"
+						},
+						{
+							"column": 1,
+							"frameIndex": 13,
+							"beat": "barely open"
+						},
+						{
+							"column": 2,
+							"frameIndex": 14,
+							"beat": "quarter open"
+						},
+						{
+							"column": 3,
+							"frameIndex": 15,
+							"beat": "half open"
+						},
+						{
+							"column": 4,
+							"frameIndex": 16,
+							"beat": "mostly open"
+						},
+						{
+							"column": 5,
+							"frameIndex": 17,
+							"beat": "fully awake"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "reveal_parts.tap_and_grip",
+					"name": "tap_and_grip",
+					"row": 3,
+					"rowDisplay": 4,
+					"startFrame": 18,
+					"endFrame": 23,
+					"frameCount": 6,
+					"frames": [18, 19, 20, 21, 22, 23],
+					"suggestedFps": 8,
+					"suggestedDurationMs": 750,
+					"suggestedLoop": false,
+					"description": "Tip approaches an invisible target and curls around it.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 18,
+							"beat": "approach"
+						},
+						{
+							"column": 1,
+							"frameIndex": 19,
+							"beat": "reach"
+						},
+						{
+							"column": 2,
+							"frameIndex": 20,
+							"beat": "tap pose"
+						},
+						{
+							"column": 3,
+							"frameIndex": 21,
+							"beat": "curl inward"
+						},
+						{
+							"column": 4,
+							"frameIndex": 22,
+							"beat": "loop"
+						},
+						{
+							"column": 5,
+							"frameIndex": 23,
+							"beat": "tight coil"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "reveal_parts.pull_release_regrab",
+					"name": "pull_release_regrab",
+					"row": 4,
+					"rowDisplay": 5,
+					"startFrame": 24,
+					"endFrame": 29,
+					"frameCount": 6,
+					"frames": [24, 25, 26, 27, 28, 29],
+					"suggestedFps": 10,
+					"suggestedDurationMs": 600,
+					"suggestedLoop": false,
+					"description": "Tentacle pulls, releases, reaches and grabs again.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 24,
+							"beat": "grip"
+						},
+						{
+							"column": 1,
+							"frameIndex": 25,
+							"beat": "pull down"
+						},
+						{
+							"column": 2,
+							"frameIndex": 26,
+							"beat": "release"
+						},
+						{
+							"column": 3,
+							"frameIndex": 27,
+							"beat": "reach"
+						},
+						{
+							"column": 4,
+							"frameIndex": 28,
+							"beat": "regrab"
+						},
+						{
+							"column": 5,
+							"frameIndex": 29,
+							"beat": "yank"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				}
+			]
+		},
+		{
+			"id": "attack_parts",
+			"suggestedAssetName": "kraken_attack_parts.png",
+			"sourceFile": "exec-a6f7d9b5-f469-4246-9dc7-88f614d0ea1f.png",
+			"label": "Partial attacks and beak closeup",
+			"imageSize": {
+				"width": 1536,
+				"height": 1024
+			},
+			"logicalGrid": {
+				"columns": 6,
+				"rows": 6
+			},
+			"frameCount": 36,
+			"animations": [
+				{
+					"id": "attack_parts.tension_attacks",
+					"name": "tension_attacks",
+					"row": 0,
+					"rowDisplay": 1,
+					"startFrame": 0,
+					"endFrame": 5,
+					"frameCount": 6,
+					"frames": [0, 1, 2, 3, 4, 5],
+					"suggestedFps": 10,
+					"suggestedDurationMs": 600,
+					"suggestedLoop": false,
+					"description": "A montage of line-control attack poses; can be split into individual attacks.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 0,
+							"beat": "grip"
+						},
+						{
+							"column": 1,
+							"frameIndex": 1,
+							"beat": "tight coil"
+						},
+						{
+							"column": 2,
+							"frameIndex": 2,
+							"beat": "downward stretch"
+						},
+						{
+							"column": 3,
+							"frameIndex": 3,
+							"beat": "sideways sweep"
+						},
+						{
+							"column": 4,
+							"frameIndex": 4,
+							"beat": "slack curve"
+						},
+						{
+							"column": 5,
+							"frameIndex": 5,
+							"beat": "taut jerk"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "attack_parts.beak_snap",
+					"name": "beak_snap",
+					"row": 1,
+					"rowDisplay": 2,
+					"startFrame": 6,
+					"endFrame": 11,
+					"frameCount": 6,
+					"frames": [6, 7, 8, 9, 10, 11],
+					"suggestedFps": 10,
+					"suggestedDurationMs": 600,
+					"suggestedLoop": false,
+					"description": "Beak opens and snaps shut. Hold the closed finish briefly.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 6,
+							"beat": "closed"
+						},
+						{
+							"column": 1,
+							"frameIndex": 7,
+							"beat": "anticipation"
+						},
+						{
+							"column": 2,
+							"frameIndex": 8,
+							"beat": "opening"
+						},
+						{
+							"column": 3,
+							"frameIndex": 9,
+							"beat": "fully open lunge"
+						},
+						{
+							"column": 4,
+							"frameIndex": 10,
+							"beat": "snap closed"
+						},
+						{
+							"column": 5,
+							"frameIndex": 11,
+							"beat": "closed hold"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "attack_parts.hooked_explosion",
+					"name": "hooked_explosion",
+					"row": 2,
+					"rowDisplay": 3,
+					"startFrame": 12,
+					"endFrame": 17,
+					"frameCount": 6,
+					"frames": [12, 13, 14, 15, 16, 17],
+					"suggestedFps": 12,
+					"suggestedDurationMs": 500,
+					"suggestedLoop": false,
+					"description": "Intertwined tentacles recoil and thrash toward the camera.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 12,
+							"beat": "recoil"
+						},
+						{
+							"column": 1,
+							"frameIndex": 13,
+							"beat": "compress"
+						},
+						{
+							"column": 2,
+							"frameIndex": 14,
+							"beat": "left twist"
+						},
+						{
+							"column": 3,
+							"frameIndex": 15,
+							"beat": "spread"
+						},
+						{
+							"column": 4,
+							"frameIndex": 16,
+							"beat": "countertwist"
+						},
+						{
+							"column": 5,
+							"frameIndex": 17,
+							"beat": "foreground thrust"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "attack_parts.coil_spin_launch",
+					"name": "coil_spin_launch",
+					"row": 3,
+					"rowDisplay": 4,
+					"startFrame": 18,
+					"endFrame": 23,
+					"frameCount": 6,
+					"frames": [18, 19, 20, 21, 22, 23],
+					"suggestedFps": 10,
+					"suggestedDurationMs": 600,
+					"suggestedLoop": false,
+					"description": "Partial tentacle crown coils and launches upward.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 18,
+							"beat": "gather"
+						},
+						{
+							"column": 1,
+							"frameIndex": 19,
+							"beat": "curl inward"
+						},
+						{
+							"column": 2,
+							"frameIndex": 20,
+							"beat": "compact coil"
+						},
+						{
+							"column": 3,
+							"frameIndex": 21,
+							"beat": "rotate"
+						},
+						{
+							"column": 4,
+							"frameIndex": 22,
+							"beat": "unfurl"
+						},
+						{
+							"column": 5,
+							"frameIndex": 23,
+							"beat": "launch"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "attack_parts.anchor_and_release",
+					"name": "anchor_and_release",
+					"row": 4,
+					"rowDisplay": 5,
+					"startFrame": 24,
+					"endFrame": 29,
+					"frameCount": 6,
+					"frames": [24, 25, 26, 27, 28, 29],
+					"suggestedFps": 8,
+					"suggestedDurationMs": 750,
+					"suggestedLoop": false,
+					"description": "Tentacle wraps around an anchor supplied by the scene.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 24,
+							"beat": "reach"
+						},
+						{
+							"column": 1,
+							"frameIndex": 25,
+							"beat": "hook tip"
+						},
+						{
+							"column": 2,
+							"frameIndex": 26,
+							"beat": "curl"
+						},
+						{
+							"column": 3,
+							"frameIndex": 27,
+							"beat": "strain"
+						},
+						{
+							"column": 4,
+							"frameIndex": 28,
+							"beat": "slip"
+						},
+						{
+							"column": 5,
+							"frameIndex": 29,
+							"beat": "release"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "attack_parts.ascent_parts",
+					"name": "ascent_parts",
+					"row": 5,
+					"rowDisplay": 6,
+					"startFrame": 30,
+					"endFrame": 35,
+					"frameCount": 6,
+					"frames": [30, 31, 32, 33, 34, 35],
+					"suggestedFps": 10,
+					"suggestedDurationMs": 600,
+					"suggestedLoop": false,
+					"description": "Partial flank and trailing arms for the rapid ascent.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 30,
+							"beat": "trail"
+						},
+						{
+							"column": 1,
+							"frameIndex": 31,
+							"beat": "stretch"
+						},
+						{
+							"column": 2,
+							"frameIndex": 32,
+							"beat": "surge"
+						},
+						{
+							"column": 3,
+							"frameIndex": 33,
+							"beat": "resist"
+						},
+						{
+							"column": 4,
+							"frameIndex": 34,
+							"beat": "whip past"
+						},
+						{
+							"column": 5,
+							"frameIndex": 35,
+							"beat": "trailing recovery"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				}
+			]
+		},
+		{
+			"id": "seabed_full_body",
+			"suggestedAssetName": "kraken_seabed_full_body.png",
+			"sourceFile": "exec-b8be6ec7-7189-4a7b-9558-f0f1f6ce6797.png",
+			"label": "Full-body front view at seabed",
+			"imageSize": {
+				"width": 1536,
+				"height": 1024
+			},
+			"logicalGrid": {
+				"columns": 4,
+				"rows": 4
+			},
+			"frameCount": 16,
+			"animations": [
+				{
+					"id": "seabed_full_body.seabed_idle",
+					"name": "seabed_idle",
+					"row": 0,
+					"rowDisplay": 1,
+					"startFrame": 0,
+					"endFrame": 3,
+					"frameCount": 4,
+					"frames": [0, 1, 2, 3],
+					"suggestedFps": 4,
+					"suggestedDurationMs": 1000,
+					"suggestedLoop": true,
+					"description": "Heavy resting breathing and subtle arm movement.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 0,
+							"beat": "rest"
+						},
+						{
+							"column": 1,
+							"frameIndex": 1,
+							"beat": "inhale"
+						},
+						{
+							"column": 2,
+							"frameIndex": 2,
+							"beat": "exhale"
+						},
+						{
+							"column": 3,
+							"frameIndex": 3,
+							"beat": "recover"
+						}
+					],
+					"onComplete": "repeat_after_loop_review"
+				},
+				{
+					"id": "seabed_full_body.awaken",
+					"name": "awaken",
+					"row": 1,
+					"rowDisplay": 2,
+					"startFrame": 4,
+					"endFrame": 7,
+					"frameCount": 4,
+					"frames": [4, 5, 6, 7],
+					"suggestedFps": 6,
+					"suggestedDurationMs": 667,
+					"suggestedLoop": false,
+					"description": "Kraken rises from low rest into alert stance.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 4,
+							"beat": "low rest"
+						},
+						{
+							"column": 1,
+							"frameIndex": 5,
+							"beat": "rise"
+						},
+						{
+							"column": 2,
+							"frameIndex": 6,
+							"beat": "arms lift"
+						},
+						{
+							"column": 3,
+							"frameIndex": 7,
+							"beat": "alert"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "seabed_full_body.threat_display",
+					"name": "threat_display",
+					"row": 2,
+					"rowDisplay": 3,
+					"startFrame": 8,
+					"endFrame": 11,
+					"frameCount": 4,
+					"frames": [8, 9, 10, 11],
+					"suggestedFps": 6,
+					"suggestedDurationMs": 667,
+					"suggestedLoop": false,
+					"description": "Raised arms and visible suckers threaten the hook.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 8,
+							"beat": "guard"
+						},
+						{
+							"column": 1,
+							"frameIndex": 9,
+							"beat": "spread"
+						},
+						{
+							"column": 2,
+							"frameIndex": 10,
+							"beat": "raised display"
+						},
+						{
+							"column": 3,
+							"frameIndex": 11,
+							"beat": "settle"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "seabed_full_body.grounded_brace",
+					"name": "grounded_brace",
+					"row": 3,
+					"rowDisplay": 4,
+					"startFrame": 12,
+					"endFrame": 15,
+					"frameCount": 4,
+					"frames": [12, 13, 14, 15],
+					"suggestedFps": 8,
+					"suggestedDurationMs": 500,
+					"suggestedLoop": false,
+					"description": "Body braces and recoils against upward pull.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 12,
+							"beat": "plant arms"
+						},
+						{
+							"column": 1,
+							"frameIndex": 13,
+							"beat": "grip ground"
+						},
+						{
+							"column": 2,
+							"frameIndex": 14,
+							"beat": "resist"
+						},
+						{
+							"column": 3,
+							"frameIndex": 15,
+							"beat": "recoil"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				}
+			]
+		},
+		{
+			"id": "swimming_full_body",
+			"suggestedAssetName": "kraken_swimming_full_body.png",
+			"sourceFile": "exec-c2079762-7865-440f-83c1-5854edb4aa92.png",
+			"label": "Full-body mantle-first swimming toward screen right",
+			"imageSize": {
+				"width": 1536,
+				"height": 1024
+			},
+			"logicalGrid": {
+				"columns": 4,
+				"rows": 4
+			},
+			"frameCount": 16,
+			"animations": [
+				{
+					"id": "swimming_full_body.cruise",
+					"name": "cruise",
+					"row": 0,
+					"rowDisplay": 1,
+					"startFrame": 0,
+					"endFrame": 3,
+					"frameCount": 4,
+					"frames": [0, 1, 2, 3],
+					"suggestedFps": 6,
+					"suggestedDurationMs": 667,
+					"suggestedLoop": true,
+					"description": "Slow rightward swimming; translate the sprite in code.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 0,
+							"beat": "relaxed trail"
+						},
+						{
+							"column": 1,
+							"frameIndex": 1,
+							"beat": "pulse"
+						},
+						{
+							"column": 2,
+							"frameIndex": 2,
+							"beat": "arm wave"
+						},
+						{
+							"column": 3,
+							"frameIndex": 3,
+							"beat": "recover"
+						}
+					],
+					"onComplete": "repeat_after_loop_review"
+				},
+				{
+					"id": "swimming_full_body.jet_swim",
+					"name": "jet_swim",
+					"row": 1,
+					"rowDisplay": 2,
+					"startFrame": 4,
+					"endFrame": 7,
+					"frameCount": 4,
+					"frames": [4, 5, 6, 7],
+					"suggestedFps": 10,
+					"suggestedDurationMs": 400,
+					"suggestedLoop": true,
+					"description": "Faster mantle-first swimming.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 4,
+							"beat": "inflate"
+						},
+						{
+							"column": 1,
+							"frameIndex": 5,
+							"beat": "contract"
+						},
+						{
+							"column": 2,
+							"frameIndex": 6,
+							"beat": "streamline"
+						},
+						{
+							"column": 3,
+							"frameIndex": 7,
+							"beat": "refill"
+						}
+					],
+					"onComplete": "repeat_after_loop_review"
+				},
+				{
+					"id": "swimming_full_body.upward_turn",
+					"name": "upward_turn",
+					"row": 2,
+					"rowDisplay": 3,
+					"startFrame": 8,
+					"endFrame": 11,
+					"frameCount": 4,
+					"frames": [8, 9, 10, 11],
+					"suggestedFps": 8,
+					"suggestedDurationMs": 500,
+					"suggestedLoop": false,
+					"description": "Brakes and banks toward upper right.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 8,
+							"beat": "cruise"
+						},
+						{
+							"column": 1,
+							"frameIndex": 9,
+							"beat": "fan arms"
+						},
+						{
+							"column": 2,
+							"frameIndex": 10,
+							"beat": "bank"
+						},
+						{
+							"column": 3,
+							"frameIndex": 11,
+							"beat": "upward heading"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "swimming_full_body.dash",
+					"name": "dash",
+					"row": 3,
+					"rowDisplay": 4,
+					"startFrame": 12,
+					"endFrame": 15,
+					"frameCount": 4,
+					"frames": [12, 13, 14, 15],
+					"suggestedFps": 12,
+					"suggestedDurationMs": 333,
+					"suggestedLoop": false,
+					"description": "Coiled anticipation followed by an elongated dash.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 12,
+							"beat": "coil"
+						},
+						{
+							"column": 1,
+							"frameIndex": 13,
+							"beat": "launch"
+						},
+						{
+							"column": 2,
+							"frameIndex": 14,
+							"beat": "full extension"
+						},
+						{
+							"column": 3,
+							"frameIndex": 15,
+							"beat": "recover"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				}
+			]
+		},
+		{
+			"id": "hook_play_full_body",
+			"suggestedAssetName": "kraken_hook_play_full_body.png",
+			"sourceFile": "exec-6fc2441b-05f2-4eda-849c-f37509687c2b.png",
+			"label": "Full-body playful interactions",
+			"imageSize": {
+				"width": 1536,
+				"height": 1024
+			},
+			"logicalGrid": {
+				"columns": 6,
+				"rows": 4
+			},
+			"frameCount": 24,
+			"animations": [
+				{
+					"id": "hook_play_full_body.playful_tap",
+					"name": "playful_tap",
+					"row": 0,
+					"rowDisplay": 1,
+					"startFrame": 0,
+					"endFrame": 5,
+					"frameCount": 6,
+					"frames": [0, 1, 2, 3, 4, 5],
+					"suggestedFps": 8,
+					"suggestedDurationMs": 750,
+					"suggestedLoop": false,
+					"description": "Reaches up, pokes the invisible hook and withdraws.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 0,
+							"beat": "watch"
+						},
+						{
+							"column": 1,
+							"frameIndex": 1,
+							"beat": "raise"
+						},
+						{
+							"column": 2,
+							"frameIndex": 2,
+							"beat": "extend"
+						},
+						{
+							"column": 3,
+							"frameIndex": 3,
+							"beat": "tap"
+						},
+						{
+							"column": 4,
+							"frameIndex": 4,
+							"beat": "recoil"
+						},
+						{
+							"column": 5,
+							"frameIndex": 5,
+							"beat": "rest"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "hook_play_full_body.curl_grab",
+					"name": "curl_grab",
+					"row": 1,
+					"rowDisplay": 2,
+					"startFrame": 6,
+					"endFrame": 11,
+					"frameCount": 6,
+					"frames": [6, 7, 8, 9, 10, 11],
+					"suggestedFps": 8,
+					"suggestedDurationMs": 750,
+					"suggestedLoop": false,
+					"description": "Tentacle approaches and curls near the face.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 6,
+							"beat": "reach"
+						},
+						{
+							"column": 1,
+							"frameIndex": 7,
+							"beat": "extend"
+						},
+						{
+							"column": 2,
+							"frameIndex": 8,
+							"beat": "curl"
+						},
+						{
+							"column": 3,
+							"frameIndex": 9,
+							"beat": "close"
+						},
+						{
+							"column": 4,
+							"frameIndex": 10,
+							"beat": "draw inward"
+						},
+						{
+							"column": 5,
+							"frameIndex": 11,
+							"beat": "hold"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "hook_play_full_body.pull_release_regrab",
+					"name": "pull_release_regrab",
+					"row": 2,
+					"rowDisplay": 3,
+					"startFrame": 12,
+					"endFrame": 17,
+					"frameCount": 6,
+					"frames": [12, 13, 14, 15, 16, 17],
+					"suggestedFps": 10,
+					"suggestedDurationMs": 600,
+					"suggestedLoop": false,
+					"description": "Pulls down and switches to another tentacle.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 12,
+							"beat": "raised grip"
+						},
+						{
+							"column": 1,
+							"frameIndex": 13,
+							"beat": "pull"
+						},
+						{
+							"column": 2,
+							"frameIndex": 14,
+							"beat": "lower"
+						},
+						{
+							"column": 3,
+							"frameIndex": 15,
+							"beat": "release"
+						},
+						{
+							"column": 4,
+							"frameIndex": 16,
+							"beat": "other arm reaches"
+						},
+						{
+							"column": 5,
+							"frameIndex": 17,
+							"beat": "regrab"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "hook_play_full_body.body_yank",
+					"name": "body_yank",
+					"row": 3,
+					"rowDisplay": 4,
+					"startFrame": 18,
+					"endFrame": 23,
+					"frameCount": 6,
+					"frames": [18, 19, 20, 21, 22, 23],
+					"suggestedFps": 12,
+					"suggestedDurationMs": 500,
+					"suggestedLoop": false,
+					"description": "Whole-body brace and downward tug.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 18,
+							"beat": "raised grip"
+						},
+						{
+							"column": 1,
+							"frameIndex": 19,
+							"beat": "brace"
+						},
+						{
+							"column": 2,
+							"frameIndex": 20,
+							"beat": "windup"
+						},
+						{
+							"column": 3,
+							"frameIndex": 21,
+							"beat": "pull"
+						},
+						{
+							"column": 4,
+							"frameIndex": 22,
+							"beat": "side recoil"
+						},
+						{
+							"column": 5,
+							"frameIndex": 23,
+							"beat": "low brace"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				}
+			]
+		},
+		{
+			"id": "coiled_yanks_full_body",
+			"suggestedAssetName": "kraken_coiled_yanks_full_body.png",
+			"sourceFile": "exec-05b9e5b3-b34e-4560-8235-fb542de3ab1e.png",
+			"label": "Full-body pronounced wrapping and yanking",
+			"imageSize": {
+				"width": 1536,
+				"height": 1024
+			},
+			"logicalGrid": {
+				"columns": 6,
+				"rows": 3
+			},
+			"frameCount": 18,
+			"animations": [
+				{
+					"id": "coiled_yanks_full_body.double_wrap",
+					"name": "double_wrap",
+					"row": 0,
+					"rowDisplay": 1,
+					"startFrame": 0,
+					"endFrame": 5,
+					"frameCount": 6,
+					"frames": [0, 1, 2, 3, 4, 5],
+					"suggestedFps": 8,
+					"suggestedDurationMs": 750,
+					"suggestedLoop": false,
+					"description": "Most explicit wrap sequence around an empty hook target.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 0,
+							"beat": "reach"
+						},
+						{
+							"column": 1,
+							"frameIndex": 1,
+							"beat": "C curl"
+						},
+						{
+							"column": 2,
+							"frameIndex": 2,
+							"beat": "closed loop"
+						},
+						{
+							"column": 3,
+							"frameIndex": 3,
+							"beat": "second wrap"
+						},
+						{
+							"column": 4,
+							"frameIndex": 4,
+							"beat": "tighten"
+						},
+						{
+							"column": 5,
+							"frameIndex": 5,
+							"beat": "secure grip"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "coiled_yanks_full_body.hard_yank",
+					"name": "hard_yank",
+					"row": 1,
+					"rowDisplay": 2,
+					"startFrame": 6,
+					"endFrame": 11,
+					"frameCount": 6,
+					"frames": [6, 7, 8, 9, 10, 11],
+					"suggestedFps": 12,
+					"suggestedDurationMs": 500,
+					"suggestedLoop": false,
+					"description": "Raised coil is pulled down as the body braces.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 6,
+							"beat": "high grip"
+						},
+						{
+							"column": 1,
+							"frameIndex": 7,
+							"beat": "windup"
+						},
+						{
+							"column": 2,
+							"frameIndex": 8,
+							"beat": "taut pull"
+						},
+						{
+							"column": 3,
+							"frameIndex": 9,
+							"beat": "downstroke"
+						},
+						{
+							"column": 4,
+							"frameIndex": 10,
+							"beat": "low pull"
+						},
+						{
+							"column": 5,
+							"frameIndex": 11,
+							"beat": "brace"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "coiled_yanks_full_body.repeat_tug",
+					"name": "repeat_tug",
+					"row": 2,
+					"rowDisplay": 3,
+					"startFrame": 12,
+					"endFrame": 17,
+					"frameCount": 6,
+					"frames": [12, 13, 14, 15, 16, 17],
+					"suggestedFps": 12,
+					"suggestedDurationMs": 500,
+					"suggestedLoop": false,
+					"description": "Lifts the grip and tugs again with body recoil.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 12,
+							"beat": "low grip"
+						},
+						{
+							"column": 1,
+							"frameIndex": 13,
+							"beat": "raise"
+						},
+						{
+							"column": 2,
+							"frameIndex": 14,
+							"beat": "high anticipation"
+						},
+						{
+							"column": 3,
+							"frameIndex": 15,
+							"beat": "diagonal yank"
+						},
+						{
+							"column": 4,
+							"frameIndex": 16,
+							"beat": "recoil"
+						},
+						{
+							"column": 5,
+							"frameIndex": 17,
+							"beat": "settle"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				}
+			]
+		},
+		{
+			"id": "swats_full_body",
+			"suggestedAssetName": "kraken_swats_full_body.png",
+			"sourceFile": "exec-9ba77a63-0c8a-44a1-9fd6-7d84b7cee331.png",
+			"label": "Full-body open-tentacle swats",
+			"imageSize": {
+				"width": 1536,
+				"height": 1024
+			},
+			"logicalGrid": {
+				"columns": 6,
+				"rows": 3
+			},
+			"frameCount": 18,
+			"animations": [
+				{
+					"id": "swats_full_body.side_swat",
+					"name": "side_swat",
+					"row": 0,
+					"rowDisplay": 1,
+					"startFrame": 0,
+					"endFrame": 5,
+					"frameCount": 6,
+					"frames": [0, 1, 2, 3, 4, 5],
+					"suggestedFps": 12,
+					"suggestedDurationMs": 500,
+					"suggestedLoop": false,
+					"description": "Open tentacle sweeps sideways through the hook target.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 0,
+							"beat": "left windup"
+						},
+						{
+							"column": 1,
+							"frameIndex": 1,
+							"beat": "rise"
+						},
+						{
+							"column": 2,
+							"frameIndex": 2,
+							"beat": "cross target"
+						},
+						{
+							"column": 3,
+							"frameIndex": 3,
+							"beat": "sweep right"
+						},
+						{
+							"column": 4,
+							"frameIndex": 4,
+							"beat": "follow through"
+						},
+						{
+							"column": 5,
+							"frameIndex": 5,
+							"beat": "rest"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "swats_full_body.downward_slap",
+					"name": "downward_slap",
+					"row": 1,
+					"rowDisplay": 2,
+					"startFrame": 6,
+					"endFrame": 11,
+					"frameCount": 6,
+					"frames": [6, 7, 8, 9, 10, 11],
+					"suggestedFps": 12,
+					"suggestedDurationMs": 500,
+					"suggestedLoop": false,
+					"description": "Overhead windup followed by a downward slap.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 6,
+							"beat": "watch"
+						},
+						{
+							"column": 1,
+							"frameIndex": 7,
+							"beat": "raise"
+						},
+						{
+							"column": 2,
+							"frameIndex": 8,
+							"beat": "overhead windup"
+						},
+						{
+							"column": 3,
+							"frameIndex": 9,
+							"beat": "downstroke"
+						},
+						{
+							"column": 4,
+							"frameIndex": 10,
+							"beat": "low follow through"
+						},
+						{
+							"column": 5,
+							"frameIndex": 11,
+							"beat": "rest"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				},
+				{
+					"id": "swats_full_body.double_swat",
+					"name": "double_swat",
+					"row": 2,
+					"rowDisplay": 3,
+					"startFrame": 12,
+					"endFrame": 17,
+					"frameCount": 6,
+					"frames": [12, 13, 14, 15, 16, 17],
+					"suggestedFps": 12,
+					"suggestedDurationMs": 500,
+					"suggestedLoop": false,
+					"description": "Alternating tentacles strike across the hook target.",
+					"keyframes": [
+						{
+							"column": 0,
+							"frameIndex": 12,
+							"beat": "left windup"
+						},
+						{
+							"column": 1,
+							"frameIndex": 13,
+							"beat": "left strike"
+						},
+						{
+							"column": 2,
+							"frameIndex": 14,
+							"beat": "right windup"
+						},
+						{
+							"column": 3,
+							"frameIndex": 15,
+							"beat": "right strike"
+						},
+						{
+							"column": 4,
+							"frameIndex": 16,
+							"beat": "follow through"
+						},
+						{
+							"column": 5,
+							"frameIndex": 17,
+							"beat": "settle"
+						}
+					],
+					"onComplete": "transition_by_encounter_controller"
+				}
+			]
+		}
+	],
+	"suggestedEncounterOrder": [
+		"reveal_parts.foreground_sweep",
+		"reveal_parts.distant_tentacle_reveal",
+		"reveal_parts.eyes_awaken",
+		"seabed_full_body.awaken",
+		"hook_play_full_body.playful_tap",
+		"swats_full_body.side_swat",
+		"coiled_yanks_full_body.double_wrap",
+		"coiled_yanks_full_body.hard_yank",
+		"coiled_yanks_full_body.repeat_tug",
+		"attack_parts.beak_snap",
+		"attack_parts.hooked_explosion",
+		"attack_parts.coil_spin_launch",
+		"attack_parts.anchor_and_release",
+		"swimming_full_body.dash",
+		"swimming_full_body.upward_turn",
+		"attack_parts.ascent_parts"
+	],
+	"encounterOrderNote": "Example staging, not a mandatory state machine. Hook play and swats can alternate before the bite; repeat or shorten sequences as needed."
+}

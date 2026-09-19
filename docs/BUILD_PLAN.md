@@ -567,17 +567,38 @@ frame budget: `docs/ASSETS.md`.
 
 Character + idle landed as two flat placeholder stills in `src/assets/player/`
 — `player.png` (boat, fisherman and rod as one image) and `hook.png` — no
-Blender/sprite-sheet pass yet, still `docs/ASSETS.md` work. `player.png` is
-drawn by `src/components/HarbourScene/Fisherman.tsx`: pinned to the background
-art (`textureToScreen`, so it holds its place on the water at any aspect),
-between the ocean and the strip so the foreground dock hides the hull, tinted
-with the day / night grade and bobbing on the existing `waterSwell` helper
-(reused as-is — same trick as the harbour's background boats). `hook.png`
-hangs from the end of the descent's code-drawn line in
-`src/components/DescentScene/FishingLine.tsx` (§13.1); there is no line or hook
-off the rod in the idle harbour yet. Both stills load with mipmaps, since
-they're drawn far smaller than their source. `player` swaps for an
-`AnimatedSprite` sheet later without touching the rest of the rig.
+Blender/sprite-sheet pass yet, still `docs/ASSETS.md` work.
+
+Placeholder animation sheets have since landed beside them:
+`player-idle-cast-reel.png` (cast, idle, reel, celebrate) and
+`player-succes-fail.png` (battle, celebrate_big, disappointed, angry, sad), with
+`player-animations.json` giving each clip's frames, fps, loop and what plays
+next. `Fisherman` plays whichever clip `usePlayerStore` cues — idle by default.
+Nothing in the game cues one yet, so the DEBUG panel's "Player" category is how
+to see them. The sheets aren't on the grid the JSON describes — rows sit at
+uneven heights, frames wander sideways and the second sheet is squashed ~15% —
+so `playerFrames.ts` cuts each frame from measured positions and sets it in one
+shared box (re-measure if the sheets are redrawn). `player.png` is no longer
+used.
+
+The screen is laid out in thirds (`src/components/HarbourScene/framing.ts`):
+sky, city and docks in the top third (the background strip is placed so the
+docks' waterline lands on `HORIZON_Y`); the boat and fisherman centred on the
+harbour water in the middle third (`boatLayout`, drawn by
+`Fisherman.tsx`, tinted with the day / night grade and bobbing on the existing
+`waterSwell` helper); the underwater (`DescentScene`) in the bottom third.
+
+The cast is a camera move through that one world, not a scene swap:
+`HarbourScene` puts its layers in a container scrolled up by
+`cameraScroll(depth)`, so the harbour slides off the top as the hook falls
+from the rod tip into the water and the underwater takes the whole screen
+(`CAST_METERS` of depth, ~1.5s at the default shallow speed). Ascending plays
+it in reverse. `hook.png` and the line hang from the rod tip
+(`src/components/DescentScene/FishingLine.tsx`), so the hook is visible on the
+rod at idle. The hook loads with mipmaps, since it's drawn far smaller than its
+source; the player sheets don't, being drawn larger than their 256px frames. The
+line and hook hang from the idle pose's rod tip whichever clip is playing, so
+casting will need a rod tip per frame.
 
 ### 7.3 Ambient Activity
 
@@ -912,6 +933,26 @@ Extraction is selected from the server-provided catch tier.
 - [ ] Environmental reactions
 
 ### 16.4 Kraken
+
+Design: `docs/JACKPOT.md`. The seven sheets in `src/assets/kraken/` (`krak-1`..`krak-7`, 29
+animations described by `kraken-animations.json`) are wired for preview only: the DEBUG
+panel's "Kraken" category jumps the hook to the trench at once (no cast needed; `App` overrides
+the depth) and holds it there until unticked or Surface, where `DescentScene` shows `Kraken`,
+playing whichever animation is picked.
+A normal cast that bottoms out also shows `Kraken`, drawn 2x the size that fits the screen, playing
+`KRAKEN_FIGHT` (`double_wrap` grab → `hard_yank` → `repeat_tug` on repeat) for `KRAKEN_FIGHT_SECONDS`
+(8s) while the hook holds at the bottom, then reels back up. The
+sheet preloads once the cast starts. Every bottomed-out round fights it — no jackpot outcome drives
+it yet. The hook rides the coil: `krakenFight.ts` places the sprite from a per-frame grip point
+(`SHEET_GRIPS` in `krakenFrames.ts`, read off the art by eye and only for the fight's sheet), sharing the
+coil's travel between the hook and the Kraken sliding the other way (`HOOK_FOLLOW`) so the hook stays
+on screen above the bottom bar, and `FishingLine` eases the hook onto the coil as it closes and off it
+before the fight ends. The debug preview still fits whole frames and has no grip. The PNGs carry real alpha (the manifest's
+"purple background" warning doesn't apply). Rows and columns aren't on an even grid, so
+`krakenFrames.ts` cuts each frame from edges measured off the alpha channel and sets it in
+its even-grid box; a few tentacles still cross a cut and leave a sliver of a neighbour
+(re-measure if a sheet is redrawn). Pivots and the fps/loop values (the manifest's suggestions)
+are still unvalidated, and hook grips exist only for the fight's 18 frames.
 
 - [ ] Trench reveal
 - [ ] Tentacles

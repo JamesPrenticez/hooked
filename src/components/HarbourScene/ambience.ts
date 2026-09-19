@@ -1,3 +1,5 @@
+import { HORIZON_Y } from "./framing";
+
 /**
  * Time-of-day ambience for the harbour hub. The background strip
  * (`bg-desktop` / `bg-mobile`) is painted at bright midday; everything that
@@ -67,18 +69,13 @@ export function mix(a: number, b: number, u: number): number {
 
 const lerp = (a: number, b: number, u: number) => a + (b - a) * u;
 
-/** Screen fraction the body sits at when rising / setting — the scene
- *  horizon, so it tracks along the water rather than climbing out from
- *  behind it. Lower (further down-screen) on desktop's wide aspect, higher
- *  on mobile/portrait where the water strip sits closer to the top. */
-const HORIZON_Y_DESKTOP = 0.6;
-const HORIZON_Y_MOBILE = 0.4;
 /** Peak height above the horizon, as a fraction of viewport height, scaled
- *  by aspect and clamped. Wide viewports get a tall arc; portrait ones a
- *  shallow one, so the on-screen slope stays roughly constant. */
+ *  by aspect and clamped. The sky is only the top third of the screen, so even
+ *  the tallest arc has to stay inside it. Wide viewports get a taller arc;
+ *  portrait ones a shallower one, so the on-screen slope stays roughly constant. */
 const LIFT_PER_ASPECT = 0.42;
-const LIFT_MIN = 0.26;
-const LIFT_MAX = 0.46;
+const LIFT_MIN = 0.2;
+const LIFT_MAX = 0.26;
 
 function celestialAt(time: number, aspect: number): Celestial {
 	const isDay = time >= 0.25 && time < 0.75;
@@ -88,11 +85,10 @@ function celestialAt(time: number, aspect: number): Celestial {
 	// across the sky near the top instead of spiking to a point.
 	const arc = Math.sin(frac * Math.PI) ** 0.7; // 0 at horizon, 1 at zenith
 	const lift = Math.min(LIFT_MAX, Math.max(LIFT_MIN, LIFT_PER_ASPECT * aspect));
-	const horizonY = aspect >= 1 ? HORIZON_Y_DESKTOP : HORIZON_Y_MOBILE;
 
 	return {
 		x: frac,
-		y: horizonY - lift * arc,
+		y: HORIZON_Y - lift * arc,
 		// warm at the horizon, white-hot at the zenith; the moon stays cool.
 		color: isDay ? mix(0xffb066, 0xfff6e2, arc) : 0xd7e2f2,
 		intensity: Math.max(0, arc),
