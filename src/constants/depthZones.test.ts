@@ -14,7 +14,7 @@ describe("zoneForDepth", () => {
 		}
 	});
 
-	it("stays trench arbitrarily deep", () => {
-		expect(zoneForDepth(1_000_000).id).toBe("trench");
+	it("stays jackpot arbitrarily deep", () => {
+		expect(zoneForDepth(1_000_000).id).toBe("jackpot");
 	});
 });

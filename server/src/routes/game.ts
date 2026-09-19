@@ -22,7 +22,7 @@ import {
 } from "../rounds.ts";
 import { adjustBalance, requireSession } from "../sessions.ts";
 
-const DEPTH_IDS: DepthId[] = ["shallow", "reef", "deep", "abyss", "trench"];
+const DEPTH_IDS: DepthId[] = ["shallow", "reef", "deep", "abyss", "jackpot"];
 
 const MIN_BET_CENTS = toCents(config.minBet);
 const MAX_BET_CENTS = toCents(config.maxBet);

@@ -37,8 +37,9 @@ export const SHEET_ROWS = 4;
 
 const swim = (frameCount: number, fps = 10): SheetAnimation => ({ row: 1, fps, frameCount });
 
-/** Bands follow the zone order in `constants/fish.ts`; nothing lives past 9,400m
- *  so the trench stays clear for the Kraken. All the art faces left. */
+/** Bands follow the zone order in `constants/fish.ts`, except the lanternfish and
+ *  whale, which live down in the trench (9,500m+) — capped at 10,500m so the Kraken
+ *  keeps the jackpot layer (10,600m+). All the art faces left. */
 export const SPECIES: Species[] = [
 	// shallow
 	{
@@ -53,7 +54,6 @@ export const SPECIES: Species[] = [
 		count: 5
 	},
 	{ url: mackerel, cols: 8, swim: swim(8), scale: 0.7, speed: 90, fromMeters: 150, toMeters: 1500, count: 6 },
-	{ url: puffer, cols: 8, swim: swim(8), scale: 0.7, speed: 45, fromMeters: 300, toMeters: 1500, count: 4 },
 	{
 		url: barracuda,
 		opaque: true,
@@ -113,6 +113,7 @@ export const SPECIES: Species[] = [
 		count: 4
 	},
 	{ url: tuna, cols: 8, swim: swim(8), scale: 1, speed: 140, fromMeters: 4000, toMeters: 6900, count: 5 },
+	{ url: puffer, cols: 8, swim: swim(8), scale: 0.7, speed: 45, fromMeters: 4100, toMeters: 6900, count: 4 },
 	{
 		url: shark,
 		opaque: true,
@@ -132,8 +133,8 @@ export const SPECIES: Species[] = [
 		swim: swim(8),
 		scale: 0.75,
 		speed: 45,
-		fromMeters: 7000,
-		toMeters: 9400,
+		fromMeters: 9600,
+		toMeters: 10500,
 		count: 5
 	},
 	{
@@ -154,8 +155,8 @@ export const SPECIES: Species[] = [
 		swim: swim(8, 8),
 		scale: 4.5,
 		speed: 30,
-		fromMeters: 7500,
-		toMeters: 9300,
+		fromMeters: 9700,
+		toMeters: 10500,
 		count: 2
 	}
 ];

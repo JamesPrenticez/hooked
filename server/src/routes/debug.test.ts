@@ -61,16 +61,16 @@ test("force-outcome pins depth/fish/tier on the next round, and {} clears it", a
 	const token = await newSession();
 
 	const forced = await call("POST", "/api/debug/force-outcome", {
-		body: { depth: "trench", fish: "kraken", tier: "jackpot" }
+		body: { depth: "jackpot", fish: "kraken", tier: "jackpot" }
 	});
 	assert.equal(forced.status, 200);
-	assert.deepEqual(forced.json.forcedOutcome, { depth: "trench", fish: "kraken", tier: "jackpot" });
+	assert.deepEqual(forced.json.forcedOutcome, { depth: "jackpot", fish: "kraken", tier: "jackpot" });
 
 	const start = await call("POST", "/api/game/play", {
 		token,
 		body: startBody([{ type: "fish", selection: "kraken", amount: "1.00" }])
 	});
-	assert.deepEqual(start.json.message.outcome, { depth: "trench", fish: "kraken", tier: "jackpot" });
+	assert.deepEqual(start.json.message.outcome, { depth: "jackpot", fish: "kraken", tier: "jackpot" });
 	assert.equal(start.json.message.bets[0].won, true);
 
 	const cleared = await call("POST", "/api/debug/force-outcome", { body: {} });

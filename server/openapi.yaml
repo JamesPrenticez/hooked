@@ -414,14 +414,14 @@ paths:
       description: >
         Any provided field is forced; omit a field to leave it rolled. An empty
         body clears the override. "Force Kraken" is just
-        { depth: trench, fish: kraken, tier: jackpot }.
+        { depth: jackpot, fish: kraken, tier: jackpot }.
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                depth: { type: string, enum: [shallow, reef, deep, abyss, trench] }
+                depth: { type: string, enum: [shallow, reef, deep, abyss, jackpot] }
                 fish: { type: string, example: kraken }
                 tier: { type: string, enum: [small, large, epic, legendary, jackpot] }
       responses:
@@ -556,7 +556,7 @@ components:
         selection:
           type: string
           description: >
-            A depth id (shallow|reef|deep|abyss|trench) for a `depth` bet, or a
+            A depth id (shallow|reef|deep|abyss|jackpot) for a `depth` bet, or a
             fish id from the server roster (server/src/constants.ts) for a `fish`
             bet. Any other value is rejected as invalid_bet.
           example: shallow
@@ -571,7 +571,7 @@ components:
       type: object
       required: [depth, fish, tier]
       properties:
-        depth: { type: string, enum: [shallow, reef, deep, abyss, trench] }
+        depth: { type: string, enum: [shallow, reef, deep, abyss, jackpot] }
         fish:
           type: string
           description: >

@@ -63,8 +63,8 @@
 .depth[data-depth="abyss"] {
 	--tile-color: var(--color-depth-abyss);
 }
-.depth[data-depth="trench"] {
-	--tile-color: var(--color-depth-trench);
+.depth[data-depth="jackpot"] {
+	--tile-color: var(--color-depth-jackpot);
 }
 
 .depth[aria-pressed="true"] {

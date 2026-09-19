@@ -41,7 +41,7 @@ export interface Bet {
 	amount: string;
 }
 
-export type DepthId = "shallow" | "reef" | "deep" | "abyss" | "trench";
+export type DepthId = "shallow" | "reef" | "deep" | "abyss" | "jackpot";
 export type FishTier = "small" | "large" | "epic" | "legendary" | "jackpot";
 
 export interface FishingOutcome {

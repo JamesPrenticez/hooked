@@ -16,7 +16,7 @@ import { fromCents, toCents } from "./money.ts";
 import { byteStream, rollWeighted } from "./rng.ts";
 import { consumeNonce } from "./seeds.ts";
 
-export type DepthId = "shallow" | "reef" | "deep" | "abyss" | "trench";
+export type DepthId = "shallow" | "reef" | "deep" | "abyss" | "jackpot";
 export type FishTier = "small" | "large" | "epic" | "legendary" | "jackpot";
 export type RoundStatus = "open" | "completed";
 
@@ -69,7 +69,7 @@ export interface Round {
 const byId = new Map<string, Round>();
 const openByPlayer = new Map<string, string>(); // playerId -> roundId
 
-const DEPTHS: DepthId[] = ["shallow", "reef", "deep", "abyss", "trench"];
+const DEPTHS: DepthId[] = ["shallow", "reef", "deep", "abyss", "jackpot"];
 
 const multiplierByFish = new Map(FISH.map(f => [f.id, f.multiplier]));
 

@@ -34,6 +34,7 @@ function DebugPanel() {
 	const zoneSpeeds = useDebugStore(state => state.zoneSpeeds);
 	const setZoneFromMeters = useDebugStore(state => state.setZoneFromMeters);
 	const setZoneSpeed = useDebugStore(state => state.setZoneSpeed);
+	const resetDefaults = useDebugStore(state => state.resetDefaults);
 
 	const playAnimation = usePlayerStore(state => state.play);
 
@@ -55,9 +56,14 @@ function DebugPanel() {
 			<dialog ref={dialogRef} className={styles.modal} onClose={() => setOpen(false)}>
 				<div className={styles.header}>
 					<h2 className={styles.title}>Debug</h2>
-					<Button variant="secondary" onClick={() => setOpen(false)}>
-						Close
-					</Button>
+					<div className={styles.actions}>
+						<Button variant="secondary" onClick={resetDefaults}>
+							Reset defaults
+						</Button>
+						<Button variant="secondary" onClick={() => setOpen(false)}>
+							Close
+						</Button>
+					</div>
 				</div>
 
 				<Accordion title="Environment" theme="dark" open>

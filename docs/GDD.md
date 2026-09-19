@@ -44,7 +44,7 @@ This creates a continuous narrative from bet placement through to payout, rather
 
 "The world's busiest fishing harbour."
 
-`Busy Asian fishing harbour → underwater coastal waters → reef → deep ocean → abyss → trench`
+`Busy Asian fishing harbour → underwater coastal waters → reef → deep ocean → abyss → trench → jackpot`
 
 A fictional harbour inspired by East Asian commercial fishing ports.
 
@@ -81,7 +81,6 @@ export const FISH_GUIDE: FishGuideEntry[] = [
 	{ id: "sardine", name: "Sardine", depth: "shallow", tierId: "small", image: FISH.sardine },
 	{ id: "blue-cod", name: "Blue Cod", depth: "shallow", tierId: "small", image: FISH.blueCod },
 	{ id: "barracuda", name: "Barracuda", depth: "shallow", tierId: "small", image: FISH.barracuda },
-	{ id: "puffer", name: "Pufferfish", depth: "shallow", tierId: "small", image: FISH.puffer },
 
 	// Reef — medium / valuable catches
 	{ id: "napoleon", name: "Napoleon Wrasse", depth: "reef", tierId: "medium", image: FISH.napoleon },
@@ -94,6 +93,7 @@ export const FISH_GUIDE: FishGuideEntry[] = [
 	{ id: "bluefin-tuna", name: "Bluefin Tuna", depth: "deep", tierId: "rare", image: FISH.blueTuna, wide: true },
 	{ id: "shark", name: "Shark", depth: "deep", tierId: "epic", image: FISH.shark, wide: true },
 	{ id: "barracuda-epic", name: "Barracuda", depth: "deep", tierId: "epic", image: FISH.barracudaEpic },
+	{ id: "puffer", name: "Pufferfish", depth: "deep", tierId: "epic", image: FISH.puffer },
 
 	// Abyss — legendary / jackpot catches
 	{ id: "lanternfish", name: "Lanternfish", depth: "abyss", tierId: "legendary", image: FISH.lanternfish },
@@ -101,8 +101,8 @@ export const FISH_GUIDE: FishGuideEntry[] = [
 	{ id: "starfish", name: "Starfish", depth: "abyss", tierId: "legendary", image: FISH.starfish },
 	{ id: "whale", name: "Whale", depth: "abyss", tierId: "jackpot", image: FISH.whale, wide: true },
 
-	// Trench — ultra-rare / ultimate catch
-	{ id: "kraken", name: "Kraken", depth: "trench", tierId: "jackpot", image: FISH.kraken, wide: true },
+	// Jackpot — ultra-rare / ultimate catch
+	{ id: "kraken", name: "Kraken", depth: "jackpot", tierId: "jackpot", image: FISH.kraken, wide: true },
 ];
 ```
 

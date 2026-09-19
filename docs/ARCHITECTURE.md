@@ -710,7 +710,7 @@ It does not generate gameplay outcomes.
 Depths are shared domain identifiers but have separate mathematical and visual configuration.
 
 ```ts
-type DepthId = "shallow" | "reef" | "deep" | "abyss" | "trench";
+type DepthId = "shallow" | "reef" | "deep" | "abyss" | "jackpot";
 ```
 
 The server may use depth probabilities.
@@ -799,13 +799,13 @@ The client determines how that tier is visually presented.
 
 ---
 
-# 23. Kraken / Trench
+# 23. Kraken / Jackpot layer
 
 The Kraken remains a normal authoritative outcome from the server:
 
 ```ts
 {
-    depth: "trench",
+    depth: "jackpot",
     fish: "kraken",
     tier: "jackpot"
 }

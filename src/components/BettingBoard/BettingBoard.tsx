@@ -43,7 +43,9 @@ function BettingBoard({ disabled = false }: BettingBoardProps) {
 	return (
 		<section className={styles.board} aria-label="Choose your bets">
 			<h2 className={styles.title}>Choose your bets</h2>
-			<div className={styles.depths}>{DEPTH_ZONES.map(zone => tile("depth", zone.id, zone.label, styles.depth))}</div>
+			<div className={styles.depths}>
+				{DEPTH_ZONES.filter(zone => zone.id !== "trench").map(zone => tile("depth", zone.id, zone.label, styles.depth))}
+			</div>
 			<div className={styles.speciesHeader}>
 				Species <span className={styles.optional}>(optional)</span>
 			</div>
