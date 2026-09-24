@@ -17,7 +17,9 @@ import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import { Button, Checkbox } from "@hooked-ui";
 import { useDescentDepth } from "@hooks/useDescentDepth";
 import { useGameBootstrap } from "@hooks/useGameBootstrap";
+import { useHookSim } from "@hooks/useHookSim";
 import { type GamePhase, useGameStore } from "@stores/gameStore";
+import { useHookStore, useManualHook } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
 
 import styles from "./App.module.css";
@@ -40,13 +42,17 @@ function App() {
 	const onAppInit = useGameBootstrap();
 
 	const [descending, setDescending] = useState(false);
-	const descentDepth = useDescentDepth(descending, () => setDescending(false));
+	const manual = useManualHook();
+	// Manual (debug) runs the arrow-key sim instead of the scripted descent.
+	const descentDepth = useDescentDepth(descending && !manual, () => setDescending(false));
+	useHookSim(descending && manual);
+	const simDepth = useHookStore(state => state.sim?.depthM ?? 0);
 
 	// DEBUG panel's Kraken toggle: the hook is parked at the bottom of the trench
 	// at once, whatever the cast is doing, until it's unticked or Surface is hit.
 	const forceTrench = useKrakenStore(state => state.forceTrench);
 	const setForceTrench = useKrakenStore(state => state.setForceTrench);
-	const depth = forceTrench ? KRAKEN_DEPTH_METERS : descentDepth;
+	const depth = forceTrench ? KRAKEN_DEPTH_METERS : manual ? simDepth : descentDepth;
 	const underwater = descending || forceTrench;
 
 	// The harbour needs the live `depth` value (the cast is a camera move

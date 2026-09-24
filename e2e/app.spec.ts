@@ -135,3 +135,24 @@ test("bets on a depth and a fish add to the total, clear, and lock while casting
 	await page.getByRole("button", { name: "Cast Line" }).click();
 	await expect(page.getByRole("button", { name: "Shallow", exact: true })).toBeDisabled();
 });
+
+test("manual hook mode: the arrow keys steer the hook", async ({ page }) => {
+	test.slow();
+	await startFishing(page);
+
+	await page.getByRole("button", { name: "DEBUG" }).click();
+	const control = page.locator("details").filter({ hasText: "Mode" });
+	await control.getByText("Hook control", { exact: true }).click();
+	await control.getByLabel("Mode").selectOption("manual");
+	await page.keyboard.press("Escape");
+
+	await page.getByRole("button", { name: "Cast Line" }).click();
+	await page.keyboard.down("ArrowRight");
+	await page.waitForTimeout(600);
+	await page.keyboard.up("ArrowRight");
+
+	await page.getByRole("button", { name: "DEBUG" }).click();
+	const readout = page.getByTestId("hook-readout");
+	const x = Number(/x (\d+)/.exec((await readout.textContent()) ?? "")?.[1]);
+	expect(x).toBeGreaterThan(960);
+});

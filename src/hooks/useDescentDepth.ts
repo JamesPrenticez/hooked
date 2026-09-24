@@ -6,10 +6,10 @@ import { useDebugStore } from "@stores/debugStore";
 
 // Final fraction of the descent that decelerates to a stop at KRAKEN_DEPTH_METERS,
 // on top of whatever speed the current tier is set to.
-const DECEL_FRACTION = 0.1;
+export const DECEL_FRACTION = 0.1;
 // Never crawl slower than this while still descending — the deceleration
 // only eases off below the tier's own speed, it doesn't grind to a near-halt.
-const MIN_DESCENT_METERS_PER_SECOND = 25;
+export const MIN_DESCENT_METERS_PER_SECOND = 25;
 // Fixed speed for the "reel back in" leg — not a per-tier debug control, just
 // enough to sell the return without a second full descent's wait.
 const ASCEND_METERS_PER_SECOND = 600;

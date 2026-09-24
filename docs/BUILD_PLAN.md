@@ -1422,11 +1422,11 @@ Design and decisions: `docs/SIMULATION.md`. Built alongside §13–16 (descent, 
 
 ### 29.1 Arrow-key hook control (debug)
 
-- [ ] `simStep` kinematics — descend on the frozen speed table, steer with the −1/0/+1 axis (tuned: edge to edge ≈1.5s)
-- [ ] `useHookKeys` — ←/→; ignores repeats, typing and the open debug dialog; clears on blur
-- [ ] `useHookSim` — fixed-step accumulator runner, debug `timeScale`
-- [ ] Debug "Hook control" accordion — mode, seed, speed, readout
-- [ ] `App.tsx` depth source; `FishingLine` draws the sim's hook
+- [x] `simStep` kinematics — descend on the frozen speed table, steer with the −1/0/+1 axis (tuned: edge to edge ≈1.5s)
+- [x] `useHookKeys` — ←/→; ignores repeats, typing and the open debug dialog; clears on blur
+- [x] `useHookSim` — fixed-step accumulator runner, debug `timeScale`
+- [x] Debug "Hook control" accordion — mode, seed, speed, readout
+- [x] `App.tsx` depth source; `FishingLine` draws the sim's hook
 - [ ] e2e: ←/→ steer the hook; keys inert in a production build
 
 ### 29.2 Hook a fish by the mouth

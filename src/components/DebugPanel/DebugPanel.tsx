@@ -5,6 +5,7 @@ import { KRAKEN_SHEETS } from "@constants/krakenAnimations";
 import { PLAYER_ANIMATION_NAMES, PLAYER_ANIMATIONS } from "@constants/playerAnimations";
 import { Accordion, Button } from "@hooked-ui";
 import { useDebugStore } from "@stores/debugStore";
+import { type HookMode, TIME_SCALES, useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
 import { usePlayerStore } from "@stores/playerStore";
 
@@ -35,6 +36,14 @@ function DebugPanel() {
 	const setZoneFromMeters = useDebugStore(state => state.setZoneFromMeters);
 	const setZoneSpeed = useDebugStore(state => state.setZoneSpeed);
 	const resetDefaults = useDebugStore(state => state.resetDefaults);
+
+	const hookMode = useHookStore(state => state.hookMode);
+	const setHookMode = useHookStore(state => state.setHookMode);
+	const worldSeed = useHookStore(state => state.worldSeed);
+	const setWorldSeed = useHookStore(state => state.setWorldSeed);
+	const timeScale = useHookStore(state => state.timeScale);
+	const setTimeScale = useHookStore(state => state.setTimeScale);
+	const sim = useHookStore(state => state.sim);
 
 	const playAnimation = usePlayerStore(state => state.play);
 
@@ -126,6 +135,46 @@ function DebugPanel() {
 								</label>
 							</fieldset>
 						))}
+					</div>
+				</Accordion>
+
+				<Accordion title="Hook control" theme="dark">
+					<div className={styles.fields}>
+						<label className={styles.field}>
+							Mode
+							<select value={hookMode} onChange={e => setHookMode(e.target.value as HookMode)}>
+								<option value="auto">Auto (scripted descent)</option>
+								<option value="manual">Manual (← / → keys)</option>
+							</select>
+						</label>
+						<label className={styles.field}>
+							Seed
+							<input
+								type="number"
+								min={0}
+								step={1}
+								value={worldSeed}
+								onChange={e => setWorldSeed(Number(e.target.value) >>> 0)}
+							/>
+						</label>
+						<label className={styles.field}>
+							Speed
+							<select value={timeScale} onChange={e => setTimeScale(Number(e.target.value))}>
+								{TIME_SCALES.map(scale => (
+									<option key={scale} value={scale}>
+										×{scale}
+									</option>
+								))}
+							</select>
+						</label>
+						<p className={styles.note}>
+							Manual: Cast Line, then steer with ← / →. The "Hook" speeds above drive Auto only.
+						</p>
+						<p className={styles.note} data-testid="hook-readout">
+							{sim
+								? `${sim.phase} · x ${Math.round(sim.x)} · ${Math.round(sim.depthM).toLocaleString()}m · tick ${sim.tick}`
+								: "no run"}
+						</p>
 					</div>
 				</Accordion>
 
