@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useHookStore } from "@stores/hookStore";
 import { TICK_HZ } from "@utils/simConfig";
@@ -12,10 +12,12 @@ const MAX_FRAME_MS = 250;
 /**
  * Runs the sim from the arrow keys while `active`, on a fixed-step accumulator
  * (`timeScale` just runs more ticks per frame), publishing one snapshot per
- * frame to `hookStore.sim` and clearing it when `active` drops.
+ * frame to `hookStore.sim` and clearing it when `active` drops. Calls `onSurfaced` when the run ends.
  */
-export function useHookSim(active: boolean): void {
+export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 	const axis = useHookKeys(active);
+	const onSurfacedRef = useRef(onSurfaced);
+	onSurfacedRef.current = onSurfaced;
 
 	useEffect(() => {
 		if (!active) return;
@@ -33,6 +35,7 @@ export function useHookSim(active: boolean): void {
 				accumulator -= 1 / TICK_HZ;
 			}
 			publish();
+			if (sim.phase === "surfaced") return onSurfacedRef.current?.();
 			frame = requestAnimationFrame(tick);
 		});
 		return () => {

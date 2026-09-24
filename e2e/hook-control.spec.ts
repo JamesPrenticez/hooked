@@ -35,16 +35,27 @@ test("the hook takes a fish by the mouth and holds it", async ({ page }) => {
 	await page.clock.runFor(2_500);
 	expect(await readout(page)).toMatch(/^descend .* hooked none$/);
 
-	await page.clock.runFor(1_500);
+	await page.clock.runFor(1_000);
 	const hooked = await readout(page);
 	expect(hooked).toMatch(/^hooked .* hooked sardine$/);
 
 	// Frozen: more time doesn't move the hook, and steering is ignored.
 	await page.keyboard.down("ArrowRight");
-	await page.clock.runFor(500);
+	await page.clock.runFor(200);
 	await page.keyboard.up("ArrowRight");
 	const after = await readout(page);
 	expect(after.replace(/tick \d+/, "")).toBe(hooked.replace(/tick \d+/, ""));
+});
+
+test("a full round: hook, reel in, surface", async ({ page }) => {
+	test.setTimeout(180_000);
+	await castManualOnPausedClock(page);
+
+	await page.clock.runFor(4_500);
+	expect(await readout(page)).toMatch(/^reel .* hooked sardine$/);
+
+	await page.clock.runFor(4_000);
+	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
 });
 
 test("a hook steered off the centre line misses the fish it would have taken", async ({ page }) => {

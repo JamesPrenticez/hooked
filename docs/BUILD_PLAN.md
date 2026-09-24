@@ -1438,10 +1438,10 @@ Design and decisions: `docs/SIMULATION.md`. Built alongside §13–16 (descent, 
 
 ### 29.3 Reel-in
 
-- [ ] HOOKED → REEL → SURFACED; the fish rides the hook
-- [ ] KRAKEN at the bottom (8s fight) → REEL
+- [x] HOOKED → REEL → SURFACED; the fish rides the hook
+- [x] KRAKEN at the bottom (8s fight) → REEL
 - [ ] Golden-trajectory test — vitest, Node, and Playwright chromium/firefox/webkit
-- [ ] e2e: a full manual round, cast → hook → reel → surface
+- [x] e2e: a full manual round, cast → hook → reel → surface
 
 ### 29.4 Record → SQL
 

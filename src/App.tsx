@@ -45,7 +45,7 @@ function App() {
 	const manual = useManualHook();
 	// Manual (debug) runs the arrow-key sim instead of the scripted descent.
 	const descentDepth = useDescentDepth(descending && !manual, () => setDescending(false));
-	useHookSim(descending && manual);
+	useHookSim(descending && manual, () => setDescending(false));
 	const simDepth = useHookStore(state => state.sim?.depthM ?? 0);
 
 	// DEBUG panel's Kraken toggle: the hook is parked at the bottom of the trench

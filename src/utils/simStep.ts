@@ -6,16 +6,26 @@ import {
 	HOOK_MAX_VX,
 	HOOK_R,
 	HOOK_TIP_DY,
+	HOOKED_TICKS,
+	KRAKEN_FIGHT_TICKS,
 	MAX_DEPTH_METERS,
 	MIN_DESCENT_METERS_PER_SECOND,
 	PX_PER_METER,
+	REEL_METERS_PER_SECOND,
 	SIM_WIDTH,
 	TICK_HZ,
 	ZONES
 } from "./simConfig.ts";
 import { mouthAt, spawnWorld, type WorldFish } from "./simWorld.ts";
 
-export type SimPhase = "descend" | "hooked" | "bottom";
+export type SimPhase = "descend" | "hooked" | "kraken" | "reel" | "surfaced";
+
+/** What a finished run caught: a roster id, or `"kraken"` from the bottom. */
+export interface SimResult {
+	fish: string;
+	depthM: number;
+	ticks: number;
+}
 
 export interface Sim {
 	worldSeed: number;
@@ -32,6 +42,10 @@ export interface Sim {
 	hooked: number;
 	/** The tick the hook caught it, or -1. */
 	hookedTick: number;
+	/** The tick the Kraken fight began, or -1. */
+	fightTick: number;
+	/** Set once SURFACED. */
+	result?: SimResult;
 }
 
 export function createSim(worldSeed: number): Sim {
@@ -44,7 +58,8 @@ export function createSim(worldSeed: number): Sim {
 		phase: "descend",
 		world: spawnWorld(worldSeed),
 		hooked: -1,
-		hookedTick: -1
+		hookedTick: -1,
+		fightTick: -1
 	};
 }
 
@@ -60,8 +75,23 @@ function zoneSpeed(depthM: number): number {
 /** Advances `sim` one tick in place. `axis` is the steering input, −1 / 0 / +1. */
 export function step(sim: Sim, axis: number): void {
 	sim.tick += 1;
-	// Steering and descent both stop once a fish is on the hook.
-	if (sim.phase === "hooked") return;
+	if (sim.phase === "surfaced") return;
+	if (sim.phase === "hooked") {
+		if (sim.tick - sim.hookedTick >= HOOKED_TICKS) sim.phase = "reel";
+		return;
+	}
+	if (sim.phase === "kraken") {
+		if (sim.tick - sim.fightTick >= KRAKEN_FIGHT_TICKS) sim.phase = "reel";
+		return;
+	}
+	if (sim.phase === "reel") {
+		sim.depthM = Math.max(0, sim.depthM - REEL_METERS_PER_SECOND / TICK_HZ);
+		if (sim.depthM <= 0) {
+			sim.phase = "surfaced";
+			sim.result = { fish: sim.world[sim.hooked]?.id ?? "kraken", depthM: sim.depthM, ticks: sim.tick };
+		}
+		return;
+	}
 
 	sim.vx = Math.max(-HOOK_MAX_VX, Math.min(HOOK_MAX_VX, (sim.vx + axis * HOOK_ACCEL) * HOOK_DRAG));
 	sim.x += sim.vx / TICK_HZ;
@@ -70,15 +100,16 @@ export function step(sim: Sim, axis: number): void {
 		sim.vx = 0;
 	}
 
-	if (sim.phase !== "descend") return;
 	const speed = zoneSpeed(sim.depthM);
 	const decelStart = MAX_DEPTH_METERS * (1 - DECEL_FRACTION);
 	const factor =
 		sim.depthM > decelStart ? Math.max(0, (MAX_DEPTH_METERS - sim.depthM) / (MAX_DEPTH_METERS - decelStart)) : 1;
 	const effective = Math.max(speed * factor, Math.min(speed, MIN_DESCENT_METERS_PER_SECOND));
 	sim.depthM = Math.min(MAX_DEPTH_METERS, sim.depthM + effective / TICK_HZ);
-	if (sim.depthM >= MAX_DEPTH_METERS) sim.phase = "bottom";
-	else if (sim.depthM >= CAST_METERS) hookFish(sim);
+	if (sim.depthM >= MAX_DEPTH_METERS) {
+		sim.phase = "kraken";
+		sim.fightTick = sim.tick;
+	} else if (sim.depthM >= CAST_METERS) hookFish(sim);
 }
 
 /** The first mouth (lowest index) the hook tip touches, if any, goes on the hook. */

@@ -13,6 +13,11 @@ export const PX_PER_METER = 0.6;
 /** Mouth tests arm from here (29.2), once the cast blend is over. */
 export const CAST_METERS = 300;
 
+/** Reel-in speed (m/s), the hooked fish's bite beat, and the Kraken fight — frozen from the live auto scene. */
+export const REEL_METERS_PER_SECOND = 600;
+export const HOOKED_TICKS = TICK_HZ / 2;
+export const KRAKEN_FIGHT_TICKS = 8 * TICK_HZ;
+
 /** Depth zones ascending: where each starts and its descent speed (m/s). */
 export const ZONES = [
 	{ id: "shallow", fromMeters: 0, speed: 220 },

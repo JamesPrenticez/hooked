@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { SIM_WIDTH, TICK_HZ } from "./simConfig";
+import { HOOKED_TICKS, KRAKEN_FIGHT_TICKS, SIM_WIDTH, TICK_HZ } from "./simConfig";
 import { createSim, step } from "./simStep";
 
 /** A sim over an empty sea, so nothing gets hooked. */
@@ -40,8 +40,8 @@ it("descends on the zone speeds and holds at the bottom", () => {
 	const sim = emptySim();
 	step(sim, 0);
 	expect(sim.depthM).toBeCloseTo(220 / TICK_HZ);
-	for (let i = 0; i < 60 * 300; i++) step(sim, 0);
-	expect(sim.phase).toBe("bottom");
+	while (sim.phase === "descend") step(sim, 0);
+	expect(sim.phase).toBe("kraken");
 	expect(sim.depthM).toBe(11_400);
 });
 
@@ -54,4 +54,30 @@ it("is deterministic", () => {
 		step(b, axis);
 	}
 	expect(a).toEqual(b);
+});
+
+it("hooks, reels and surfaces with the fish caught", () => {
+	const sim = createSim(1);
+	sim.phase = "hooked";
+	sim.hooked = 0;
+	sim.hookedTick = sim.tick;
+	sim.depthM = 1000;
+	for (let i = 0; i < HOOKED_TICKS; i++) step(sim, 1);
+	expect(sim.phase).toBe("reel");
+	const x = sim.x;
+	while ((sim.phase as string) === "reel") step(sim, 1);
+	expect(sim.x).toBe(x);
+	expect(sim.phase).toBe("surfaced");
+	expect(sim.result).toMatchObject({ fish: sim.world[0].id, depthM: 0 });
+});
+
+it("fights the Kraken at the bottom, then reels it in", () => {
+	const sim = emptySim();
+	sim.depthM = 11_399;
+	while (sim.phase === "descend") step(sim, 0);
+	expect(sim.phase).toBe("kraken");
+	for (let i = 0; i < KRAKEN_FIGHT_TICKS; i++) step(sim, 0);
+	expect(sim.phase).toBe("reel");
+	while ((sim.phase as string) === "reel") step(sim, 0);
+	expect(sim.result?.fish).toBe("kraken");
 });
