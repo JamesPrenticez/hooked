@@ -16,6 +16,7 @@ export default defineConfig({
 	},
 	webServer: {
 		command: "pnpm dev",
+		env: { VITE_DEBUG: "true" },
 		url: "http://localhost:4200",
 		reuseExistingServer: !process.env.CI
 	},

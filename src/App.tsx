@@ -12,6 +12,7 @@ import LoadingScreen from "@components/LoadingScreen";
 import PlaceholderScene from "@components/PlaceholderScene/PlaceholderScene";
 import SceneManager from "@components/SceneManager/SceneManager";
 import StoreSync from "@components/system/StoreSync";
+import { DEBUG } from "@constants/config";
 import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import { Button, Checkbox } from "@hooked-ui";
 import { useDescentDepth } from "@hooks/useDescentDepth";
@@ -99,7 +100,7 @@ function App() {
 				</div>
 			)}
 
-			<DebugPanel />
+			{DEBUG && <DebugPanel />}
 		</div>
 	);
 }

@@ -56,22 +56,23 @@ export function castProgress(depth: number): number {
 	return t * t * (3 - 2 * t);
 }
 
-/** Pixels the surface world has scrolled up. It has left the screen entirely
+/** `worldScale` (default 1) scales the underwater metres-to-pixels for the sim modes
+ *  (docs/SIMULATION.md §5). Pixels the surface world has scrolled up. It has left the screen entirely
  *  by the time the cast finishes, then the water carries on at `PX_PER_METER`. */
-export function cameraScroll(depth: number, view: Size): number {
-	return waterlineY(view) * castProgress(depth) + PX_PER_METER * depth;
+export function cameraScroll(depth: number, view: Size, worldScale = 1): number {
+	return waterlineY(view) * castProgress(depth) + PX_PER_METER * worldScale * depth;
 }
 
 /** World y (camera at rest) of something `meters` below the surface. The
  *  cast's extra half-screen of pan is folded in so the hook, sitting at
  *  `HOOK_REST_Y` on screen, is level with whatever is at its own depth. */
-function depthWorldY(meters: number, view: Size): number {
-	return waterlineY(view) + view.height * HOOK_REST_Y * castProgress(meters) + PX_PER_METER * meters;
+function depthWorldY(meters: number, view: Size, worldScale = 1): number {
+	return waterlineY(view) + view.height * HOOK_REST_Y * castProgress(meters) + PX_PER_METER * worldScale * meters;
 }
 
 /** Screen y of something at `meters` while the hook is at `depth`. */
-export function depthToScreenY(meters: number, depth: number, view: Size): number {
-	return depthWorldY(meters, view) - cameraScroll(depth, view);
+export function depthToScreenY(meters: number, depth: number, view: Size, worldScale = 1): number {
+	return depthWorldY(meters, view, worldScale) - cameraScroll(depth, view, worldScale);
 }
 
 export interface BoatLayout {
@@ -105,7 +106,7 @@ export function boatLayout(view: Size, bob: number): BoatLayout {
 
 /** World y of the hook: it falls from the rod tip to its resting screen height
  *  while the camera pans, so its screen y is a straight blend of the two. */
-export function hookWorldY(depth: number, tipY: number, view: Size): number {
+export function hookWorldY(depth: number, tipY: number, view: Size, worldScale = 1): number {
 	const screenY = tipY + (view.height * HOOK_REST_Y - tipY) * castProgress(depth);
-	return screenY + cameraScroll(depth, view);
+	return screenY + cameraScroll(depth, view, worldScale);
 }

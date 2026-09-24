@@ -131,6 +131,9 @@ game server is a sibling `server/` directory at the repo root (outside `src/`).
 The only "shared" code is the wire-type file the client owns
 (`src/types/api.ts`) and the deliberately-duplicated payout table (see §37); the
 mock server mirrors both and tracks the contract doc (`docs/BACKEND.md`).
+The one deliberately shared code is the fishing sim, `src/utils/sim*.ts`: pure,
+`./x.ts` imports only, imported by the client and run unbundled by `server/`
+(`docs/SIMULATION.md`).
 
 ```text
 src/                        thin presentation client (Animo standard layout)

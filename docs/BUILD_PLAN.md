@@ -1413,11 +1413,11 @@ Design and decisions: `docs/SIMULATION.md`. Built alongside §13–16 (descent, 
 
 ### 29.0 Groundwork (no behaviour change)
 
-- [ ] `src/utils/sim*.ts` scaffold — `./x.ts` imports only, runs under Node; `simRandom` lifted out of `creatureSpecies.ts`
-- [ ] `src/stores/hookStore.ts` — `hookMode` (`auto` default / `manual` / `replay`)
-- [ ] Gate `<DebugPanel />` on `DEBUG` (`App.tsx`)
+- [x] `src/utils/sim*.ts` scaffold — `./x.ts` imports only, runs under Node; `simRandom` lifted out of `creatureSpecies.ts`
+- [x] `src/stores/hookStore.ts` — `hookMode` (`auto` default / `manual` / `replay`)
+- [x] Gate `<DebugPanel />` on `DEBUG` (`App.tsx`)
 - [ ] `worldScale` (default 1) through `framing.ts`; portrait decision from screenshots
-- [ ] ARCHITECTURE §4 notes the sim as the one deliberately shared code
+- [x] ARCHITECTURE §4 notes the sim as the one deliberately shared code
 - [ ] `auto` verified unchanged — existing unit + e2e green, 1920×1080 fake-clock screenshot identical
 
 ### 29.1 Arrow-key hook control (debug)
