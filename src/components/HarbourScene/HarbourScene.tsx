@@ -10,21 +10,21 @@ import seamUrl from "@assets/layers/hub/water/seam.png";
 import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
 import basicSheetUrl from "@assets/player/player-idle-cast-reel.png";
 import extendedSheetUrl from "@assets/player/player-succes-fail.png";
-import DescentScene from "@components/DescentScene";
-import Creatures from "@components/DescentScene/Creatures";
-import FishingLine from "@components/DescentScene/FishingLine";
+import { DescentScene } from "@components/DescentScene";
+import { Creatures } from "@components/DescentScene/Creatures";
+import { FishingLine } from "@components/DescentScene/FishingLine";
 import { useDayNightClock } from "@hooks/useDayNightClock";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
 
 import { computeAmbience } from "./ambience";
-import BackgroundLayer from "./BackgroundLayer";
-import CelestialBody from "./CelestialBody";
-import Fisherman from "./Fisherman";
+import { BackgroundLayer } from "./BackgroundLayer";
+import { CelestialBody } from "./CelestialBody";
+import { Fisherman } from "./Fisherman";
 import { boatLayout, cameraScroll, hookWorldY, waterlineY } from "./framing";
-import OceanLayer from "./OceanLayer";
+import { OceanLayer } from "./OceanLayer";
 import { buildPlayerFrames } from "./playerFrames";
-import SeamWaves from "./SeamWaves";
-import SkyLayer from "./SkyLayer";
+import { SeamWaves } from "./SeamWaves";
+import { SkyLayer } from "./SkyLayer";
 import { waterSwell } from "./waterSwell";
 
 /**
@@ -59,7 +59,7 @@ interface HarbourSceneProps {
 	depth?: number;
 }
 
-function HarbourScene({ depth = 0 }: HarbourSceneProps) {
+export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const { app, isInitialised } = useApplication();
 	const [textures, setTextures] = useState<Record<string, Texture>>();
 	const t = useDayNightClock();
@@ -150,5 +150,3 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 		</pixiContainer>
 	);
 }
-
-export default HarbourScene;

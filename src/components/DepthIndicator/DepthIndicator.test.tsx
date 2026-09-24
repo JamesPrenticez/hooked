@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 
 import { DEPTH_DISPLAY_STEP, DEPTH_ZONES } from "@constants/depthZones";
 
-import DepthIndicator from "./DepthIndicator";
+import { DepthIndicator } from "./DepthIndicator";
 
 const STEP = DEPTH_DISPLAY_STEP;
 const shown = (meters: number) => `${meters.toLocaleString("en-US")}m`;

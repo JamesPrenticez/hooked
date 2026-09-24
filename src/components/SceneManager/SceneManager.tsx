@@ -13,7 +13,7 @@ export interface SceneManagerProps<K extends string> {
  * previous one (see useCrossfade). One instance drives every phase/scene
  * swap in the game (BUILD_PLAN §0.2) — never one-off per transition.
  */
-function SceneManager<K extends string>({ activeKey, scenes }: SceneManagerProps<K>) {
+export function SceneManager<K extends string>({ activeKey, scenes }: SceneManagerProps<K>) {
 	const outgoing = useCrossfade(activeKey);
 
 	return (
@@ -23,5 +23,3 @@ function SceneManager<K extends string>({ activeKey, scenes }: SceneManagerProps
 		</pixiContainer>
 	);
 }
-
-export default SceneManager;

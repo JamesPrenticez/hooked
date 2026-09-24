@@ -24,7 +24,7 @@ interface KrakenProps {
  * fitted to the screen and centred across it. Other sheets load when first cued, not
  * up front — they're ~3MB each.
  */
-function Kraken({ view, seconds }: KrakenProps) {
+export function Kraken({ view, seconds }: KrakenProps) {
 	const forced = useKrakenStore(state => state.forceTrench);
 	const cue = useKrakenStore(state => state.cue);
 	const setFightStart = useKrakenStore(state => state.setFightStart);
@@ -85,5 +85,3 @@ function Kraken({ view, seconds }: KrakenProps) {
 		<pixiSprite texture={frames[pose.frame]} anchor={0.5} x={pose.sprite.x} y={pose.sprite.y} scale={pose.scale} />
 	);
 }
-
-export default Kraken;

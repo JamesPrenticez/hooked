@@ -9,7 +9,7 @@ interface HitboxOverlayProps {
 }
 
 /** Debug: every mouth circle in the sim world and the hook tip, at the sim's tick. */
-function HitboxOverlay({ view, depth }: HitboxOverlayProps) {
+export function HitboxOverlay({ view, depth }: HitboxOverlayProps) {
 	const sim = useHookStore(state => state.sim);
 	const show = useHookStore(state => state.showHitboxes);
 	if (!sim || !show) return null;
@@ -33,5 +33,3 @@ function HitboxOverlay({ view, depth }: HitboxOverlayProps) {
 		/>
 	);
 }
-
-export default HitboxOverlay;

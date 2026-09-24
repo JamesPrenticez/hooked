@@ -79,7 +79,14 @@ const windowGlowGradient = new FillGradient({
  * doesn't get one). Good enough to make the water shine at night; not
  * aiming for physically accurate reflection.
  */
-function WaterReflections({ view, celestial, windowGlow, waterTop, waterBottom, seconds }: WaterReflectionsProps) {
+export function WaterReflections({
+	view,
+	celestial,
+	windowGlow,
+	waterTop,
+	waterBottom,
+	seconds
+}: WaterReflectionsProps) {
 	const span = waterBottom - waterTop;
 
 	return (
@@ -122,5 +129,3 @@ function WaterReflections({ view, celestial, windowGlow, waterTop, waterBottom, 
 		/>
 	);
 }
-
-export default WaterReflections;

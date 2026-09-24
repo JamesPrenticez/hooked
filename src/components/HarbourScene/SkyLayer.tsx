@@ -46,7 +46,7 @@ function skyGradient(top: number, horizon: number): FillGradient {
  * `computeAmbience` and shift across the day / night cycle; this component
  * just paints the fill.
  */
-function SkyLayer({ view, skyTop, skyHorizon }: SkyLayerProps) {
+export function SkyLayer({ view, skyTop, skyHorizon }: SkyLayerProps) {
 	return (
 		<pixiGraphics
 			draw={g => {
@@ -56,5 +56,3 @@ function SkyLayer({ view, skyTop, skyHorizon }: SkyLayerProps) {
 		/>
 	);
 }
-
-export default SkyLayer;

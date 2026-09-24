@@ -45,7 +45,7 @@ const HOOK_EYE = { x: 0.545, y: 0.067 };
  * its coil instead (`krakenFightPose`), the line following it. The hook is
  * placeholder art.
  */
-function FishingLine({ tip, hookY, scroll, waterY, view, boatScale, seconds }: FishingLineProps) {
+export function FishingLine({ tip, hookY, scroll, waterY, view, boatScale, seconds }: FishingLineProps) {
 	const [hook, setHook] = useState<Texture>();
 	const fightStart = useKrakenStore(state => state.fightStart);
 	const depthZones = useDebugStore(state => state.depthZones);
@@ -94,5 +94,3 @@ function FishingLine({ tip, hookY, scroll, waterY, view, boatScale, seconds }: F
 		</>
 	);
 }
-
-export default FishingLine;

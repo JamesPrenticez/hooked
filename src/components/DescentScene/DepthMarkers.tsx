@@ -14,7 +14,7 @@ interface DepthMarkersProps {
  * level with sits at screen centre, matching the hook's resting height. They
  * fade in as the cast finishes, so the harbour's idle waterline stays clean.
  */
-function DepthMarkers({ view, depth, zones, unit }: DepthMarkersProps) {
+export function DepthMarkers({ view, depth, zones, unit }: DepthMarkersProps) {
 	return (
 		<pixiContainer alpha={castProgress(depth)}>
 			{zones.map(zone => {
@@ -39,5 +39,3 @@ function DepthMarkers({ view, depth, zones, unit }: DepthMarkersProps) {
 		</pixiContainer>
 	);
 }
-
-export default DepthMarkers;

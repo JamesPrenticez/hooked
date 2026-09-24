@@ -12,7 +12,7 @@ interface PlaceholderSceneProps {
  * building that art/content early (BUILD_PLAN: use placeholders until the
  * underlying system is proven).
  */
-function PlaceholderScene({ label, color }: PlaceholderSceneProps) {
+export function PlaceholderScene({ label, color }: PlaceholderSceneProps) {
 	const { app, isInitialised } = useApplication();
 	// Children render before the underlying Pixi Application finishes its
 	// async init() — app is undefined until isInitialised flips.
@@ -32,5 +32,3 @@ function PlaceholderScene({ label, color }: PlaceholderSceneProps) {
 		</pixiContainer>
 	);
 }
-
-export default PlaceholderScene;

@@ -58,7 +58,7 @@ function haloGradient(color: number): FillGradient {
  * not art — only the landmark pixel coordinates come from the background
  * image.
  */
-function TowerBeacon({ landmark, toScreen, scale, alpha, seconds }: TowerBeaconProps) {
+export function TowerBeacon({ landmark, toScreen, scale, alpha, seconds }: TowerBeaconProps) {
 	if (alpha <= 0.02) return null;
 
 	const tip = toScreen({ x: landmark.x, y: landmark.tipY });
@@ -80,5 +80,3 @@ function TowerBeacon({ landmark, toScreen, scale, alpha, seconds }: TowerBeaconP
 		/>
 	);
 }
-
-export default TowerBeacon;

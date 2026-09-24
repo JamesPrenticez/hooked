@@ -2,16 +2,17 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Mesh, Sprite, Text, TilingSprite } from "pixi.js";
+import styled from "styled-components";
 
-import Balance from "@components/Balance";
-import BottomBar from "@components/BottomBar";
-import DebugPanel from "@components/DebugPanel";
-import DepthIndicator from "@components/DepthIndicator";
-import HarbourScene from "@components/HarbourScene";
-import LoadingScreen from "@components/LoadingScreen";
-import PlaceholderScene from "@components/PlaceholderScene/PlaceholderScene";
-import SceneManager from "@components/SceneManager/SceneManager";
-import StoreSync from "@components/system/StoreSync";
+import { Balance } from "@components/Balance";
+import { BottomBar } from "@components/BottomBar";
+import { DebugPanel } from "@components/DebugPanel";
+import { DepthIndicator } from "@components/DepthIndicator";
+import { HarbourScene } from "@components/HarbourScene";
+import { LoadingScreen } from "@components/LoadingScreen";
+import { PlaceholderScene } from "@components/PlaceholderScene/PlaceholderScene";
+import { SceneManager } from "@components/SceneManager/SceneManager";
+import { StoreSync } from "@components/system/StoreSync";
 import { DEBUG } from "@constants/config";
 import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import { Button, Checkbox } from "@hooked-ui";
@@ -22,7 +23,39 @@ import { type GamePhase, useGameStore } from "@stores/gameStore";
 import { useHookStore, useManualHook } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
 
-import styles from "./App.module.css";
+const Root = styled.div`
+	position: relative;
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
+`;
+
+const Canvas = styled(Application)`
+	position: absolute;
+	inset: 0;
+`;
+
+/* Anchored to the bottom, not centered: the scene's own centered label
+ * (placeholder today, real content from milestone 6 on) must stay visible
+ * underneath a HTML overlay, never covered by it. */
+const Overlay = styled.div`
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-end;
+	gap: var(--spacing-md);
+	padding-bottom: var(--spacing-xxxl);
+`;
+
+const SkipTutorial = styled.div`
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	color: var(--color-white);
+	font: var(--font-display-xs);
+`;
 
 // Registers the Pixi classes used as JSX tags (pixiContainer, pixiGraphics,
 // pixiText) below and in every scene component — @pixi/react doesn't bundle
@@ -34,7 +67,7 @@ extend({ Container, Graphics, Mesh, Sprite, Text, TilingSprite });
  * runs the loading → tutorial → game phase machine (§0.2, §18). HTML
  * overlays are siblings of the canvas, never its children.
  */
-function App() {
+export function App() {
 	const phase = useGameStore(state => state.phase);
 	const setPhase = useGameStore(state => state.setPhase);
 	const skipTutorial = useGameStore(state => state.skipTutorial);
@@ -66,9 +99,8 @@ function App() {
 	};
 
 	return (
-		<div className={styles.root}>
-			<Application
-				className={styles.canvas}
+		<Root>
+			<Canvas
 				background={0x000000}
 				resizeTo={window}
 				resolution={window.devicePixelRatio}
@@ -76,7 +108,7 @@ function App() {
 				onInit={onAppInit}
 			>
 				<SceneManager activeKey={phase} scenes={scenes} />
-			</Application>
+			</Canvas>
 
 			<StoreSync />
 
@@ -95,20 +127,18 @@ function App() {
 			)}
 
 			{phase === "tutorial" && (
-				<div className={styles.overlay}>
-					<div className={styles.skipTutorial}>
+				<Overlay>
+					<SkipTutorial>
 						<Checkbox value={skipTutorial} onValueChange={setSkipTutorial} aria-label="Skip tutorial next time" />
 						Skip tutorial next time
-					</div>
+					</SkipTutorial>
 					<Button variant="primary" onClick={() => setPhase("game")}>
 						Start Fishing
 					</Button>
-				</div>
+				</Overlay>
 			)}
 
 			{DEBUG && <DebugPanel />}
-		</div>
+		</Root>
 	);
 }
-
-export default App;

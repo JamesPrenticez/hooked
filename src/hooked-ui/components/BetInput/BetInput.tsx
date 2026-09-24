@@ -7,13 +7,23 @@ import {
 	useRef,
 	useState
 } from "react";
+import styled from "styled-components";
 
-import styles from "./BetInput.module.css";
 import { ChevronDownIcon, ChevronUpIcon } from "../../icons";
-import { mergeClassNames } from "../../utils/mergeClassNames";
 import { useClickOutside } from "../../utils/useClickOutside";
 import { Stepper } from "../Stepper/Stepper";
 import { StepperPopup } from "../StepperPopup/StepperPopup";
+
+const Wrapper = styled.div`
+	position: relative;
+	width: 100%;
+	height: 100%;
+
+	&[data-full-width] {
+		flex: 1;
+		width: 100%;
+	}
+`;
 
 export interface BetInputProps extends HTMLAttributes<HTMLDivElement> {
 	orientation?: "horizontal" | "vertical";
@@ -156,12 +166,7 @@ export const BetInput = forwardRef<HTMLDivElement, BetInputProps>(function BetIn
 	);
 
 	return (
-		<div
-			ref={containerRef}
-			className={mergeClassNames(styles.wrapper, className)}
-			data-full-width={fullWidth ? "" : undefined}
-			{...props}
-		>
+		<Wrapper ref={containerRef} className={className} data-full-width={fullWidth ? "" : undefined} {...props}>
 			{growFromInput ? (
 				<>
 					{popup}
@@ -173,6 +178,6 @@ export const BetInput = forwardRef<HTMLDivElement, BetInputProps>(function BetIn
 					{popup}
 				</>
 			)}
-		</div>
+		</Wrapper>
 	);
 });

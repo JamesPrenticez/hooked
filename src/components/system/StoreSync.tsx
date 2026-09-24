@@ -9,7 +9,7 @@ import { useGameStore } from "@stores/gameStore";
  * once as a sibling of <Application>. The one-shot boot/reconnect reconcile
  * lives next door in `roundRecovery.ts`.
  */
-function StoreSync() {
+export function StoreSync() {
 	const setPhase = useGameStore(state => state.setPhase);
 
 	useEffect(() => {
@@ -18,5 +18,3 @@ function StoreSync() {
 
 	return null;
 }
-
-export default StoreSync;

@@ -23,7 +23,7 @@ interface FishermanProps {
  * ocean and the background strip. Plays whichever animation `usePlayerStore`
  * cues — idle until something says otherwise.
  */
-function Fisherman({ frames, boat, tint, seconds }: FishermanProps) {
+export function Fisherman({ frames, boat, tint, seconds }: FishermanProps) {
 	const cue = usePlayerStore(state => state.cue);
 
 	// A new cue starts its clip from the top. Adjusted during render rather than
@@ -45,5 +45,3 @@ function Fisherman({ frames, boat, tint, seconds }: FishermanProps) {
 		/>
 	);
 }
-
-export default Fisherman;

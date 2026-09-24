@@ -99,10 +99,8 @@ interface WaterLayerProps {
  *  `top`/`bottom` colours cost a few uniform writes per frame instead of the
  *  canvas fill + texture upload a rebuilt `FillGradient` needs
  *  (docs/PERFORMANCE.md). */
-function WaterLayer({ view, y, top, bottom, darkness, tint }: WaterLayerProps) {
+export function WaterLayer({ view, y, top, bottom, darkness, tint }: WaterLayerProps) {
 	useLayoutEffect(() => setWater(top, bottom, darkness), [top, bottom, darkness]);
 
 	return <pixiMesh geometry={quad} shader={shader} y={y} tint={tint} scale={{ x: view.width, y: view.height }} />;
 }
-
-export default WaterLayer;

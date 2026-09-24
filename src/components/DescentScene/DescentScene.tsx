@@ -5,14 +5,14 @@ import { cameraScroll, waterlineY } from "@components/HarbourScene/framing";
 import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import { useDebugStore } from "@stores/debugStore";
 
-import Creatures from "./Creatures";
+import { Creatures } from "./Creatures";
 import { computeDepthAmbience } from "./depthAmbience";
-import DepthMarkers from "./DepthMarkers";
-import HitboxOverlay from "./HitboxOverlay";
-import Kraken from "./Kraken";
+import { DepthMarkers } from "./DepthMarkers";
+import { HitboxOverlay } from "./HitboxOverlay";
+import { Kraken } from "./Kraken";
 import { preloadKrakenFight } from "./krakenSheets";
-import WaterLayer from "./WaterLayer";
-import WaterTiles from "./WaterTiles";
+import { WaterLayer } from "./WaterLayer";
+import { WaterTiles } from "./WaterTiles";
 
 interface DescentSceneProps {
 	/** Metres below the boat — owned by App so the HTML depth readout can
@@ -38,7 +38,7 @@ interface DescentSceneProps {
  * harbour. No catch mechanic, target outcome or server round yet: this is the
  * visual descent loop only.
  */
-function DescentScene({ depth, tint, seconds, tip }: DescentSceneProps) {
+export function DescentScene({ depth, tint, seconds, tip }: DescentSceneProps) {
 	const { app, isInitialised } = useApplication();
 	const depthZones = useDebugStore(state => state.depthZones);
 	const depthUnit = useDebugStore(state => state.depthUnit);
@@ -75,5 +75,3 @@ function DescentScene({ depth, tint, seconds, tip }: DescentSceneProps) {
 		</pixiContainer>
 	);
 }
-
-export default DescentScene;

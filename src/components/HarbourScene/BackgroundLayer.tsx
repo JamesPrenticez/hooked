@@ -30,7 +30,7 @@ interface BackgroundLayerProps {
  * desktop or mobile export by viewport shape (see `backgroundFit`), then
  * stacks the matching lit-windows overlay on top, faded in by `windowGlow`.
  */
-function BackgroundLayer({
+export function BackgroundLayer({
 	view,
 	desktop,
 	mobile,
@@ -55,5 +55,3 @@ function BackgroundLayer({
 		</>
 	);
 }
-
-export default BackgroundLayer;

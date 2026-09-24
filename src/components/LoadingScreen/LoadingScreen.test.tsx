@@ -2,7 +2,7 @@ import { act } from "react";
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-import LoadingScreen from "./LoadingScreen";
+import { LoadingScreen } from "./LoadingScreen";
 
 beforeEach(() => {
 	vi.useFakeTimers();

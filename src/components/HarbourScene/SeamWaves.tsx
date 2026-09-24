@@ -31,7 +31,7 @@ interface SeamWavesProps {
 /** Hides the join between the harbour water and the underwater: a row of small
  *  wave crests centred on the waterline, drawn additively so the strip's black
  *  vanishes and only the foam and teal body show over both. */
-function SeamWaves({ view, tint, texture, seconds }: SeamWavesProps) {
+export function SeamWaves({ view, tint, texture, seconds }: SeamWavesProps) {
 	if (!texture) return null;
 	const waterline = waterlineY(view);
 
@@ -58,5 +58,3 @@ function SeamWaves({ view, tint, texture, seconds }: SeamWavesProps) {
 		</pixiContainer>
 	);
 }
-
-export default SeamWaves;

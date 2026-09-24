@@ -1,1 +1,1 @@
-export { default } from "./DepthIndicator";
+export * from "./DepthIndicator";

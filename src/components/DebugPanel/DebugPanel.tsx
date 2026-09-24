@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import styled from "styled-components";
 
 import { MAX_DEPTH_METERS, metersToFeet } from "@constants/depthZones";
 import { KRAKEN_SHEETS } from "@constants/krakenAnimations";
@@ -9,7 +10,113 @@ import { type HookMode, TIME_SCALES, useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
 import { usePlayerStore } from "@stores/playerStore";
 
-import styles from "./DebugPanel.module.css";
+const Trigger = styled(Button)`
+	position: absolute;
+	right: var(--spacing-md);
+	bottom: var(--spacing-md);
+	z-index: 10;
+	padding: 0.6rem 1.2rem;
+	border: 1px solid var(--color-negative);
+	border-radius: var(--border-radius-sm);
+	background: color-mix(in srgb, var(--color-negative) 20%, transparent);
+	color: var(--color-white);
+	font: var(--font-display-xs);
+	letter-spacing: 0.08em;
+	cursor: pointer;
+`;
+
+/* Docked to the top-left, not centred, with a light backdrop — a centred panel
+   sits right over the boat, so the Player animations couldn't be watched while
+   picking them. */
+const Modal = styled.dialog`
+	width: min(90vw, 42rem);
+	margin: var(--spacing-md) auto var(--spacing-md) var(--spacing-md);
+	padding: 2rem;
+	border: none;
+	border-radius: 1.2rem;
+	background: var(--color-black);
+	color: var(--color-white);
+
+	&::backdrop {
+		background: color-mix(in srgb, var(--color-black) 20%, transparent);
+	}
+`;
+
+const Header = styled.div`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: var(--spacing-md);
+`;
+
+const Actions = styled.div`
+	display: flex;
+	gap: var(--spacing-sm);
+`;
+
+const Title = styled.h2`
+	font: var(--font-display-sm);
+`;
+
+const Fields = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 1.4rem;
+`;
+
+const Field = styled.label`
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 0.6rem;
+	font-family: var(--font-text);
+	font-weight: 600;
+	font-size: 1.2rem;
+	text-transform: uppercase;
+`;
+
+const CheckField = styled.label`
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	font-size: var(--font-size-legal);
+`;
+
+const Note = styled.p`
+	font-size: var(--font-size-legal);
+`;
+
+const Zone = styled.fieldset`
+	display: flex;
+	gap: 1.2rem;
+	margin: 0;
+	padding: var(--spacing-sm) 1.2rem 1.2rem;
+	border: 1px solid color-mix(in srgb, var(--color-white) 20%, transparent);
+	border-radius: var(--border-radius-md);
+`;
+
+const Sheet = styled(Zone)`
+	display: block;
+`;
+
+const ZoneLabel = styled.legend`
+	padding: 0 var(--spacing-xs);
+	font: var(--font-display-xs);
+	letter-spacing: 0.08em;
+	color: var(--color-primary-accent);
+`;
+
+const Animations = styled.div`
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+	gap: var(--spacing-sm);
+`;
+
+const AnimationButton = styled(Button)`
+	padding: 0.8rem 1rem;
+	font-size: 1.3rem;
+	text-transform: capitalize;
+`;
 
 /**
  * Dev-only DEBUG button (bottom-right, every phase) opening a modal of
@@ -21,7 +128,7 @@ import styles from "./DebugPanel.module.css";
  *
  * A native `<dialog>` gets backdrop click-to-close and Escape for free.
  */
-function DebugPanel() {
+export function DebugPanel() {
 	const dialogRef = useRef<HTMLDialogElement>(null);
 	const [open, setOpen] = useState(false);
 	const frozen = useDebugStore(state => state.frozen);
@@ -60,26 +167,26 @@ function DebugPanel() {
 
 	return (
 		<>
-			<Button type="button" className={styles.trigger} onClick={() => setOpen(true)}>
+			<Trigger type="button" onClick={() => setOpen(true)}>
 				DEBUG
-			</Button>
+			</Trigger>
 
-			<dialog ref={dialogRef} className={styles.modal} onClose={() => setOpen(false)}>
-				<div className={styles.header}>
-					<h2 className={styles.title}>Debug</h2>
-					<div className={styles.actions}>
+			<Modal ref={dialogRef} onClose={() => setOpen(false)}>
+				<Header>
+					<Title>Debug</Title>
+					<Actions>
 						<Button variant="secondary" onClick={resetDefaults}>
 							Reset defaults
 						</Button>
 						<Button variant="secondary" onClick={() => setOpen(false)}>
 							Close
 						</Button>
-					</div>
-				</div>
+					</Actions>
+				</Header>
 
 				<Accordion title="Environment" theme="dark" open>
-					<div className={styles.fields}>
-						<label className={styles.field}>
+					<Fields>
+						<Field>
 							Time of day
 							<input
 								type="range"
@@ -89,34 +196,34 @@ function DebugPanel() {
 								value={timeOfDay}
 								onChange={e => setTimeOfDay(Number(e.target.value))}
 							/>
-						</label>
+						</Field>
 
-						<label className={styles.checkField}>
+						<CheckField>
 							<input type="checkbox" checked={frozen} onChange={e => setFrozen(e.target.checked)} />
 							Freeze cycle (stop looping)
-						</label>
-					</div>
+						</CheckField>
+					</Fields>
 				</Accordion>
 
 				<Accordion title="Hook" theme="dark">
-					<div className={styles.fields}>
-						<label className={styles.field}>
+					<Fields>
+						<Field>
 							Display unit
 							<select value={depthUnit} onChange={e => setDepthUnit(e.target.value as "m" | "ft")}>
 								<option value="m">Metres</option>
 								<option value="ft">Feet</option>
 							</select>
-						</label>
+						</Field>
 
-						<p className={styles.note}>
+						<Note>
 							Max depth: {Math.round(metersToFeet(MAX_DEPTH_METERS)).toLocaleString()}ft /{" "}
 							{MAX_DEPTH_METERS.toLocaleString()}m
-						</p>
+						</Note>
 
 						{depthZones.map(zone => (
-							<fieldset key={zone.id} className={styles.zone}>
-								<legend className={styles.zoneLabel}>{zone.label}</legend>
-								<label className={styles.field}>
+							<Zone key={zone.id}>
+								<ZoneLabel>{zone.label}</ZoneLabel>
+								<Field>
 									Starts at (m)
 									<input
 										type="number"
@@ -125,8 +232,8 @@ function DebugPanel() {
 										value={Math.round(zone.fromMeters)}
 										onChange={e => setZoneFromMeters(zone.id, Number(e.target.value))}
 									/>
-								</label>
-								<label className={styles.field}>
+								</Field>
+								<Field>
 									Speed (m/s)
 									<input
 										type="number"
@@ -134,22 +241,22 @@ function DebugPanel() {
 										value={zoneSpeeds[zone.id]}
 										onChange={e => setZoneSpeed(zone.id, Number(e.target.value))}
 									/>
-								</label>
-							</fieldset>
+								</Field>
+							</Zone>
 						))}
-					</div>
+					</Fields>
 				</Accordion>
 
 				<Accordion title="Hook control" theme="dark">
-					<div className={styles.fields}>
-						<label className={styles.field}>
+					<Fields>
+						<Field>
 							Mode
 							<select value={hookMode} onChange={e => setHookMode(e.target.value as HookMode)}>
 								<option value="auto">Auto (scripted descent)</option>
 								<option value="manual">Manual (← / → keys)</option>
 							</select>
-						</label>
-						<label className={styles.field}>
+						</Field>
+						<Field>
 							Seed
 							<input
 								type="number"
@@ -158,8 +265,8 @@ function DebugPanel() {
 								value={worldSeed}
 								onChange={e => setWorldSeed(Number(e.target.value) >>> 0)}
 							/>
-						</label>
-						<label className={styles.field}>
+						</Field>
+						<Field>
 							Speed
 							<select value={timeScale} onChange={e => setTimeScale(Number(e.target.value))}>
 								{TIME_SCALES.map(scale => (
@@ -168,72 +275,66 @@ function DebugPanel() {
 									</option>
 								))}
 							</select>
-						</label>
-						<label className={styles.checkField}>
+						</Field>
+						<CheckField>
 							<input type="checkbox" checked={showHitboxes} onChange={e => setShowHitboxes(e.target.checked)} />
 							Show hit-boxes
-						</label>
-						<p className={styles.note}>
-							Manual: Cast Line, then steer with ← / →. The "Hook" speeds above drive Auto only.
-						</p>
-						<p className={styles.note} data-testid="hook-readout">
+						</CheckField>
+						<Note>Manual: Cast Line, then steer with ← / →. The "Hook" speeds above drive Auto only.</Note>
+						<Note data-testid="hook-readout">
 							{sim
 								? `${sim.phase} · x ${Math.round(sim.x)} · ${Math.round(sim.depthM).toLocaleString()}m · tick ${sim.tick} · hooked ${sim.world[sim.hooked]?.id ?? "none"}`
 								: "no run"}
-						</p>
-					</div>
+						</Note>
+					</Fields>
 				</Accordion>
 
 				<Accordion title="Player" theme="dark">
-					<div className={styles.animations}>
+					<Animations>
 						{PLAYER_ANIMATION_NAMES.map(name => (
-							<Button
+							<AnimationButton
 								key={name}
 								variant="secondary"
-								className={styles.animation}
 								title={PLAYER_ANIMATIONS[name].description}
 								onClick={() => playAnimation(name)}
 							>
 								{name.replaceAll("_", " ")}
-							</Button>
+							</AnimationButton>
 						))}
-					</div>
+					</Animations>
 				</Accordion>
 
 				<Accordion title="Kraken" theme="dark">
-					<div className={styles.fields}>
-						<label className={styles.checkField}>
+					<Fields>
+						<CheckField>
 							<input type="checkbox" checked={forceTrench} onChange={e => setForceTrench(e.target.checked)} />
 							Force hook to the trench
-						</label>
-						<p className={styles.note}>
+						</CheckField>
+						<Note>
 							Jumps straight to the max depth and holds there — that's where the Kraken appears. Untick it (or hit
 							Surface) to go back to the harbour.
-						</p>
+						</Note>
 
 						{KRAKEN_SHEETS.map(sheet => (
-							<fieldset key={sheet.id} className={styles.sheet}>
-								<legend className={styles.zoneLabel}>{sheet.label}</legend>
-								<div className={styles.animations}>
+							<Sheet key={sheet.id}>
+								<ZoneLabel>{sheet.label}</ZoneLabel>
+								<Animations>
 									{sheet.animations.map(animation => (
-										<Button
+										<AnimationButton
 											key={animation.id}
 											variant="secondary"
-											className={styles.animation}
 											title={animation.description}
 											onClick={() => playKraken(animation.id)}
 										>
 											{animation.name.replaceAll("_", " ")}
-										</Button>
+										</AnimationButton>
 									))}
-								</div>
-							</fieldset>
+								</Animations>
+							</Sheet>
 						))}
-					</div>
+					</Fields>
 				</Accordion>
-			</dialog>
+			</Modal>
 		</>
 	);
 }
-
-export default DebugPanel;

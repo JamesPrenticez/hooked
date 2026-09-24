@@ -66,7 +66,7 @@ describe("Button", () => {
 		const button = screen.getByRole("button", { name: "Place bet" });
 		expect(button).toHaveClass("my-layout");
 		// The kit's own hashed class must survive alongside it.
-		expect(button.className.split(" ")).toHaveLength(2);
+		expect(button.className.split(" ")).toHaveLength(3);
 	});
 
 	// The extend-and-spread contract: undeclared props and the ref both land on

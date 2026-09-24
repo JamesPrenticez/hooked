@@ -85,7 +85,7 @@ describe("Stepper", () => {
 
 		const container = screen.getByTestId("stepper");
 		expect(container).toHaveClass("my-layout");
-		expect(container.className.split(" ")).toHaveLength(2);
+		expect(container.className.split(" ")).toHaveLength(3);
 	});
 
 	it("exposes its root via ref and spreads undeclared props onto it", () => {

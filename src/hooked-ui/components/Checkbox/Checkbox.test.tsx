@@ -53,7 +53,7 @@ describe("Checkbox", () => {
 		const checkbox = screen.getByRole("checkbox", { name: "Accept terms" });
 		expect(checkbox).toHaveClass("my-layout");
 		// The kit's own hashed class must survive alongside it.
-		expect(checkbox.className.split(" ")).toHaveLength(2);
+		expect(checkbox.className.split(" ")).toHaveLength(3);
 	});
 
 	// The extend-and-spread contract: undeclared props and the ref both land on

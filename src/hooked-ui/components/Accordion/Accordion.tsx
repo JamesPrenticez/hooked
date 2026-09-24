@@ -1,8 +1,54 @@
 import { type DetailsHTMLAttributes, forwardRef, type ReactNode } from "react";
+import styled from "styled-components";
 
-import styles from "./Accordion.module.css";
 import { ChevronDownIcon } from "../../icons";
-import { mergeClassNames } from "../../utils/mergeClassNames";
+
+const Chevron = styled(ChevronDownIcon)`
+	flex-shrink: 0;
+	transition: transform 0.15s;
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
+`;
+
+const Summary = styled.summary`
+	align-items: center;
+	cursor: pointer;
+	display: flex;
+	font-size: 1.6rem;
+	justify-content: space-between;
+	list-style: none;
+	padding: 1.2rem 0;
+
+	&::-webkit-details-marker {
+		display: none;
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--hooked-color-primary);
+		outline-offset: 2px;
+	}
+`;
+
+const Content = styled.div`
+	padding-bottom: 1.2rem;
+`;
+
+const Details = styled.details`
+	border-bottom: 1px solid var(--hooked-color-light-muted);
+	color: var(--hooked-color-black);
+	font-family: var(--hooked-font-primary);
+
+	&[data-theme="dark"] {
+		border-bottom-color: var(--hooked-color-dark-muted);
+		color: var(--hooked-color-body);
+	}
+
+	&[open] ${Chevron} {
+		transform: rotate(180deg);
+	}
+`;
 
 export interface AccordionProps extends Omit<DetailsHTMLAttributes<HTMLDetailsElement>, "title"> {
 	title: ReactNode;
@@ -15,21 +61,16 @@ export interface AccordionProps extends Omit<DetailsHTMLAttributes<HTMLDetailsEl
  * open at once.
  */
 export const Accordion = forwardRef<HTMLDetailsElement, AccordionProps>(function Accordion(
-	{ title, theme = "light", className, children, ...props },
+	{ title, theme = "light", children, ...props },
 	ref
 ) {
 	return (
-		<details
-			ref={ref}
-			className={mergeClassNames(styles.accordion, className)}
-			data-theme={theme === "light" ? undefined : theme}
-			{...props}
-		>
-			<summary className={styles.summary}>
+		<Details ref={ref} data-theme={theme === "light" ? undefined : theme} {...props}>
+			<Summary>
 				{title}
-				<ChevronDownIcon className={styles.chevron} width="1.4rem" aria-hidden="true" focusable="false" />
-			</summary>
-			<div className={styles.content}>{children}</div>
-		</details>
+				<Chevron width="1.4rem" aria-hidden="true" focusable="false" />
+			</Summary>
+			<Content>{children}</Content>
+		</Details>
 	);
 });

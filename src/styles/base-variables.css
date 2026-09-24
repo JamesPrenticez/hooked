@@ -1,7 +1,22 @@
 :root {
-	/*
-	 * Non-color, non-font tokens go here — spacing, radii, z-index, durations.
-	 * Empty on purpose: seeding a scale nobody asked for just gets ignored or
-	 * half-replaced. Add steps as the project needs them.
-	 */
+	--size-control: 4.8rem;
+	--size-control-double: calc(var(--size-control) * 2 + var(--spacing-sm));
+
+	--spacing-xs: 0.4rem;
+	--spacing-sm: 0.8rem;
+	--spacing-md: 1.6rem;
+	--spacing-lg: 2.4rem;
+	--spacing-xl: 3.2rem;
+	--spacing-xxl: 4rem;
+	--spacing-xxxl: 4.8rem;
+
+	--border-thickness: calc(max(0.1rem, 1px));
+
+	--border-radius-sm: 0.6rem;
+	--border-radius-md: 0.8rem;
+	--border-radius-lg: 1rem;
+
+	/* px dimensions used in the figma designs */
+	--mobile-longest-design-size: 852;
+	--mobile-shortest-design-size: 393;
 }

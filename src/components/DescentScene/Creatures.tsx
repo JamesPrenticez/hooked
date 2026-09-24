@@ -72,7 +72,7 @@ function hookedFrame({ bite, struggle }: SpeciesFrames, seconds: number): Textur
  * running (manual) they are the sim's world, placed by `fishX` at the sim's tick,
  * and the hooked one sits mouth-to-hook playing its bite then struggle rows.
  */
-function Creatures({ view, depth, seconds, tip, onlyHooked = false }: CreaturesProps) {
+export function Creatures({ view, depth, seconds, tip, onlyHooked = false }: CreaturesProps) {
 	const frames = useFrames();
 	const sim = useHookStore(state => state.sim);
 	if (!frames || (onlyHooked && !sim)) return null;
@@ -140,5 +140,3 @@ function Creatures({ view, depth, seconds, tip, onlyHooked = false }: CreaturesP
 		);
 	});
 }
-
-export default Creatures;

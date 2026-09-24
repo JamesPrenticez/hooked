@@ -76,7 +76,7 @@ interface WaterTilesProps {
 /** The underwater's surface detail — caustics near the top, light shafts and
  *  drifting particles all the way down — drawn additively over `WaterLayer`.
  *  Nothing renders until the two tiles load. */
-function WaterTiles({ view, y, scroll, ambience, tint, seconds }: WaterTilesProps) {
+export function WaterTiles({ view, y, scroll, ambience, tint, seconds }: WaterTilesProps) {
 	const [textures, setTextures] = useState<Record<string, Texture>>();
 
 	useEffect(() => {
@@ -122,5 +122,3 @@ function WaterTiles({ view, y, scroll, ambience, tint, seconds }: WaterTilesProp
 		</pixiContainer>
 	);
 }
-
-export default WaterTiles;

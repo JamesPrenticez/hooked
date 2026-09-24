@@ -1,1 +1,1 @@
-export { default } from "./HarbourScene";
+export * from "./HarbourScene";

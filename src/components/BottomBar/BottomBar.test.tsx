@@ -3,7 +3,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 import { useBetStore } from "@stores/betStore";
 
-import BottomBar from "./BottomBar";
+import { BottomBar } from "./BottomBar";
 
 beforeEach(() => {
 	useBetStore.setState({ chip: 100, bets: {} });

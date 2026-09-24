@@ -45,7 +45,7 @@ function glowGradient(color: number): FillGradient {
  * The sun or moon and its glow, tracking the day / night arc. Nothing is
  * drawn while the body is at or below the horizon.
  */
-function CelestialBody({ view, celestial }: CelestialBodyProps) {
+export function CelestialBody({ view, celestial }: CelestialBodyProps) {
 	if (celestial.intensity <= 0.02) return null;
 
 	return (
@@ -65,5 +65,3 @@ function CelestialBody({ view, celestial }: CelestialBodyProps) {
 		/>
 	);
 }
-
-export default CelestialBody;

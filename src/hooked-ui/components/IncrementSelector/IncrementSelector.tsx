@@ -1,7 +1,61 @@
 import { forwardRef, type HTMLAttributes, useId } from "react";
+import styled from "styled-components";
 
-import styles from "./IncrementSelector.module.css";
-import { mergeClassNames } from "../../utils/mergeClassNames";
+const Label = styled.span`
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: 0.2rem 1.5rem;
+	border-radius: 1.4rem;
+	white-space: nowrap;
+
+	color: var(--hooked-color-grey);
+	font-family: var(--hooked-font-primary);
+	font-size: 1.5rem;
+	font-weight: 400;
+	line-height: normal;
+`;
+
+const Input = styled.input`
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	appearance: none;
+	opacity: 0;
+	cursor: pointer;
+
+	&:checked + ${Label} {
+		background: var(--hooked-color-primary);
+		color: var(--hooked-color-black);
+	}
+
+	&:focus-visible + ${Label} {
+		outline: 2px solid var(--hooked-color-primary);
+		outline-offset: -2px;
+	}
+`;
+
+const Option = styled.label`
+	position: relative;
+	display: flex;
+	cursor: pointer;
+	min-width: 0; /* allow shrinking on small screens */
+`;
+
+const Container = styled.div`
+	display: grid;
+	grid-auto-flow: column;
+	grid-template-columns: repeat(auto-fit, minmax(3rem, 1fr));
+	border-radius: 10rem;
+	border: 1px solid var(--hooked-color-primary);
+	background: var(--hooked-color-black);
+
+	min-height: 2.4rem;
+	min-width: fit-content;
+	pointer-events: auto;
+	overflow: hidden;
+`;
 
 export interface IncrementSelectorProps extends HTMLAttributes<HTMLDivElement> {
 	options: readonly number[];
@@ -12,27 +66,26 @@ export interface IncrementSelectorProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const IncrementSelector = forwardRef<HTMLDivElement, IncrementSelectorProps>(function IncrementSelector(
-	{ options, value, onValueChange, name, className, ...props },
+	{ options, value, onValueChange, name, ...props },
 	ref
 ) {
 	const generatedName = useId();
 	const groupName = name ?? generatedName;
 
 	return (
-		<div ref={ref} role="radiogroup" className={mergeClassNames(styles.container, className)} {...props}>
+		<Container ref={ref} role="radiogroup" {...props}>
 			{options.map(option => (
-				<label key={option} className={styles.option}>
-					<input
-						className={styles.input}
+				<Option key={option}>
+					<Input
 						type="radio"
 						name={groupName}
 						value={option}
 						checked={option === value}
 						onChange={() => onValueChange(option)}
 					/>
-					<span>{option}</span>
-				</label>
+					<Label>{option}</Label>
+				</Option>
 			))}
-		</div>
+		</Container>
 	);
 });

@@ -52,7 +52,7 @@ describe("Accordion", () => {
 
 		const details = container.querySelector("details");
 		expect(details).toHaveClass("my-layout");
-		expect(details?.className.split(" ")).toHaveLength(2);
+		expect(details?.className.split(" ")).toHaveLength(3);
 	});
 
 	it("exposes its root via ref and spreads undeclared props onto it", () => {

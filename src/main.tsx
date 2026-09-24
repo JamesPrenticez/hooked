@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import App from "./App.tsx";
+import { App } from "./App.tsx";
 
 // @hooked-ui's own index.ts side-effect-imports its tokens.css, so nothing
 // extra is needed here.
