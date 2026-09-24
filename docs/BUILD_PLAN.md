@@ -1400,3 +1400,83 @@ Turn the functional game into a compelling gambling product.
 - [ ] Final sound
 - [ ] Internal playtest
 - [ ] Stakeholder demo build
+
+---
+
+# 29. Simulated Rounds
+
+### Goal
+
+Replace the randomised descent with a recorded run of a small deterministic fishing sim whose ending is the server's pre-determined fish. Hook control is a debug-menu sandbox only; recordings live in SQLite; every round's replay is tied to the provably-fair seed.
+
+Design and decisions: `docs/SIMULATION.md`. Built alongside §13–16 (descent, encounter, ascent) and slots in after §9 for the real-round wiring — 29.1–29.7 don't need the betting/round wiring. Production play is unchanged throughout: `auto` (today's descent) stays the default and the fallback.
+
+### 29.0 Groundwork (no behaviour change)
+
+- [ ] `src/utils/sim*.ts` scaffold — `./x.ts` imports only, runs under Node; `simRandom` lifted out of `creatureSpecies.ts`
+- [ ] `src/stores/hookStore.ts` — `hookMode` (`auto` default / `manual` / `replay`)
+- [ ] Gate `<DebugPanel />` on `DEBUG` (`App.tsx`)
+- [ ] `worldScale` (default 1) through `framing.ts`; portrait decision from screenshots
+- [ ] ARCHITECTURE §4 notes the sim as the one deliberately shared code
+- [ ] `auto` verified unchanged — existing unit + e2e green, 1920×1080 fake-clock screenshot identical
+
+### 29.1 Arrow-key hook control (debug)
+
+- [ ] `simStep` kinematics — descend on the frozen speed table, steer with the −1/0/+1 axis (tuned: edge to edge ≈1.5s)
+- [ ] `useHookKeys` — ←/→; ignores repeats, typing and the open debug dialog; clears on blur
+- [ ] `useHookSim` — fixed-step accumulator runner, debug `timeScale`
+- [ ] Debug "Hook control" accordion — mode, seed, speed, readout
+- [ ] `App.tsx` depth source; `FishingLine` draws the sim's hook
+- [ ] e2e: ←/→ steer the hook; keys inert in a production build
+
+### 29.2 Hook a fish by the mouth
+
+- [ ] `SIM_FISH` keyed by roster id (stand-in art where a sheet is missing), `spawnWorld`, closed-form `fishX`
+- [ ] Per-species mouth hit-box; first touch hooks; armed from `CAST_METERS`
+- [ ] `HitboxOverlay` (debug); `Creatures` draws from the sim; bite row plays on contact
+- [ ] e2e (seeded world): a scripted key sequence hooks a known fish, a near miss doesn't
+
+### 29.3 Reel-in
+
+- [ ] HOOKED → REEL → SURFACED; the fish rides the hook
+- [ ] KRAKEN at the bottom (8s fight) → REEL
+- [ ] Golden-trajectory test — vitest, Node, and Playwright chromium/firefox/webkit
+- [ ] e2e: a full manual round, cast → hook → reel → surface
+
+### 29.4 Record → SQL
+
+- [ ] `Recording` — RLE input codec, canonical bytes, hash
+- [ ] `server/src/db.ts` (`node:sqlite`), schema, `server/data/` gitignored
+- [ ] `POST /api/debug/recordings` (server re-simulates, never trusts the client's result) + "Save run"
+- [ ] `pnpm test:server` in CI
+- [ ] `server/openapi.yaml` updated
+
+### 29.5 Re-run
+
+- [ ] `replay` mode in `useHookSim`
+- [ ] Debug "Recordings" accordion — list, play, verify on server, re-run round
+
+### 29.6 Simulate millions
+
+- [ ] Bots — `wander`, `seek(fish)`
+- [ ] `pnpm sim:build` — quota per fish, `sim_runs` counters
+- [ ] `pnpm sim:freeze` — dense `idx`, `libraryHash`, gap gate
+- [ ] Yield table per bot and fish
+
+### 29.7 Provably fair
+
+- [ ] `byteStream` optional label; replay index drawn from `(S, C, n, "replay")`
+- [ ] `Round.replay` on start / round detail / history; `libraryHash` in `/api/seed/current`
+- [ ] `verify` returns the replay pick
+- [ ] Proof script — 10k seed triples, catch equals `outcome.fish`
+- [ ] `src/types/api.ts` + `server/openapi.yaml` updated
+
+### 29.8 Real rounds (after §9)
+
+- [ ] `startRound` → replay plays → surfaced → `completeRound`
+- [ ] `auto` fallback when a fish has no recording
+- [ ] Production build has no manual controls
+
+### Acceptance Criteria
+
+A round's presentation is a recorded run of the sim that ends with the server-selected fish on the hook, replayable and verifiable from the round's seeds — while production play is unchanged: the player never steers and the outcome comes only from the server's RNG.
