@@ -66,6 +66,6 @@ export const useDebugStore = create<DebugStore>()(
 			setZoneSpeed: (id, metersPerSecond) =>
 				set(state => ({ zoneSpeeds: { ...state.zoneSpeeds, [id]: metersPerSecond } }))
 		}),
-		{ name: "deepcatch.debug", version: 1, migrate: getDefaults }
+		{ name: "deepcatch.debug", version: 2, migrate: getDefaults }
 	)
 );

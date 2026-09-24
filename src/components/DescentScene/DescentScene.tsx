@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useApplication } from "@pixi/react";
 
 import { cameraScroll, waterlineY } from "@components/HarbourScene/framing";
-import { MAX_DEPTH_METERS } from "@constants/depthZones";
+import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import { useDebugStore } from "@stores/debugStore";
 
 import Creatures from "./Creatures";
@@ -41,7 +41,7 @@ function DescentScene({ depth, tint, seconds }: DescentSceneProps) {
 	const depthUnit = useDebugStore(state => state.depthUnit);
 	// No server-picked jackpot outcome exists yet, so for now every round that
 	// reaches the bottom of the trench fights the Kraken.
-	const bossEncounter = depth >= MAX_DEPTH_METERS;
+	const bossEncounter = depth >= KRAKEN_DEPTH_METERS;
 	const descending = depth > 0;
 	useEffect(() => {
 		if (descending) preloadKrakenFight();

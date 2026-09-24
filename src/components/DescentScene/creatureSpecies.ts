@@ -38,8 +38,8 @@ export const SHEET_ROWS = 4;
 const swim = (frameCount: number, fps = 10): SheetAnimation => ({ row: 1, fps, frameCount });
 
 /** Bands follow the zone order in `constants/fish.ts`, except the lanternfish and
- *  whale, which live down in the trench (9,500m+) — capped at 10,500m so the Kraken
- *  keeps the jackpot layer (10,600m+). All the art faces left. */
+ *  whale, which live down in the trench (9,785m+) — capped at 10,825m (the whale, being
+ *  huge, at 10,675m) so the Kraken keeps the jackpot layer (10,935m+). All the art faces left. */
 export const SPECIES: Species[] = [
 	// shallow
 	{
@@ -49,11 +49,11 @@ export const SPECIES: Species[] = [
 		swim: swim(8),
 		scale: 0.55,
 		speed: 35,
-		fromMeters: 120,
-		toMeters: 1400,
+		fromMeters: 110,
+		toMeters: 1420,
 		count: 5
 	},
-	{ url: mackerel, cols: 8, swim: swim(8), scale: 0.7, speed: 90, fromMeters: 150, toMeters: 1500, count: 6 },
+	{ url: mackerel, cols: 8, swim: swim(8), scale: 0.7, speed: 90, fromMeters: 165, toMeters: 1530, count: 6 },
 	{
 		url: barracuda,
 		opaque: true,
@@ -61,8 +61,8 @@ export const SPECIES: Species[] = [
 		swim: swim(8),
 		scale: 0.9,
 		speed: 130,
-		fromMeters: 500,
-		toMeters: 2500,
+		fromMeters: 490,
+		toMeters: 2570,
 		count: 4
 	},
 	// reef
@@ -73,8 +73,8 @@ export const SPECIES: Species[] = [
 		swim: swim(8),
 		scale: 0.8,
 		speed: 55,
-		fromMeters: 1500,
-		toMeters: 3500,
+		fromMeters: 1530,
+		toMeters: 3610,
 		count: 5
 	},
 	{
@@ -84,8 +84,8 @@ export const SPECIES: Species[] = [
 		swim: swim(8, 8),
 		scale: 0.85,
 		speed: 40,
-		fromMeters: 1600,
-		toMeters: 3900,
+		fromMeters: 1640,
+		toMeters: 4045,
 		count: 4
 	},
 	{
@@ -95,11 +95,11 @@ export const SPECIES: Species[] = [
 		swim: swim(8),
 		scale: 0.9,
 		speed: 110,
-		fromMeters: 1500,
-		toMeters: 3800,
+		fromMeters: 1530,
+		toMeters: 3935,
 		count: 4
 	},
-	{ url: crab, cols: 8, swim: swim(8), scale: 0.5, speed: 40, fromMeters: 1600, toMeters: 3900, count: 4 },
+	{ url: crab, cols: 8, swim: swim(8), scale: 0.5, speed: 40, fromMeters: 1640, toMeters: 4045, count: 4 },
 	// deep
 	{
 		url: manta,
@@ -108,12 +108,12 @@ export const SPECIES: Species[] = [
 		swim: swim(9, 8),
 		scale: 1.2,
 		speed: 60,
-		fromMeters: 4000,
-		toMeters: 6800,
+		fromMeters: 4100,
+		toMeters: 7000,
 		count: 4
 	},
-	{ url: tuna, cols: 8, swim: swim(8), scale: 1, speed: 140, fromMeters: 4000, toMeters: 6900, count: 5 },
-	{ url: puffer, cols: 8, swim: swim(8), scale: 0.7, speed: 45, fromMeters: 4100, toMeters: 6900, count: 4 },
+	{ url: tuna, cols: 8, swim: swim(8), scale: 1, speed: 140, fromMeters: 4100, toMeters: 7110, count: 5 },
+	{ url: puffer, cols: 8, swim: swim(8), scale: 0.7, speed: 45, fromMeters: 4210, toMeters: 7110, count: 4 },
 	{
 		url: shark,
 		opaque: true,
@@ -121,8 +121,8 @@ export const SPECIES: Species[] = [
 		swim: swim(8),
 		scale: 2.3,
 		speed: 100,
-		fromMeters: 4300,
-		toMeters: 7000,
+		fromMeters: 4430,
+		toMeters: 7215,
 		count: 3
 	},
 	// abyss
@@ -133,8 +133,8 @@ export const SPECIES: Species[] = [
 		swim: swim(8),
 		scale: 0.75,
 		speed: 45,
-		fromMeters: 9600,
-		toMeters: 10500,
+		fromMeters: 9895,
+		toMeters: 10825,
 		count: 5
 	},
 	{
@@ -144,19 +144,19 @@ export const SPECIES: Species[] = [
 		swim: swim(8, 8),
 		scale: 0.6,
 		speed: 20,
-		fromMeters: 7000,
-		toMeters: 9400,
+		fromMeters: 7215,
+		toMeters: 9675,
 		count: 6
 	},
 	{
 		url: whale,
 		opaque: true,
-		cols: 8,
-		swim: swim(8, 8),
+		cols: 6,
+		swim: swim(6, 8),
 		scale: 4.5,
 		speed: 30,
-		fromMeters: 9700,
-		toMeters: 10500,
+		fromMeters: 10005,
+		toMeters: 10675,
 		count: 2
 	}
 ];

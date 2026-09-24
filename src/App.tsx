@@ -12,7 +12,7 @@ import LoadingScreen from "@components/LoadingScreen";
 import PlaceholderScene from "@components/PlaceholderScene/PlaceholderScene";
 import SceneManager from "@components/SceneManager/SceneManager";
 import StoreSync from "@components/system/StoreSync";
-import { MAX_DEPTH_METERS } from "@constants/depthZones";
+import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import { Button, Checkbox } from "@hooked-ui";
 import { useDescentDepth } from "@hooks/useDescentDepth";
 import { useGameBootstrap } from "@hooks/useGameBootstrap";
@@ -45,7 +45,7 @@ function App() {
 	// at once, whatever the cast is doing, until it's unticked or Surface is hit.
 	const forceTrench = useKrakenStore(state => state.forceTrench);
 	const setForceTrench = useKrakenStore(state => state.setForceTrench);
-	const depth = forceTrench ? MAX_DEPTH_METERS : descentDepth;
+	const depth = forceTrench ? KRAKEN_DEPTH_METERS : descentDepth;
 	const underwater = descending || forceTrench;
 
 	// The harbour needs the live `depth` value (the cast is a camera move

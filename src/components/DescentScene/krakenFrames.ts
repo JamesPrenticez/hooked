@@ -112,9 +112,25 @@ export const SHEET_GRIPS: Record<string, [x: number, y: number][]> = {
 	]
 };
 
+/**
+ * How high the art reaches in each frame of a sheet the fight plays, in sheet
+ * pixels: the first row with any real opacity (alpha over 40), which is what a
+ * player sees as the Kraken's top. Measured off the alpha channel, so good to a
+ * pixel or two. Re-measure if a sheet is redrawn.
+ */
+export const SHEET_TOPS: Record<string, number[]> = {
+	coiled_yanks_full_body: [43, 51, 51, 42, 40, 35, 348, 388, 412, 463, 462, 475, 768, 727, 665, 762, 775, 793]
+};
+
 /** The nominal even-grid cell of a `columns` x `rows` sheet — what each frame is set in. */
 export function krakenBox(columns: number, rows: number) {
 	return { width: SHEET_WIDTH / columns, height: SHEET_HEIGHT / rows };
+}
+
+/** Where the art's highest point is in `frame`, in sheet pixels from the middle of the frame's box
+ *  (`krakenFrameRect`'s) — negative, being above it. */
+export function krakenTop(sheetId: string, columns: number, rows: number, frame: number) {
+	return SHEET_TOPS[sheetId][frame] - (Math.floor(frame / columns) + 0.5) * krakenBox(columns, rows).height;
 }
 
 /** Where the hook is in `frame`, in sheet pixels from the middle of the frame's box (`krakenFrameRect`'s) —

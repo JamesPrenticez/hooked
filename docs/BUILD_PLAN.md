@@ -939,7 +939,13 @@ animations described by `kraken-animations.json`) are wired for preview only: th
 panel's "Kraken" category jumps the hook to the trench at once (no cast needed; `App` overrides
 the depth) and holds it there until unticked or Surface, where `DescentScene` shows `Kraken`,
 playing whichever animation is picked.
-A normal cast that bottoms out also shows `Kraken`, drawn 2x the size that fits the screen, playing
+The jackpot layer starts at exactly 10,935m (`JACKPOT_DEPTH_METERS`, the Challenger Deep); the hook
+stops 465m below that line at `MAX_DEPTH_METERS` (11,400m), which is where the Kraken engages, so the line
+has scrolled up near the top of the screen. The Kraken hangs under it: `krakenAnchorY` puts its highest
+point a `TOP_PADDING` gap below the line at every frame of the fight (`SHEET_TOPS` in `krakenFrames.ts`),
+and follows the line if the debug panel moves the jackpot zone. On a screen too short to show the line
+it keeps the same gap under the top edge instead.
+A normal cast that bottoms out also shows `Kraken`, drawn 1.2x the size that fits the screen, playing
 `KRAKEN_FIGHT` (`double_wrap` grab → `hard_yank` → `repeat_tug` on repeat) for `KRAKEN_FIGHT_SECONDS`
 (8s) while the hook holds at the bottom, then reels back up. The
 sheet preloads once the cast starts. Every bottomed-out round fights it — no jackpot outcome drives
@@ -947,7 +953,8 @@ it yet. The hook rides the coil: `krakenFight.ts` places the sprite from a per-f
 (`SHEET_GRIPS` in `krakenFrames.ts`, read off the art by eye and only for the fight's sheet), sharing the
 coil's travel between the hook and the Kraken sliding the other way (`HOOK_FOLLOW`) so the hook stays
 on screen above the bottom bar, and `FishingLine` eases the hook onto the coil as it closes and off it
-before the fight ends. The debug preview still fits whole frames and has no grip. The PNGs carry real alpha (the manifest's
+before the fight ends. The debug preview still fits whole frames (hung under the line the same way) and
+has no grip. The PNGs carry real alpha (the manifest's
 "purple background" warning doesn't apply). Rows and columns aren't on an even grid, so
 `krakenFrames.ts` cuts each frame from edges measured off the alpha channel and sets it in
 its even-grid box; a few tentacles still cross a cut and leave a sliver of a neighbour

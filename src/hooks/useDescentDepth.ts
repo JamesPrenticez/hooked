@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-import { MAX_DEPTH_METERS, zoneForDepth } from "@constants/depthZones";
+import { KRAKEN_DEPTH_METERS, zoneForDepth } from "@constants/depthZones";
 import { KRAKEN_FIGHT_SECONDS } from "@constants/krakenAnimations";
 import { useDebugStore } from "@stores/debugStore";
 
-// Final fraction of the descent that decelerates to a stop at MAX_DEPTH_METERS,
+// Final fraction of the descent that decelerates to a stop at KRAKEN_DEPTH_METERS,
 // on top of whatever speed the current tier is set to.
 const DECEL_FRACTION = 0.1;
 // Never crawl slower than this while still descending — the deceleration
@@ -24,7 +24,7 @@ type Phase = "down" | "bottom" | "up";
  * `requestAnimationFrame` while `active`. Speed is read live from the debug
  * store's per-tier `zoneSpeeds`/`depthZones` (BUILD_PLAN §13), decelerating
  * over the final `DECEL_FRACTION` of the range so the hook slows to a stop
- * at `MAX_DEPTH_METERS` instead of snapping to it. Once it bottoms out it
+ * at `KRAKEN_DEPTH_METERS` instead of snapping to it. Once it bottoms out it
  * holds for the Kraken fight, then reels back to the surface and calls `onSurfaced` —
  * for now that's the whole round, no fish/target depth yet.
  */
@@ -53,13 +53,13 @@ export function useDescentDepth(active: boolean, onSurfaced?: () => void): numbe
 				const zone = zoneForDepth(current, depthZones);
 				const speed = zoneSpeeds[zone.id] ?? 0;
 
-				const decelStart = MAX_DEPTH_METERS * (1 - DECEL_FRACTION);
+				const decelStart = KRAKEN_DEPTH_METERS * (1 - DECEL_FRACTION);
 				const factor =
-					current > decelStart ? Math.max(0, (MAX_DEPTH_METERS - current) / (MAX_DEPTH_METERS - decelStart)) : 1;
+					current > decelStart ? Math.max(0, (KRAKEN_DEPTH_METERS - current) / (KRAKEN_DEPTH_METERS - decelStart)) : 1;
 				const effectiveSpeed = Math.max(speed * factor, Math.min(speed, MIN_DESCENT_METERS_PER_SECOND));
 
-				current = Math.min(MAX_DEPTH_METERS, current + effectiveSpeed * dt);
-				if (current >= MAX_DEPTH_METERS) phase = "bottom";
+				current = Math.min(KRAKEN_DEPTH_METERS, current + effectiveSpeed * dt);
+				if (current >= KRAKEN_DEPTH_METERS) phase = "bottom";
 			} else if (phase === "bottom") {
 				bottomElapsed += dt;
 				if (bottomElapsed >= BOTTOM_HOLD_SECONDS) phase = "up";

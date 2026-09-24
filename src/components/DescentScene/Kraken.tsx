@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Assets, Rectangle, Texture } from "pixi.js";
 
 import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT, KRAKEN_SHEETS, krakenFrame } from "@constants/krakenAnimations";
+import { useDebugStore } from "@stores/debugStore";
 import { useKrakenStore } from "@stores/krakenStore";
 
-import { krakenFightPose, krakenFitScale } from "./krakenFight";
+import { krakenAnchorY, krakenFightPose, krakenFitScale } from "./krakenFight";
 import { krakenFrameRect } from "./krakenFrames";
 import { SHEET_URLS } from "./krakenSheets";
 
@@ -15,17 +16,19 @@ interface KrakenProps {
 }
 
 /**
- * The jackpot Kraken at the bottom of the trench (docs/JACKPOT.md). It plays the
- * grab-and-yank fight (`KRAKEN_FIGHT`) from the moment it mounts, far bigger than
- * the screen and holding the hook in its coil (`krakenFightPose`; `FishingLine`
- * draws the hook there) — unless the debug panel forced the trench, where it
- * plays whichever sheet animation `useKrakenStore` cues, centred and fitted to
- * the screen. Other sheets load when first cued, not up front — they're ~3MB each.
+ * The jackpot Kraken at the bottom of the trench (docs/JACKPOT.md), hanging under the
+ * jackpot line. It plays the grab-and-yank fight (`KRAKEN_FIGHT`) from the moment it
+ * mounts, bigger than the fitted size and holding the hook in its coil
+ * (`krakenFightPose`; `FishingLine` draws the hook there) — unless the debug panel
+ * forced the trench, where it plays whichever sheet animation `useKrakenStore` cues,
+ * fitted to the screen and centred across it. Other sheets load when first cued, not
+ * up front — they're ~3MB each.
  */
 function Kraken({ view, seconds }: KrakenProps) {
 	const forced = useKrakenStore(state => state.forceTrench);
 	const cue = useKrakenStore(state => state.cue);
 	const setFightStart = useKrakenStore(state => state.setFightStart);
+	const depthZones = useDebugStore(state => state.depthZones);
 	const animation = KRAKEN_ANIMATIONS[forced ? cue.animation : KRAKEN_FIGHT[0]];
 	const sheet = KRAKEN_SHEETS.find(({ id }) => id === animation.sheet)!;
 
@@ -73,10 +76,11 @@ function Kraken({ view, seconds }: KrakenProps) {
 	if (forced) {
 		const texture = frames[krakenFrame(animation.id, elapsed)];
 		const scale = krakenFitScale(view, texture);
-		return <pixiSprite texture={texture} anchor={0.5} x={view.width / 2} y={view.height / 2} scale={scale} />;
+		const y = krakenAnchorY(view, depthZones) + (texture.height * scale) / 2;
+		return <pixiSprite texture={texture} anchor={0.5} x={view.width / 2} y={y} scale={scale} />;
 	}
 
-	const pose = krakenFightPose(view, elapsed);
+	const pose = krakenFightPose(view, elapsed, depthZones);
 	return (
 		<pixiSprite texture={frames[pose.frame]} anchor={0.5} x={pose.sprite.x} y={pose.sprite.y} scale={pose.scale} />
 	);

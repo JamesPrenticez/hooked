@@ -15,9 +15,20 @@ export interface DepthZone {
 	fromMeters: number;
 }
 
-/** The ocean's real deepest point (Mariana Trench, Challenger Deep):
- *  35,876ft / 10,935m. The hook decelerates to a stop as it nears this. */
-export const MAX_DEPTH_METERS = 10_935;
+/** Where the jackpot layer begins: the ocean's real deepest point (Mariana Trench,
+ *  Challenger Deep), 35,876ft / 10,935m. The Kraken hangs under this line
+ *  (`krakenFight.ts`). */
+export const JACKPOT_DEPTH_METERS = 10_935;
+
+/** How far below the jackpot line the hook stops. At `PX_PER_METER` that's how far
+ *  the line has scrolled up from the hook's resting height by then (279px): high
+ *  on the screen, with the whole Kraken under it. */
+const JACKPOT_LAYER_METERS = 465;
+
+/** The bottom of the world: the hook decelerates to a stop here and the Kraken
+ *  engages. It's also the ceiling for the debug panel's zone sliders. */
+export const MAX_DEPTH_METERS = JACKPOT_DEPTH_METERS + JACKPOT_LAYER_METERS;
+export const KRAKEN_DEPTH_METERS = MAX_DEPTH_METERS;
 
 /** Screen pixels per metre of depth that world objects (depth markers, fish)
  *  scroll by. Independent of `FishingLine`'s short payout animation — this is
@@ -27,11 +38,11 @@ export const PX_PER_METER = 0.6;
 
 export const DEPTH_ZONES: DepthZone[] = [
 	{ id: "shallow", label: "Shallow", fromMeters: 0 },
-	{ id: "reef", label: "Reef", fromMeters: 1500 },
-	{ id: "deep", label: "Deep", fromMeters: 4000 },
-	{ id: "abyss", label: "Abyss", fromMeters: 7000 },
-	{ id: "trench", label: "Trench", fromMeters: 9500 },
-	{ id: "jackpot", label: "Jackpot", fromMeters: 10_600 }
+	{ id: "reef", label: "Reef", fromMeters: 1530 },
+	{ id: "deep", label: "Deep", fromMeters: 4100 },
+	{ id: "abyss", label: "Abyss", fromMeters: 7215 },
+	{ id: "trench", label: "Trench", fromMeters: 9785 },
+	{ id: "jackpot", label: "Jackpot", fromMeters: JACKPOT_DEPTH_METERS }
 ];
 
 /** The zone `depth` metres currently sits in. */

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT, KRAKEN_SHEETS } from "@constants/krakenAnimations";
 
-import { krakenBox, krakenFrameRect, krakenGrip, SHEET_CUTS } from "./krakenFrames";
+import { krakenBox, krakenFrameRect, krakenGrip, krakenTop, SHEET_CUTS, SHEET_TOPS } from "./krakenFrames";
 
 const rising = (edges: number[]) => edges.every((edge, i) => i === 0 || edge > edges[i - 1]);
 
@@ -58,5 +58,26 @@ describe("the hook grips", () => {
 		const { frames } = KRAKEN_ANIMATIONS[KRAKEN_FIGHT[1]];
 		expect(grip(frames[0]).y).toBeLessThan(-box.height / 4);
 		expect(grip(frames[frames.length - 1]).y).toBeGreaterThan(box.height / 8);
+	});
+});
+
+describe("the art tops", () => {
+	const sheet = KRAKEN_SHEETS.find(({ id }) => id === KRAKEN_ANIMATIONS[KRAKEN_FIGHT[0]].sheet)!;
+	const fightFrames = KRAKEN_FIGHT.flatMap(id => KRAKEN_ANIMATIONS[id].frames);
+
+	it("has one for every frame the fight plays, inside that frame's cut", () => {
+		for (const frame of fightFrames) {
+			const cut = krakenFrameRect(sheet.id, sheet.columns, sheet.rows, frame);
+			expect(SHEET_TOPS[sheet.id][frame], `frame ${frame}`).toBeGreaterThanOrEqual(cut.y);
+			expect(SHEET_TOPS[sheet.id][frame], `frame ${frame}`).toBeLessThan(cut.y + cut.height);
+		}
+	});
+
+	it("measures from the middle of the box: always above it, and above where the hook is gripped", () => {
+		for (const frame of fightFrames) {
+			const top = krakenTop(sheet.id, sheet.columns, sheet.rows, frame);
+			expect(top, `frame ${frame}`).toBeLessThan(0);
+			expect(top, `frame ${frame}`).toBeLessThan(krakenGrip(sheet.id, sheet.columns, sheet.rows, frame).y);
+		}
 	});
 });

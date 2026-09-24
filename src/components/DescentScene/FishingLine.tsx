@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Assets, type Texture } from "pixi.js";
 
 import hookUrl from "@assets/player/hook.png";
+import { useDebugStore } from "@stores/debugStore";
 import { useKrakenStore } from "@stores/krakenStore";
 
 import { krakenFightPose, krakenHold } from "./krakenFight";
@@ -46,6 +47,7 @@ const HOOK_EYE = { x: 0.545, y: 0.067 };
 function FishingLine({ tip, hookY, scroll, waterY, view, boatScale, seconds }: FishingLineProps) {
 	const [hook, setHook] = useState<Texture>();
 	const fightStart = useKrakenStore(state => state.fightStart);
+	const depthZones = useDebugStore(state => state.depthZones);
 
 	useEffect(() => {
 		let live = true;
@@ -64,7 +66,7 @@ function FishingLine({ tip, hookY, scroll, waterY, view, boatScale, seconds }: F
 	let y = hookY;
 	if (fightStart !== undefined) {
 		const elapsed = seconds - fightStart;
-		const { grip } = krakenFightPose(view, elapsed);
+		const { grip } = krakenFightPose(view, elapsed, depthZones);
 		const hold = krakenHold(elapsed);
 		x += (grip.x - x) * hold;
 		y += (grip.y + scroll - y) * hold;

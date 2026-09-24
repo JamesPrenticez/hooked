@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { DEPTH_ZONES, zoneForDepth } from "./depthZones";
+import { DEPTH_ZONES, JACKPOT_DEPTH_METERS, KRAKEN_DEPTH_METERS, MAX_DEPTH_METERS, zoneForDepth } from "./depthZones";
+
+describe("the jackpot layer", () => {
+	it("starts exactly at the deepest point of the ocean, 10,935m", () => {
+		expect(DEPTH_ZONES.find(zone => zone.id === "jackpot")!.fromMeters).toBe(10_935);
+		expect(JACKPOT_DEPTH_METERS).toBe(10_935);
+	});
+
+	it("is the last zone, with the hook stopping below its line — at the bottom of the world", () => {
+		expect(DEPTH_ZONES.at(-1)!.id).toBe("jackpot");
+		expect(KRAKEN_DEPTH_METERS).toBeGreaterThan(JACKPOT_DEPTH_METERS);
+		expect(KRAKEN_DEPTH_METERS).toBe(MAX_DEPTH_METERS);
+	});
+});
 
 describe("zoneForDepth", () => {
 	it("is shallow at the surface", () => {

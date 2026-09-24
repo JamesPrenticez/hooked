@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 
-import { MAX_DEPTH_METERS } from "@constants/depthZones";
+import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import { KRAKEN_FIGHT_SECONDS } from "@constants/krakenAnimations";
 import { useDebugStore } from "@stores/debugStore";
 
@@ -62,7 +62,7 @@ it("stops at the max depth instead of overshooting it", () => {
 	const { result } = renderHook(() => useDescentDepth(true));
 
 	flushFrame(1000);
-	expect(result.current).toBe(MAX_DEPTH_METERS);
+	expect(result.current).toBe(KRAKEN_DEPTH_METERS);
 });
 
 it("holds at the bottom for the whole Kraken fight, then reels back to the surface and calls onSurfaced", () => {
@@ -74,11 +74,11 @@ it("holds at the bottom for the whole Kraken fight, then reels back to the surfa
 
 	flushFrame(1000); // reaches the bottom, starts the hold
 	flushFrame(1000 + (KRAKEN_FIGHT_SECONDS - 1) * 1000); // a second short of the fight's end
-	expect(result.current).toBe(MAX_DEPTH_METERS);
+	expect(result.current).toBe(KRAKEN_DEPTH_METERS);
 	expect(onSurfaced).not.toHaveBeenCalled();
 
 	flushFrame(1000 + (KRAKEN_FIGHT_SECONDS + 1) * 1000); // fight over, now ascending
-	flushFrame(1000 + (KRAKEN_FIGHT_SECONDS + 1) * 1000 + Math.ceil(MAX_DEPTH_METERS / 600 + 1) * 1000); // long enough to reel all the way in
+	flushFrame(1000 + (KRAKEN_FIGHT_SECONDS + 1) * 1000 + Math.ceil(KRAKEN_DEPTH_METERS / 600 + 1) * 1000); // long enough to reel all the way in
 
 	expect(result.current).toBe(0);
 	expect(onSurfaced).toHaveBeenCalledTimes(1);
