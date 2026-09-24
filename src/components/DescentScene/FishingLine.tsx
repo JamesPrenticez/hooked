@@ -5,10 +5,9 @@ import hookUrl from "@assets/player/hook.png";
 import { useDebugStore } from "@stores/debugStore";
 import { useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
-import { CAST_METERS, SIM_WIDTH } from "@utils/simConfig";
 
 import { krakenFightPose, krakenHold } from "./krakenFight";
-import { hookX } from "./lineDrift";
+import { hookX, simHookX } from "./lineDrift";
 
 interface FishingLineProps {
 	/** Rod tip in world space (`boatLayout`) — the line hangs from it until the hook hits the water. */
@@ -68,8 +67,7 @@ function FishingLine({ tip, hookY, scroll, waterY, view, boatScale, seconds }: F
 	let x = hookX(tip.x, view, hookY - waterY, seconds);
 	if (sim) {
 		// Manual: the hook is the sim's, eased from under the rod tip over the cast.
-		const t = Math.min(1, sim.depthM / CAST_METERS);
-		x = tip.x + ((sim.x / SIM_WIDTH) * view.width - tip.x) * t * t * (3 - 2 * t);
+		x = simHookX(tip.x, sim.x, sim.depthM, view.width);
 	}
 	let y = hookY;
 	if (fightStart !== undefined) {

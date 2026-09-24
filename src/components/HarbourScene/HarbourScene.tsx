@@ -11,6 +11,7 @@ import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
 import basicSheetUrl from "@assets/player/player-idle-cast-reel.png";
 import extendedSheetUrl from "@assets/player/player-succes-fail.png";
 import DescentScene from "@components/DescentScene";
+import Creatures from "@components/DescentScene/Creatures";
 import FishingLine from "@components/DescentScene/FishingLine";
 import { useDayNightClock } from "@hooks/useDayNightClock";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
@@ -104,7 +105,7 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 
 	return (
 		<pixiContainer>
-			<DescentScene depth={depth} tint={bgTint} seconds={seconds} />
+			<DescentScene depth={depth} tint={bgTint} seconds={seconds} tip={boat?.tip} />
 			{/* The harbour layers have nothing to draw once the camera has scrolled them
 			    off-screen, but the fishing line and hook follow the hook down. */}
 			<pixiContainer y={-scroll}>
@@ -144,6 +145,8 @@ function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 				)}
 				{player && boat && <Fisherman frames={player} boat={boat} tint={bgTint} seconds={seconds} />}
 			</pixiContainer>
+			{/* Screen space, above the hook: the hooked fish overlaps it. */}
+			<Creatures view={view} depth={depth} seconds={seconds} tip={boat?.tip} onlyHooked />
 		</pixiContainer>
 	);
 }

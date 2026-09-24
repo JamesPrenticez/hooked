@@ -1,3 +1,5 @@
+import { CAST_METERS, SIM_WIDTH } from "@utils/simConfig";
+
 // Three sine waves at non-integer-ratio frequencies — same trick as
 // `waterSwell`/`windowFlicker` — sum to a sweep that crosses the screen without
 // visibly repeating, instead of a real random walk. Amplitudes sum to 1, so the
@@ -21,6 +23,12 @@ const DRIFT_FRACTION = 0.4;
 /** Px below the surface over which the hook eases from hanging under the rod tip
  *  into the sweep, as a fraction of the screen height. */
 const ENTRY_BLEND = 1.5;
+
+/** Screen x of the sim's hook: `simX` eased from under the rod tip over the cast. */
+export function simHookX(tipX: number, simX: number, depthM: number, viewWidth: number) {
+	const t = Math.min(1, depthM / CAST_METERS);
+	return tipX + ((simX / SIM_WIDTH) * viewWidth - tipX) * t * t * (3 - 2 * t);
+}
 
 /**
  * World x of the hook. It falls straight down from the rod tip (`tipX`) until it

@@ -1,18 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { Assets, Rectangle, Texture } from "pixi.js";
 
-import { depthToScreenY } from "@components/HarbourScene/framing";
+import { cameraScroll, depthToScreenY, hookWorldY } from "@components/HarbourScene/framing";
 import { useHookStore } from "@stores/hookStore";
 import { HOOK_TIP_DY, SIM_WIDTH, TICK_HZ } from "@utils/simConfig";
 import { fishX } from "@utils/simWorld";
 
 import { BITE, CREATURES, SHEET_ROWS, SPECIES, type Species, STRUGGLE } from "./creatureSpecies";
+import { simHookX } from "./lineDrift";
 import { cellRect, frameIndex, type SheetAnimation } from "./spriteSheet";
+
+/** Px the hooked fish is lifted past the hook tip, so the hook sits inside its mouth. Tune by eye. */
+const HOOK_IN_MOUTH = 30;
 
 interface CreaturesProps {
 	view: { width: number; height: number };
 	depth: number;
 	seconds: number;
+	tip?: { x: number; y: number };
+	/** Draw only the hooked fish — mounted above the fishing line so it overlaps the hook. Otherwise all but it. */
+	onlyHooked?: boolean;
 }
 
 interface SpeciesFrames {
@@ -65,14 +72,15 @@ function hookedFrame({ bite, struggle }: SpeciesFrames, seconds: number): Textur
  * running (manual) they are the sim's world, placed by `fishX` at the sim's tick,
  * and the hooked one sits mouth-to-hook playing its bite then struggle rows.
  */
-function Creatures({ view, depth, seconds }: CreaturesProps) {
+function Creatures({ view, depth, seconds, tip, onlyHooked = false }: CreaturesProps) {
 	const frames = useFrames();
 	const sim = useHookStore(state => state.sim);
-	if (!frames) return null;
+	if (!frames || (onlyHooked && !sim)) return null;
 
 	if (sim) {
 		const bySpecies = new Map(SPECIES.map(s => [s.id, s]));
 		return sim.world.map((fish, i) => {
+			if ((i === sim.hooked) !== onlyHooked) return null;
 			const species = bySpecies.get(fish.art)!;
 			const set = frames.get(species)!;
 			const hooked = i === sim.hooked;
@@ -80,9 +88,13 @@ function Creatures({ view, depth, seconds }: CreaturesProps) {
 			let x = (fishX(fish, sim.tick) / SIM_WIDTH) * view.width;
 			let y = depthToScreenY(fish.meters, depth, view);
 			if (hooked) {
-				// Mouth to hook tip: the mouth is `mouth.dx` from the centre, mirrored with the fish.
-				x = (sim.x / SIM_WIDTH) * view.width + fish.direction * fish.mouth.dx;
-				y = view.height / 2 + HOOK_TIP_DY - fish.mouth.dy;
+				// Hung head-up: rotated a quarter turn so the mouth points up, then the centre is
+				// offset so the rotated mouth sits on the hook tip (which follows the hook's x).
+				// The hook rides the same path as `FishingLine`'s: eased from the rod tip over the cast.
+				const hookX = simHookX(tip?.x ?? view.width / 2, sim.x, sim.depthM, view.width);
+				const hookY = hookWorldY(sim.depthM, tip?.y ?? view.height / 2, view) - cameraScroll(sim.depthM, view);
+				x = hookX - fish.direction * fish.mouth.dy;
+				y = hookY + HOOK_TIP_DY - HOOK_IN_MOUTH - fish.mouth.dx;
 			} else if (Math.abs(y - view.height / 2) > view.height / 2 + fish.height) return null;
 
 			return (
@@ -97,6 +109,7 @@ function Creatures({ view, depth, seconds }: CreaturesProps) {
 					blendMode={species.opaque ? "screen" : "normal"}
 					x={x}
 					y={y}
+					rotation={hooked ? (-fish.direction * Math.PI) / 2 : 0}
 					scale={{ x: species.scale * -fish.direction, y: species.scale }}
 				/>
 			);
