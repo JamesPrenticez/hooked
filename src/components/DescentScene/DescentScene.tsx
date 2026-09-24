@@ -8,6 +8,7 @@ import { useDebugStore } from "@stores/debugStore";
 import Creatures from "./Creatures";
 import { computeDepthAmbience } from "./depthAmbience";
 import DepthMarkers from "./DepthMarkers";
+import HitboxOverlay from "./HitboxOverlay";
 import Kraken from "./Kraken";
 import { preloadKrakenFight } from "./krakenSheets";
 import WaterLayer from "./WaterLayer";
@@ -67,6 +68,7 @@ function DescentScene({ depth, tint, seconds }: DescentSceneProps) {
 			<WaterTiles view={view} y={waterY} scroll={scroll} ambience={ambience} tint={tint} seconds={seconds} />
 			<DepthMarkers view={view} depth={depth} zones={depthZones} unit={depthUnit} />
 			<Creatures view={view} depth={depth} seconds={seconds} />
+			<HitboxOverlay view={view} depth={depth} />
 			{bossEncounter && <Kraken view={view} seconds={seconds} />}
 		</pixiContainer>
 	);

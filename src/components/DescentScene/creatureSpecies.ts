@@ -17,6 +17,8 @@ import { seededRandom } from "@utils/simRandom";
 import type { SheetAnimation } from "./spriteSheet";
 
 export interface Species {
+	/** Sheet key — `SimFish.art` points here. */
+	id: string;
 	url: string;
 	/** Cells per row — the export's real grid, not the tile size in `animations.json`. */
 	cols: number;
@@ -36,6 +38,11 @@ export interface Species {
 
 export const SHEET_ROWS = 4;
 
+/** Bite row (2) plays once when a fish is hooked, then the struggle row (3) loops. Every
+ *  sheet has 6 bite frames and 8 struggle frames but the tuna's 5 bite frames. */
+export const BITE: SheetAnimation = { row: 2, fps: 12, frameCount: 6 };
+export const STRUGGLE: SheetAnimation = { row: 3, fps: 12, frameCount: 8 };
+
 const swim = (frameCount: number, fps = 10): SheetAnimation => ({ row: 1, fps, frameCount });
 
 /** Bands follow the zone order in `constants/fish.ts`, except the lanternfish and
@@ -44,6 +51,7 @@ const swim = (frameCount: number, fps = 10): SheetAnimation => ({ row: 1, fps, f
 export const SPECIES: Species[] = [
 	// shallow
 	{
+		id: "shrimp",
 		url: shrimp,
 		opaque: true,
 		cols: 8,
@@ -54,8 +62,19 @@ export const SPECIES: Species[] = [
 		toMeters: 1420,
 		count: 5
 	},
-	{ url: mackerel, cols: 8, swim: swim(8), scale: 0.7, speed: 90, fromMeters: 165, toMeters: 1530, count: 6 },
 	{
+		id: "mackerel",
+		url: mackerel,
+		cols: 8,
+		swim: swim(8),
+		scale: 0.7,
+		speed: 90,
+		fromMeters: 165,
+		toMeters: 1530,
+		count: 6
+	},
+	{
+		id: "barracuda",
 		url: barracuda,
 		opaque: true,
 		cols: 8,
@@ -68,6 +87,7 @@ export const SPECIES: Species[] = [
 	},
 	// reef
 	{
+		id: "napoleon",
 		url: napoleon,
 		opaque: true,
 		cols: 8,
@@ -79,6 +99,7 @@ export const SPECIES: Species[] = [
 		count: 5
 	},
 	{
+		id: "turtle",
 		url: turtle,
 		opaque: true,
 		cols: 8,
@@ -90,6 +111,7 @@ export const SPECIES: Species[] = [
 		count: 4
 	},
 	{
+		id: "pike",
 		url: pike,
 		opaque: true,
 		cols: 8,
@@ -100,9 +122,10 @@ export const SPECIES: Species[] = [
 		toMeters: 3935,
 		count: 4
 	},
-	{ url: crab, cols: 8, swim: swim(8), scale: 0.5, speed: 40, fromMeters: 1640, toMeters: 4045, count: 4 },
+	{ id: "crab", url: crab, cols: 8, swim: swim(8), scale: 0.5, speed: 40, fromMeters: 1640, toMeters: 4045, count: 4 },
 	// deep
 	{
+		id: "manta",
 		url: manta,
 		opaque: true,
 		cols: 9,
@@ -113,9 +136,20 @@ export const SPECIES: Species[] = [
 		toMeters: 7000,
 		count: 4
 	},
-	{ url: tuna, cols: 8, swim: swim(8), scale: 1, speed: 140, fromMeters: 4100, toMeters: 7110, count: 5 },
-	{ url: puffer, cols: 8, swim: swim(8), scale: 0.7, speed: 45, fromMeters: 4210, toMeters: 7110, count: 4 },
+	{ id: "tuna", url: tuna, cols: 8, swim: swim(8), scale: 1, speed: 140, fromMeters: 4100, toMeters: 7110, count: 5 },
 	{
+		id: "puffer",
+		url: puffer,
+		cols: 8,
+		swim: swim(8),
+		scale: 0.7,
+		speed: 45,
+		fromMeters: 4210,
+		toMeters: 7110,
+		count: 4
+	},
+	{
+		id: "shark",
 		url: shark,
 		opaque: true,
 		cols: 8,
@@ -128,6 +162,7 @@ export const SPECIES: Species[] = [
 	},
 	// abyss
 	{
+		id: "lantern",
 		url: lantern,
 		opaque: true,
 		cols: 8,
@@ -139,6 +174,7 @@ export const SPECIES: Species[] = [
 		count: 5
 	},
 	{
+		id: "jelly",
 		url: jelly,
 		opaque: true,
 		cols: 8,
@@ -150,6 +186,7 @@ export const SPECIES: Species[] = [
 		count: 6
 	},
 	{
+		id: "whale",
 		url: whale,
 		opaque: true,
 		cols: 6,

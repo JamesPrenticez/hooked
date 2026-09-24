@@ -3,8 +3,13 @@ import { expect, it } from "vitest";
 import { SIM_WIDTH, TICK_HZ } from "./simConfig";
 import { createSim, step } from "./simStep";
 
+/** A sim over an empty sea, so nothing gets hooked. */
+function emptySim(seed = 1) {
+	return { ...createSim(seed), world: [] };
+}
+
 function run(axis: number, ticks: number) {
-	const sim = createSim(1);
+	const sim = emptySim();
 	for (let i = 0; i < ticks; i++) step(sim, axis);
 	return sim;
 }
@@ -17,7 +22,7 @@ it("starts centred and steers with the axis", () => {
 });
 
 it("crosses edge to edge in about 1.5s and stops at the wall", () => {
-	const sim = createSim(1);
+	const sim = emptySim();
 	sim.x = 0;
 	let ticks = 0;
 	while (sim.x < SIM_WIDTH) {
@@ -32,7 +37,7 @@ it("crosses edge to edge in about 1.5s and stops at the wall", () => {
 });
 
 it("descends on the zone speeds and holds at the bottom", () => {
-	const sim = createSim(1);
+	const sim = emptySim();
 	step(sim, 0);
 	expect(sim.depthM).toBeCloseTo(220 / TICK_HZ);
 	for (let i = 0; i < 60 * 300; i++) step(sim, 0);

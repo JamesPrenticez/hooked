@@ -43,6 +43,8 @@ function DebugPanel() {
 	const setWorldSeed = useHookStore(state => state.setWorldSeed);
 	const timeScale = useHookStore(state => state.timeScale);
 	const setTimeScale = useHookStore(state => state.setTimeScale);
+	const showHitboxes = useHookStore(state => state.showHitboxes);
+	const setShowHitboxes = useHookStore(state => state.setShowHitboxes);
 	const sim = useHookStore(state => state.sim);
 
 	const playAnimation = usePlayerStore(state => state.play);
@@ -167,12 +169,16 @@ function DebugPanel() {
 								))}
 							</select>
 						</label>
+						<label className={styles.checkField}>
+							<input type="checkbox" checked={showHitboxes} onChange={e => setShowHitboxes(e.target.checked)} />
+							Show hit-boxes
+						</label>
 						<p className={styles.note}>
 							Manual: Cast Line, then steer with ← / →. The "Hook" speeds above drive Auto only.
 						</p>
 						<p className={styles.note} data-testid="hook-readout">
 							{sim
-								? `${sim.phase} · x ${Math.round(sim.x)} · ${Math.round(sim.depthM).toLocaleString()}m · tick ${sim.tick}`
+								? `${sim.phase} · x ${Math.round(sim.x)} · ${Math.round(sim.depthM).toLocaleString()}m · tick ${sim.tick} · hooked ${sim.world[sim.hooked]?.id ?? "none"}`
 								: "no run"}
 						</p>
 					</div>

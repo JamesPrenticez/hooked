@@ -17,6 +17,9 @@ interface HookStore {
 	/** Sim ticks per real tick — fast-forwards a run without changing it. */
 	timeScale: number;
 	setTimeScale: (scale: number) => void;
+	/** Debug overlay: mouth circles and the hook tip. */
+	showHitboxes: boolean;
+	setShowHitboxes: (show: boolean) => void;
 	/** Live snapshot of the running sim; unset when none is running. */
 	sim: Sim | undefined;
 }
@@ -28,6 +31,8 @@ export const useHookStore = create<HookStore>(set => ({
 	setWorldSeed: worldSeed => set({ worldSeed }),
 	timeScale: 1,
 	setTimeScale: timeScale => set({ timeScale }),
+	showHitboxes: false,
+	setShowHitboxes: showHitboxes => set({ showHitboxes }),
 	sim: undefined
 }));
 

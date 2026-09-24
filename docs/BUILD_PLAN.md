@@ -1431,10 +1431,10 @@ Design and decisions: `docs/SIMULATION.md`. Built alongside §13–16 (descent, 
 
 ### 29.2 Hook a fish by the mouth
 
-- [ ] `SIM_FISH` keyed by roster id (stand-in art where a sheet is missing), `spawnWorld`, closed-form `fishX`
-- [ ] Per-species mouth hit-box; first touch hooks; armed from `CAST_METERS`
-- [ ] `HitboxOverlay` (debug); `Creatures` draws from the sim; bite row plays on contact
-- [ ] e2e (seeded world): a scripted key sequence hooks a known fish, a near miss doesn't
+- [x] `SIM_FISH` keyed by roster id (stand-in art where a sheet is missing), `spawnWorld`, closed-form `fishX`
+- [x] Per-species mouth hit-box; first touch hooks; armed from `CAST_METERS`
+- [x] `HitboxOverlay` (debug); `Creatures` draws from the sim; bite row plays on contact
+- [x] e2e (seeded world): a scripted key sequence hooks a known fish, a near miss doesn't
 
 ### 29.3 Reel-in
 
