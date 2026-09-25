@@ -1,4 +1,4 @@
-import { HORIZON_Y } from "./framing";
+import { DESKTOP_DROP, HORIZON_Y } from "./framing";
 
 interface Size {
 	width: number;
@@ -39,7 +39,8 @@ export function computeBackgroundFit<T extends Size>(screen: Size, desktop: T, m
 	const texture = landscape ? desktop : mobile;
 	const scale = screen.width / texture.width;
 	const dockLine = landscape ? DOCK_LINE.desktop : DOCK_LINE.mobile;
-	const top = screen.height * HORIZON_Y - dockLine * texture.height * scale;
+	const drop = landscape ? screen.height * DESKTOP_DROP : 0;
+	const top = screen.height * HORIZON_Y + drop - dockLine * texture.height * scale;
 
 	return { texture, scale, x: screen.width / 2, y: top + (texture.height * scale) / 2 };
 }

@@ -150,13 +150,13 @@ describe("hookPose", () => {
 });
 
 describe("craneLayout", () => {
-	it("stands on the right-hand pier, its jib reaching out over the harbour and up out of the way of the fish", () => {
+	it("stands on the left-hand pier, its jib reaching out over the harbour and up out of the way of the fish", () => {
 		for (const view of [VIEW, PORTRAIT, { width: 844, height: 390 }]) {
 			const { x, y, jib } = craneLayout(view);
-			expect(x).toBeGreaterThan(view.width * 0.6);
-			expect(x).toBeLessThanOrEqual(view.width);
-			expect(jib.x).toBeLessThan(x);
-			expect(jib.x).toBeGreaterThan(0);
+			expect(x).toBeLessThan(view.width * 0.4);
+			expect(x).toBeGreaterThanOrEqual(0);
+			expect(jib.x).toBeGreaterThan(x);
+			expect(jib.x).toBeLessThan(view.width);
 			expect(jib.y).toBeLessThan(y);
 			expect(jib.y).toBeGreaterThanOrEqual(-view.height * 0.05);
 		}
@@ -173,10 +173,10 @@ describe("heliLayout", () => {
 		return { hook: p, layout: heliLayout(VIEW, p, arrival) };
 	};
 
-	it("chills small in the sky at the left of the harbour until it is called", () => {
+	it("chills small on the helipad at the right of the skyline until it is called", () => {
 		const { layout } = pose(0);
-		expect(layout.x).toBeLessThan(VIEW.width * 0.3);
-		expect(layout.y).toBeLessThan(VIEW.height * 0.25);
+		expect(layout.x).toBeGreaterThan(VIEW.width * 0.6);
+		expect(layout.y).toBeLessThan(VIEW.height * 0.4);
 		expect(layout.scale).toBeLessThan(pose(1).layout.scale);
 	});
 

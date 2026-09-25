@@ -1,6 +1,6 @@
 import { FillGradient } from "pixi.js";
 
-import { HORIZON_Y } from "./framing";
+import { horizonY } from "./framing";
 import type { HarbourView } from "./layers";
 
 interface SkyLayerProps {
@@ -51,7 +51,7 @@ export function SkyLayer({ view, skyTop, skyHorizon }: SkyLayerProps) {
 		<pixiGraphics
 			draw={g => {
 				g.clear();
-				g.rect(0, 0, view.width, view.height * HORIZON_Y).fill(skyGradient(skyTop, skyHorizon));
+				g.rect(0, 0, view.width, horizonY(view)).fill(skyGradient(skyTop, skyHorizon));
 			}}
 		/>
 	);

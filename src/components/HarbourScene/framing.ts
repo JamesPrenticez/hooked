@@ -14,6 +14,16 @@ interface Size {
 export const HORIZON_Y = 1 / 3;
 export const WATERLINE_Y = 2 / 3;
 
+/** How far the wide desktop art sits below the top-third horizon, as a fraction
+ *  of screen height. The water starts where its docks end, so `horizonY` moves
+ *  with it. */
+export const DESKTOP_DROP = 0.2;
+
+/** Screen y where the docks meet the water. */
+export function horizonY(view: Size): number {
+	return view.height * (HORIZON_Y + (view.width >= view.height ? DESKTOP_DROP : 0));
+}
+
 /** Screen height fraction the hook rests at once the descent is under way. */
 const HOOK_REST_Y = 0.5;
 

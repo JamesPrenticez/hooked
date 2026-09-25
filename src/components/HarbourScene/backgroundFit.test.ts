@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { computeBackgroundFit, textureToScreen } from "./backgroundFit";
+import { horizonY } from "./framing";
 
 const DESKTOP = { width: 2560, height: 1441 };
 const MOBILE = { width: 941, height: 1670 };
@@ -19,10 +20,10 @@ describe("computeBackgroundFit", () => {
 		expect(fit.x).toBeCloseTo(960);
 	});
 
-	it("puts the docks' waterline on the top-third horizon in landscape", () => {
+	it("drops the docks' waterline below the top-third horizon in landscape", () => {
 		const fit = computeBackgroundFit({ width: 1920, height: 1080 }, DESKTOP, MOBILE);
 
-		expect(dockLineY(fit, 0.438)).toBeCloseTo(1080 / 3);
+		expect(dockLineY(fit, 0.438)).toBeCloseTo(horizonY({ width: 1920, height: 1080 }));
 	});
 
 	it("draws the portrait composition fit to viewport width in portrait", () => {

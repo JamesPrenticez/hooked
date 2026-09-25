@@ -11,7 +11,7 @@ import {
 } from "@utils/simExtraction";
 import type { Sim } from "@utils/simStep";
 
-import { hookWorldY, HORIZON_Y, waterlineY } from "./framing";
+import { hookWorldY, horizonY, waterlineY } from "./framing";
 
 interface Size {
 	width: number;
@@ -64,16 +64,16 @@ export const CRANE_ART = {
 	foot: { x: 0.33, y: 0.978 },
 	jib: { x: 1085 / 1145, y: 385 / 1374 }
 };
-/** The feet's outer edge, as a share of the art width from the anchor — the crane is drawn mirrored, its feet against the pier. */
+/** The feet's outer edge, as a share of the art width from the anchor — its feet against the left pier. */
 const CRANE_FOOT_REACH = 0.317;
 const CRANE_HEIGHT = 0.42;
 const CRANE_MAX_WIDTH = 0.55;
 /** Where the feet stand: the harbour's horizon, and how far in from the screen edge. */
-const CRANE_GROUND_Y = HORIZON_Y + 0.002;
-const CRANE_EDGE_GAP = 0.013;
+const CRANE_GROUND_OFFSET = -0.025;
+const CRANE_EDGE_GAP = -0.015;
 
 export interface CraneLayout {
-	/** Where its feet meet the ground, world space. The sprite is anchored here and drawn mirrored. */
+	/** Where its feet meet the ground, world space. The sprite is anchored here. */
 	x: number;
 	y: number;
 	/** Screen px per art pixel. */
@@ -84,7 +84,7 @@ export interface CraneLayout {
 	jib: Point;
 }
 
-/** The dock crane on the right-hand pier, its jib reaching out over the harbour. */
+/** The dock crane on the left-hand pier, its jib reaching out over the harbour. */
 export function craneLayout(view: Size): CraneLayout {
 	const height = Math.min(
 		CRANE_HEIGHT * view.height,
@@ -92,8 +92,8 @@ export function craneLayout(view: Size): CraneLayout {
 	);
 	const scale = height / CRANE_ART.height;
 	const width = CRANE_ART.width * scale;
-	const x = view.width * (1 - CRANE_EDGE_GAP) - CRANE_FOOT_REACH * width;
-	const y = view.height * CRANE_GROUND_Y;
+	const x = view.width * CRANE_EDGE_GAP + CRANE_FOOT_REACH * width;
+	const y = horizonY(view) + view.height * CRANE_GROUND_OFFSET;
 
 	return {
 		x,
@@ -101,8 +101,7 @@ export function craneLayout(view: Size): CraneLayout {
 		scale,
 		width,
 		height,
-		// Mirrored: the jib, right of the anchor in the art, lands left of it.
-		jib: { x: x - (CRANE_ART.jib.x - CRANE_ART.foot.x) * width, y: y - (CRANE_ART.foot.y - CRANE_ART.jib.y) * height }
+		jib: { x: x + (CRANE_ART.jib.x - CRANE_ART.foot.x) * width, y: y - (CRANE_ART.foot.y - CRANE_ART.jib.y) * height }
 	};
 }
 
@@ -114,6 +113,8 @@ const HELI_MAX_WIDTH = 0.5;
 /** It idles in the sky this much smaller — further off — than it works. */
 const HELI_IDLE_SCALE = 0.5;
 const HELI_IDLE = { x: 0.17, y: 0.16 };
+/** The helipad on the skyline's rooftop, in `bg-desktop`'s pixels — where it idles on a landscape screen. */
+const HELIPAD = { x: 1115, y: 150, artWidth: 1672, dockLine: 0.438 * 941 };
 /** How much winch cable it hangs the fish on once the fish is fully up, of the screen height. */
 const HELI_CABLE = 0.055;
 
@@ -122,12 +123,18 @@ export interface HeliLayout extends Point {
 	scale: number;
 }
 
+function helipad(view: Size): Point {
+	if (view.width < view.height) return { x: HELI_IDLE.x * view.width, y: HELI_IDLE.y * view.height };
+	const scale = view.width / HELIPAD.artWidth;
+	return { x: HELIPAD.x * scale, y: horizonY(view) + (HELIPAD.y - HELIPAD.dockLine) * scale };
+}
+
 /** Where the helicopter's winch ring is: idling in the sky until called, then flying over the hook and hovering there. */
 export function heliLayout(view: Size, hook: HookPose, arrival: number): HeliLayout {
 	const near = Math.min(HELI_WIDTH * view.height, HELI_MAX_WIDTH * view.width) / HELI_ART.solid;
 	const far = near * HELI_IDLE_SCALE;
 	const fly = between(arrival, 0, 0.6);
-	const idle = { x: HELI_IDLE.x * view.width, y: HELI_IDLE.y * view.height };
+	const idle = helipad(view);
 	const hover = { x: hook.x, y: (hook.finalY ?? hook.y) - HELI_CABLE * view.height };
 
 	return {

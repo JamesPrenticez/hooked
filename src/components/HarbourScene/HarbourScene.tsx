@@ -161,7 +161,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 					<SeamWaves view={view} tint={bgTint} texture={textures?.[seamUrl]} seconds={seconds} />
 					{/* Part of the harbour, just chilling until a catch is too heavy for the rod. */}
 					<DockCrane view={view} texture={textures?.[craneUrl]} tint={bgTint} hook={hook} />
-					<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} hook={hook} seconds={seconds} />
+					<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} />
 				</pixiContainer>
 				{boat && (
 					<FishingLine

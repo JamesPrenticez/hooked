@@ -13,7 +13,7 @@ interface DockCraneProps {
 }
 
 /**
- * The dock crane (BUILD_PLAN §16), standing on the right-hand pier as part of the harbour — just chilling
+ * The dock crane (BUILD_PLAN §16), standing on the left-hand pier as part of the harbour — just chilling
  * until a catch is too heavy for the rod. Then its hoist cable pays out from the jib to the hook, hauls the
  * fish under the jib and lifts it, and lets go again if the helicopter has to take over.
  */
@@ -29,15 +29,7 @@ export function DockCrane({ view, texture, tint, hook }: DockCraneProps) {
 
 	return (
 		<>
-			{/* Drawn mirrored so the jib reaches out over the water, its feet on the pier. */}
-			<pixiSprite
-				texture={texture}
-				anchor={CRANE_ART.foot}
-				x={crane.x}
-				y={crane.y}
-				scale={{ x: -crane.scale, y: crane.scale }}
-				tint={tint}
-			/>
+			<pixiSprite texture={texture} anchor={CRANE_ART.foot} x={crane.x} y={crane.y} scale={crane.scale} tint={tint} />
 			{reach > 0 && (
 				<pixiGraphics
 					draw={g => {
