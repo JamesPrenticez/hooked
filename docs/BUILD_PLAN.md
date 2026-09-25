@@ -1454,8 +1454,9 @@ Design and decisions: `docs/SIMULATION.md`. Built alongside §13–16 (descent, 
 
 ### 29.5 Re-run
 
-- [ ] `replay` mode in `useHookSim`
-- [ ] Debug "Recordings" accordion — list, play, verify on server, re-run round
+- [x] `replay` mode in `useHookSim`
+- [x] Debug "Recordings" accordion — list, play, verify on server
+- [ ] Re-run round — needs the stored `Round.replay` (§29.7); play a round's recording via `getRound(id)`
 
 ### 29.6 Simulate millions
 

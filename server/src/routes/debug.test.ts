@@ -223,3 +223,20 @@ test("a browser on another origin can reach the API: the preflight is answered a
 	assert.equal(res.status, 200);
 	assert.equal(res.headers.get("access-control-allow-origin"), "*");
 });
+
+test("recordings lists, fetches and verifies a stored run", async () => {
+	const saved = (await call("POST", "/api/debug/recordings", { body: sandboxRun() })).json;
+
+	const list = await call("GET", "/api/debug/recordings");
+	assert.ok(list.json.recordings.some((r: { id: number }) => r.id === saved.id));
+
+	const one = await call("GET", `/api/debug/recordings/${saved.id}`);
+	assert.equal(one.json.fish, saved.fish);
+	assert.equal(one.json.simVersion, SIM_VERSION);
+	assert.equal(typeof one.json.inputs, "string");
+
+	const verified = await call("POST", `/api/debug/recordings/${saved.id}/verify`);
+	assert.deepEqual({ ok: verified.json.ok, fish: verified.json.fish }, { ok: true, fish: saved.fish });
+
+	assert.equal((await call("GET", "/api/debug/recordings/99999")).status, 404);
+});

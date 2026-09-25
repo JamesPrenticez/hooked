@@ -14,7 +14,7 @@ import { config } from "../config.ts";
 import { getDebugState, resetDebugState, setForcedOutcome, setSimulation } from "../debug-state.ts";
 import { HttpError, route } from "../http.ts";
 import { toCents } from "../money.ts";
-import { saveRecording } from "../recordings.ts";
+import { getRecording, listRecordings, saveRecording, verifyRecording } from "../recordings.ts";
 import { resetRounds } from "../rounds.ts";
 import { resetSeeds } from "../seeds.ts";
 import { resetBalances, resetSessions } from "../sessions.ts";
@@ -85,6 +85,10 @@ if (config.debugControls) {
 	// Body: { simVersion, worldSeed, multiplier, inputs } — `inputs` the base64 run-length-coded steering.
 	// The server re-simulates the run and stores what that produced; any `result` sent is ignored.
 	route("POST", "/api/debug/recordings", ctx => saveRecording(ctx.body));
+	route("GET", "/api/debug/recordings", () => ({ recordings: listRecordings() }));
+	route("GET", "/api/debug/recordings/:id", ctx => getRecording(ctx.params.id));
+	// Re-simulates the stored inputs: does the row still hash and catch what it says?
+	route("POST", "/api/debug/recordings/:id/verify", ctx => verifyRecording(ctx.params.id));
 
 	// Drops every session + round + debug override. The client's token dies and it re-launches.
 	route("POST", "/api/debug/reset-session", () => {

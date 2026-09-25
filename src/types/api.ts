@@ -230,3 +230,34 @@ export interface SavedRecordingResponse {
 	/** An identical run was already stored, so nothing was added. */
 	duplicate: boolean;
 }
+
+/** GET /api/debug/recordings — the library, newest first (§29.5). */
+export interface StoredRecording {
+	id: number;
+	fish: string;
+	depth: DepthId;
+	worldSeed: number;
+	multiplier: number;
+	ticks: number;
+	source: "bot" | "human";
+	sha256: string;
+}
+
+/** GET /api/debug/recordings/:id — enough to play the run again. */
+export interface StoredRecordingDetail extends StoredRecording {
+	simVersion: number;
+	/** Base64 of the run-length-coded per-tick steering. */
+	inputs: string;
+}
+
+/** POST /api/debug/recordings/:id/verify */
+export interface VerifyRecordingResponse {
+	id: number;
+	ok: boolean;
+	simVersion: number;
+	/** The row's hash is what its inputs hash to now. */
+	hashMatches: boolean;
+	/** Re-simulating catches the fish and length the row says. */
+	resultMatches: boolean;
+	fish: string | null;
+}

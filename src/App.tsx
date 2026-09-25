@@ -21,7 +21,7 @@ import { useDescentDepth } from "@hooks/useDescentDepth";
 import { useGameBootstrap } from "@hooks/useGameBootstrap";
 import { useHookSim } from "@hooks/useHookSim";
 import { type GamePhase, useGameStore } from "@stores/gameStore";
-import { useHookStore, useManualHook } from "@stores/hookStore";
+import { useHookStore, useSimHook } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
 
 const Root = styled.div`
@@ -76,7 +76,7 @@ export function App() {
 	const { onInit, progress } = useGameBootstrap();
 
 	const [descending, setDescending] = useState(false);
-	const manual = useManualHook();
+	const manual = useSimHook();
 	// Manual (debug) runs the arrow-key sim instead of the scripted descent.
 	const descentDepth = useDescentDepth(descending && !manual, () => setDescending(false));
 	useHookSim(descending && manual, () => setDescending(false));

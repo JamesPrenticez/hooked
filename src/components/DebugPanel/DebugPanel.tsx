@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 
-import { saveRecording } from "@api";
+import { getRecording, listRecordings, saveRecording, verifyRecording } from "@api";
 import { MAX_DEPTH_METERS, metersToFeet } from "@constants/depthZones";
 import { KRAKEN_SHEETS } from "@constants/krakenAnimations";
 import { PLAYER_ANIMATION_NAMES, PLAYER_ANIMATIONS } from "@constants/playerAnimations";
@@ -10,6 +10,7 @@ import { useDebugStore } from "@stores/debugStore";
 import { type HookMode, TIME_SCALES, useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
 import { usePlayerStore } from "@stores/playerStore";
+import type { StoredRecording } from "@type/api";
 import {
 	CRANE_FROM,
 	extractionAt,
@@ -18,7 +19,7 @@ import {
 	MAX_MULTIPLIER,
 	MIN_MULTIPLIER
 } from "@utils/simExtraction";
-import type { Recording } from "@utils/simRecording";
+import { fromBase64, type Recording } from "@utils/simRecording";
 
 /** The multipliers worth jumping straight to: a plain reel-in, a crane catch and a helicopter catch. */
 const MULTIPLIER_PRESETS = [MIN_MULTIPLIER, 250, MAX_MULTIPLIER];
@@ -284,6 +285,7 @@ export function DebugPanel() {
 							<select value={hookMode} onChange={e => setHookMode(e.target.value as HookMode)}>
 								<option value="auto">Auto (scripted descent)</option>
 								<option value="manual">Manual (← / → keys)</option>
+								<option value="replay">Replay (from Recordings)</option>
 							</select>
 						</Field>
 						<Field>
@@ -356,6 +358,10 @@ export function DebugPanel() {
 					</Fields>
 				</Accordion>
 
+				<Accordion title="Recordings" theme="dark">
+					<RecordingsList />
+				</Accordion>
+
 				<Accordion title="Player" theme="dark">
 					<Animations>
 						{PLAYER_ANIMATION_NAMES.map(name => (
@@ -403,5 +409,66 @@ export function DebugPanel() {
 				</Accordion>
 			</Modal>
 		</>
+	);
+}
+
+/** The recording library: play a stored run through the sim, or ask the server to re-verify it. */
+function RecordingsList() {
+	const [recordings, setRecordings] = useState<StoredRecording[]>();
+	const [status, setStatus] = useState("Load the library to play a stored run.");
+	const setHookMode = useHookStore(state => state.setHookMode);
+	const setReplay = useHookStore(state => state.setReplay);
+
+	async function attempt(action: () => Promise<string>) {
+		try {
+			setStatus(await action());
+		} catch (err) {
+			setStatus(`Failed: ${err instanceof Error ? err.message : "unknown error"}`);
+		}
+	}
+
+	const load = () =>
+		attempt(async () => {
+			const list = await listRecordings();
+			setRecordings(list);
+			return `${list.length} recording${list.length === 1 ? "" : "s"}`;
+		});
+
+	const play = (id: number) =>
+		attempt(async () => {
+			const { worldSeed, multiplier, inputs, fish } = await getRecording(id);
+			setReplay({ worldSeed, multiplier, inputs: fromBase64(inputs) });
+			setHookMode("replay");
+			return `Replay #${id} loaded (${fish}). Close this and Cast Line.`;
+		});
+
+	const verify = (id: number) =>
+		attempt(async () => {
+			const v = await verifyRecording(id);
+			return `#${id}: ${v.ok ? `verified — ${v.fish}` : `MISMATCH (hash ${v.hashMatches}, catch ${v.resultMatches})`}`;
+		});
+
+	return (
+		<Fields>
+			<Actions>
+				<Button variant="secondary" onClick={load}>
+					{recordings ? "Refresh" : "Load"}
+				</Button>
+			</Actions>
+			{recordings?.map(r => (
+				<Actions key={r.id} data-testid="recording-row">
+					<Note>
+						#{r.id} {r.fish} · seed {r.worldSeed} · ×{r.multiplier} · {r.ticks} ticks
+					</Note>
+					<Button variant="secondary" onClick={() => play(r.id)}>
+						Play
+					</Button>
+					<Button variant="secondary" onClick={() => verify(r.id)}>
+						Verify
+					</Button>
+				</Actions>
+			))}
+			<Note data-testid="recordings-status">{status}</Note>
+		</Fields>
 	);
 }

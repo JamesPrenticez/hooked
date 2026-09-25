@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { useHookStore } from "@stores/hookStore";
 import { SIM_VERSION } from "@utils/simConfig";
-import { decodeInputs } from "@utils/simRecording";
+import { decodeInputs, encodeInputs } from "@utils/simRecording";
 import { createSim, step } from "@utils/simStep";
 
 import { useHookSim } from "./useHookSim";
@@ -65,4 +65,20 @@ it("a run that is cut short leaves no recording, and a new run clears the last o
 
 	renderHook(() => useHookSim(true));
 	expect(useHookStore.getState().recording).toBeUndefined();
+});
+
+it("replay mode plays a stored run without the keys and reproduces its catch", () => {
+	const axes = Array.from({ length: 200 }, (_, i) => (i < 60 ? 1 : 0));
+	const expected = createSim(1);
+	for (let i = 0; expected.phase !== "surfaced"; i++) step(expected, axes[i] ?? 0);
+	const inputs = encodeInputs(Array.from({ length: expected.tick }, (_, i) => axes[i] ?? 0));
+	useHookStore.setState({ hookMode: "replay", replay: { worldSeed: 1, multiplier: 1, inputs } });
+
+	const onSurfaced = vi.fn();
+	renderHook(() => useHookSim(true, onSurfaced));
+	runUntil(() => onSurfaced.mock.calls.length > 0);
+
+	expect(useHookStore.getState().recording?.result).toEqual(expected.result);
+	expect(useHookStore.getState().recording?.inputs).toEqual(inputs);
+	useHookStore.setState({ hookMode: "auto", replay: undefined });
 });

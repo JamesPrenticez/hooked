@@ -23,7 +23,10 @@ import type {
 	SaveRecordingRequest,
 	SeedResponse,
 	SessionResponse,
+	StoredRecording,
+	StoredRecordingDetail,
 	UpcomingSeedResponse,
+	VerifyRecordingResponse,
 	VerifyResponse
 } from "@type/api";
 import { type Recording, toBase64 } from "@utils/simRecording";
@@ -276,6 +279,23 @@ export function saveRecording({
 }: Recording): Promise<SavedRecordingResponse> {
 	const body: SaveRecordingRequest = { simVersion, worldSeed, multiplier, inputs: toBase64(inputs) };
 	return debugRequest<SavedRecordingResponse>("/api/debug/recordings", body);
+}
+
+/** The recording library, newest first. */
+export async function listRecordings(): Promise<StoredRecording[]> {
+	if (!DEBUG) throw new ApiError(0, "debug_disabled", "Debug controls require VITE_DEBUG=true");
+	return (await request<{ recordings: StoredRecording[] }>("/api/debug/recordings", {}, false)).recordings;
+}
+
+/** One stored recording with its steering, to play again. */
+export function getRecording(id: number): Promise<StoredRecordingDetail> {
+	if (!DEBUG) throw new ApiError(0, "debug_disabled", "Debug controls require VITE_DEBUG=true");
+	return request<StoredRecordingDetail>(`/api/debug/recordings/${id}`, {}, false);
+}
+
+/** Asks the server to re-simulate a stored recording and compare its hash and catch. */
+export function verifyRecording(id: number): Promise<VerifyRecordingResponse> {
+	return debugRequest<VerifyRecordingResponse>(`/api/debug/recordings/${id}/verify`);
 }
 
 export function getDebugState(): Promise<DebugStateResponse> {

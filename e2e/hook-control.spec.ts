@@ -151,3 +151,32 @@ test("Save run stores a finished run once the server has re-simulated it to the 
 	await page.getByRole("button", { name: "Save run" }).click();
 	await expect(page.getByTestId("save-status")).toHaveText(/^Saved #\d+: sardine \(shallow\)/);
 });
+
+// Also against the real server: Play fetches the stored inputs and the sim re-runs them without the keys.
+test("a stored recording can be verified, and played again to the same catch", async ({ page }) => {
+	test.setTimeout(300_000);
+	await castManualOnPausedClock(page, { speed: 8 });
+	await watchUntil(page, "ended");
+
+	await page.getByRole("button", { name: "DEBUG" }).click();
+	await page.getByRole("button", { name: "Save run" }).click();
+	await expect(page.getByTestId("save-status")).toHaveText(/^Saved #\d+: sardine \(shallow\)/);
+
+	const recordings = page.locator("details").filter({ hasText: "Load" });
+	await recordings.getByText("Recordings", { exact: true }).click();
+	await recordings.getByRole("button", { name: "Load" }).click();
+	const row = page.getByTestId("recording-row").filter({ hasText: "sardine" }).first();
+	await row.getByRole("button", { name: "Verify" }).click();
+	await expect(page.getByTestId("recordings-status")).toHaveText(/verified — sardine/);
+
+	await row.getByRole("button", { name: "Play" }).click();
+	await expect(page.getByTestId("recordings-status")).toHaveText(/^Replay #\d+ loaded/);
+	await page.keyboard.press("Escape");
+
+	// No key is pressed: the replay steers the hook itself.
+	await page.getByRole("button", { name: "Cast Line" }).click();
+	await watchUntil(page, "ended");
+	await page.getByRole("button", { name: "DEBUG" }).click();
+	await page.getByRole("button", { name: "Save run" }).click();
+	await expect(page.getByTestId("save-status")).toHaveText(/sardine \(shallow\).* already in the library/);
+});

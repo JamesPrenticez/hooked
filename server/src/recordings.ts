@@ -10,7 +10,7 @@ import { getDb } from "./db.ts";
 import { HttpError } from "./http.ts";
 import { MAX_DEPTH_METERS, SIM_VERSION } from "../../src/utils/simConfig.ts";
 import { MAX_MULTIPLIER, MIN_MULTIPLIER } from "../../src/utils/simExtraction.ts";
-import { canonicalBytes, decodeInputs, encodeInputs, fromBase64 } from "../../src/utils/simRecording.ts";
+import { canonicalBytes, decodeInputs, encodeInputs, fromBase64, toBase64 } from "../../src/utils/simRecording.ts";
 import { createSim, step } from "../../src/utils/simStep.ts";
 
 export interface SavedRecording {
@@ -103,4 +103,88 @@ export function saveRecording(body: unknown): SavedRecording {
 	const row = db.prepare("SELECT id FROM recordings WHERE sha256 = ?").get(sha256) as { id: number };
 
 	return { id: row.id, sha256, fish: result.fish, depth, ticks: result.ticks, duplicate: changes === 0 };
+}
+
+export interface StoredRecording {
+	id: number;
+	fish: string;
+	depth: string;
+	worldSeed: number;
+	multiplier: number;
+	ticks: number;
+	source: string;
+	sha256: string;
+}
+
+interface Row {
+	id: number;
+	sim_version: number;
+	fish: string;
+	depth: string;
+	world_seed: number;
+	multiplier: number;
+	ticks: number;
+	source: string;
+	sha256: string;
+	inputs: Uint8Array;
+}
+
+const toStored = (r: Row): StoredRecording => ({
+	id: r.id,
+	fish: r.fish,
+	depth: r.depth,
+	worldSeed: r.world_seed,
+	multiplier: r.multiplier,
+	ticks: r.ticks,
+	source: r.source,
+	sha256: r.sha256
+});
+
+function findRow(id: unknown): Row {
+	const row = getDb().prepare("SELECT * FROM recordings WHERE id = ?").get(Number(id)) as Row | undefined;
+	if (!row) throw new HttpError(404, "not_found", `No recording ${id}`);
+	return row;
+}
+
+/** Newest first. Capped — the debug list is for eyeballing, not paging. */
+export function listRecordings(): StoredRecording[] {
+	const rows = getDb().prepare("SELECT * FROM recordings ORDER BY id DESC LIMIT 200").all() as unknown as Row[];
+	return rows.map(toStored);
+}
+
+/** One recording with its steering (base64), enough for the client to play it again. */
+export function getRecording(id: unknown): StoredRecording & { simVersion: number; inputs: string } {
+	const row = findRow(id);
+	return { ...toStored(row), simVersion: row.sim_version, inputs: toBase64(row.inputs) };
+}
+
+/** Re-simulates the stored inputs and checks the row still says what the sim now says. */
+export function verifyRecording(id: unknown) {
+	const row = findRow(id);
+	const sim = createSim(row.world_seed, row.multiplier);
+	for (const axis of decodeInputs(row.inputs)) {
+		if (sim.phase === "surfaced") break;
+		step(sim, axis);
+	}
+	const sha256 = createHash("sha256")
+		.update(
+			canonicalBytes({
+				simVersion: row.sim_version,
+				worldSeed: row.world_seed,
+				multiplier: row.multiplier,
+				inputs: row.inputs,
+				result: sim.result ?? { fish: "", depthM: 0, ticks: 0 }
+			})
+		)
+		.digest("hex");
+	const hashMatches = sha256 === row.sha256;
+	const resultMatches = sim.result?.fish === row.fish && sim.result.ticks === row.ticks;
+	return {
+		id: row.id,
+		ok: hashMatches && resultMatches && row.sim_version === SIM_VERSION,
+		simVersion: row.sim_version,
+		hashMatches,
+		resultMatches,
+		fish: sim.result?.fish ?? null
+	};
 }

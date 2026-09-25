@@ -487,6 +487,28 @@ paths:
         "400":
           $ref: "#/components/responses/Error" # invalid_debug_request
 
+  /api/debug/recordings/{id}:
+    get:
+      tags: [debug]
+      summary: One stored recording, with its steering (dev only)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: The recording (BUILD_PLAN 29.5) — `inputs` is base64 of the run-length-coded steering
+        "404":
+          description: No such recording
+  /api/debug/recordings/{id}/verify:
+    post:
+      tags: [debug]
+      summary: Re-simulate a stored recording and compare hash and catch (dev only)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: "`{ id, ok, simVersion, hashMatches, resultMatches, fish }`"
+        "404":
+          description: No such recording
   /api/debug/reset-session:
     post:
       tags: [debug]
@@ -505,6 +527,12 @@ paths:
                   ok: { type: boolean, example: true }
 
   /api/debug/recordings:
+    get:
+      tags: [debug]
+      summary: List the recording library, newest first, max 200 (dev only)
+      responses:
+        "200":
+          description: "`{ recordings: [{ id, fish, depth, worldSeed, multiplier, ticks, source, sha256 }] }`"
     post:
       tags: [debug]
       summary: Save a sandbox run to the recording library (dev only)

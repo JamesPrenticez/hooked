@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 import { useHookStore } from "@stores/hookStore";
 import { SIM_VERSION, TICK_HZ } from "@utils/simConfig";
-import { encodeInputs } from "@utils/simRecording";
+import { decodeInputs, encodeInputs } from "@utils/simRecording";
 import { createSim, step } from "@utils/simStep";
 
 import { useHookKeys } from "./useHookKeys";
@@ -11,7 +11,7 @@ import { useHookKeys } from "./useHookKeys";
 const MAX_FRAME_MS = 250;
 
 /**
- * Runs the sim from the arrow keys while `active`, on a fixed-step accumulator
+ * Runs the sim from the arrow keys (or, in `replay` mode, a stored recording) while `active`, on a fixed-step accumulator
  * (`timeScale` just runs more ticks per frame), publishing one snapshot per
  * frame to `hookStore.sim` and clearing it when `active` drops. Every tick's steering is kept, and when the
  * run ends it is published as `hookStore.recording` before `onSurfaced` is called. A run cut short leaves none.
@@ -23,7 +23,11 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 
 	useEffect(() => {
 		if (!active) return;
-		const { worldSeed, multiplier } = useHookStore.getState();
+		const state = useHookStore.getState();
+		// In replay mode the recording fixes the world and every tick's steering; the keys are not read.
+		const run = state.hookMode === "replay" ? state.replay : undefined;
+		const script = run ? decodeInputs(run.inputs) : undefined;
+		const { worldSeed, multiplier } = run ?? state;
 		const sim = createSim(worldSeed, multiplier);
 		const axes: number[] = [];
 		let accumulator = 0;
@@ -37,7 +41,7 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 			last = now;
 			// Stops the tick it surfaces: a recording carries exactly the run, nothing from the rest of the frame.
 			while (accumulator >= 1 / TICK_HZ && !sim.result) {
-				axes.push(axis());
+				axes.push(script ? (script[sim.tick] ?? 0) : axis());
 				step(sim, axes[axes.length - 1]);
 				accumulator -= 1 / TICK_HZ;
 			}

@@ -6,8 +6,11 @@ import type { Recording } from "@utils/simRecording";
 import type { Sim } from "@utils/simStep";
 
 /** `auto` is today's scripted descent; `manual` (debug only) steers the sim with
- *  the arrow keys; `replay` plays a recording. Only `auto` and `manual` are wired so far. */
+ *  the arrow keys; `replay` (debug) plays `replay` back instead of reading the keys. */
 export type HookMode = "auto" | "manual" | "replay";
+
+/** What a replay needs to play a run again: its world, its weight and its steering. */
+export type ReplayRun = Pick<Recording, "worldSeed" | "multiplier" | "inputs">;
 
 export const TIME_SCALES = [1, 2, 4, 8] as const;
 
@@ -26,6 +29,9 @@ interface HookStore {
 	/** Debug overlay: mouth circles and the hook tip. */
 	showHitboxes: boolean;
 	setShowHitboxes: (show: boolean) => void;
+	/** The run `replay` mode plays. Set by the debug Recordings list. */
+	replay: ReplayRun | undefined;
+	setReplay: (run: ReplayRun | undefined) => void;
 	/** Live snapshot of the running sim; unset when none is running. */
 	sim: Sim | undefined;
 	/** The last run that reached SURFACED — kept after the sim is cleared, so it can be saved. */
@@ -44,10 +50,12 @@ export const useHookStore = create<HookStore>(set => ({
 	showHitboxes: false,
 	setShowHitboxes: showHitboxes => set({ showHitboxes }),
 	sim: undefined,
-	recording: undefined
+	recording: undefined,
+	replay: undefined,
+	setReplay: replay => set({ replay })
 }));
 
-/** Manual control only exists in debug builds, whatever `hookMode` says. */
-export function useManualHook(): boolean {
-	return useHookStore(state => DEBUG && state.hookMode === "manual");
+/** Sim-driven hook control (manual or replay) only exists in debug builds, whatever `hookMode` says. */
+export function useSimHook(): boolean {
+	return useHookStore(state => DEBUG && state.hookMode !== "auto");
 }
