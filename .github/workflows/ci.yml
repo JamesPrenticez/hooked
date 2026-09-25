@@ -38,6 +38,10 @@ jobs:
       - name: Vitest (with coverage)
         run: pnpm exec vitest run --coverage
 
+      # The mock server's own tests, including the recording library (node:sqlite, Node 24).
+      - name: Server tests
+        run: pnpm test:server
+
       - name: Build
         run: pnpm build
 

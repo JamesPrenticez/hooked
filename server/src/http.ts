@@ -78,6 +78,20 @@ export async function handle(req: IncomingMessage, res: ServerResponse) {
 	const path = (req.url ?? "/").split("?")[0];
 	const start = Date.now();
 
+	// The client is served by Vite on another origin, so a browser can only reach this dev server with CORS.
+	// Auth is a bearer header, not a cookie, so any origin is fine. Off in production, like the debug routes.
+	if (config.debugControls) {
+		res.setHeader("access-control-allow-origin", "*");
+		if (method === "OPTIONS") {
+			res.writeHead(204, {
+				"access-control-allow-methods": "GET, POST, OPTIONS",
+				"access-control-allow-headers": "authorization, content-type"
+			});
+			res.end();
+			return;
+		}
+	}
+
 	try {
 		let matched: { handler: Handler; params: Record<string, string> } | undefined;
 		for (const r of routes) {

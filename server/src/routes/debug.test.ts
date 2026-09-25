@@ -9,6 +9,9 @@ import assert from "node:assert/strict";
 import { createServer, type Server } from "node:http";
 import { after, before, test } from "node:test";
 
+import { SIM_VERSION } from "../../../src/utils/simConfig.ts";
+import { encodeInputs, toBase64 } from "../../../src/utils/simRecording.ts";
+import { createSim, step } from "../../../src/utils/simStep.ts";
 import { config } from "../config.ts";
 import { handle } from "../http.ts";
 
@@ -19,6 +22,7 @@ import "../routes/debug.ts";
 
 // Imports hoist, so this runs before any handler reads config.port at request time.
 config.port = 3011;
+config.dbPath = ":memory:";
 const base = `http://127.0.0.1:${config.port}`;
 let server: Server;
 
@@ -164,4 +168,58 @@ test("reset-session kills every token", async () => {
 	const dead = await call("GET", "/api/game/balance", { token });
 	assert.equal(dead.status, 401);
 	assert.equal(dead.json.error.code, "invalid_session");
+});
+
+/** A finished run sitting still over seed 1's world, as the client would post it. */
+function sandboxRun() {
+	const sim = createSim(1);
+	const axes: number[] = [];
+	while (sim.phase !== "surfaced") {
+		axes.push(0);
+		step(sim, 0);
+	}
+	return { simVersion: SIM_VERSION, worldSeed: 1, multiplier: 1, inputs: toBase64(encodeInputs(axes)) };
+}
+
+test("recordings saves a sandbox run after re-simulating it, and says so when it is already stored", async () => {
+	const first = await call("POST", "/api/debug/recordings", { body: sandboxRun() });
+	assert.equal(first.status, 200);
+	assert.equal(first.json.fish, "sardine");
+	assert.equal(first.json.depth, "shallow");
+	assert.equal(first.json.duplicate, false);
+
+	// The client's claim about what it caught is not read.
+	const lying = await call("POST", "/api/debug/recordings", {
+		body: { ...sandboxRun(), result: { fish: "whale", depthM: 0, ticks: 1 } }
+	});
+	assert.deepEqual(lying.json, { ...first.json, duplicate: true });
+});
+
+test("recordings rejects a run from another sim version, and one that isn't a whole run", async () => {
+	const stale = await call("POST", "/api/debug/recordings", { body: { ...sandboxRun(), simVersion: SIM_VERSION + 1 } });
+	assert.equal(stale.status, 409);
+	assert.equal(stale.json.error.code, "sim_version_mismatch");
+
+	const cut = await call("POST", "/api/debug/recordings", {
+		body: { ...sandboxRun(), inputs: toBase64(encodeInputs([0, 0, 0])) }
+	});
+	assert.equal(cut.status, 400);
+	assert.equal(cut.json.error.code, "invalid_recording");
+
+	assert.equal((await call("POST", "/api/debug/recordings", { body: {} })).status, 409);
+});
+
+test("a browser on another origin can reach the API: the preflight is answered and responses allow it", async () => {
+	const preflight = await fetch(`${base}/api/debug/recordings`, {
+		method: "OPTIONS",
+		headers: { origin: "http://localhost:4200", "access-control-request-method": "POST" }
+	});
+	assert.equal(preflight.status, 204);
+	assert.equal(preflight.headers.get("access-control-allow-origin"), "*");
+	assert.match(preflight.headers.get("access-control-allow-methods") ?? "", /POST/);
+	assert.match(preflight.headers.get("access-control-allow-headers") ?? "", /content-type/);
+
+	const res = await fetch(`${base}/api/debug/state`);
+	assert.equal(res.status, 200);
+	assert.equal(res.headers.get("access-control-allow-origin"), "*");
 });

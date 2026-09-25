@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 
+import { saveRecording } from "@api";
 import { MAX_DEPTH_METERS, metersToFeet } from "@constants/depthZones";
 import { KRAKEN_SHEETS } from "@constants/krakenAnimations";
 import { PLAYER_ANIMATION_NAMES, PLAYER_ANIMATIONS } from "@constants/playerAnimations";
@@ -17,6 +18,7 @@ import {
 	MAX_MULTIPLIER,
 	MIN_MULTIPLIER
 } from "@utils/simExtraction";
+import type { Recording } from "@utils/simRecording";
 
 /** The multipliers worth jumping straight to: a plain reel-in, a crane catch and a helicopter catch. */
 const MULTIPLIER_PRESETS = [MIN_MULTIPLIER, 250, MAX_MULTIPLIER];
@@ -166,12 +168,27 @@ export function DebugPanel() {
 	const showHitboxes = useHookStore(state => state.showHitboxes);
 	const setShowHitboxes = useHookStore(state => state.setShowHitboxes);
 	const sim = useHookStore(state => state.sim);
+	const recording = useHookStore(state => state.recording);
+	// Keyed to the run it is about, so a new run doesn't show the last one's outcome.
+	const [saved, setSaved] = useState<{ of: Recording; text: string }>();
 
 	const playAnimation = usePlayerStore(state => state.play);
 
 	const forceTrench = useKrakenStore(state => state.forceTrench);
 	const setForceTrench = useKrakenStore(state => state.setForceTrench);
 	const playKraken = useKrakenStore(state => state.play);
+
+	async function saveRun() {
+		if (!recording) return;
+		let text: string;
+		try {
+			const run = await saveRecording(recording);
+			text = `Saved #${run.id}: ${run.fish} (${run.depth})${run.duplicate ? " — already in the library" : ""}`;
+		} catch (err) {
+			text = `Save failed: ${err instanceof Error ? err.message : "unknown error"}`;
+		}
+		setSaved({ of: recording, text });
+	}
 
 	useEffect(() => {
 		if (open) dialogRef.current?.showModal();
@@ -327,6 +344,14 @@ export function DebugPanel() {
 							{sim
 								? `${sim.phase}${sim.phase === "extract" ? `:${extractionAt(gearsFor(sim.multiplier), sim.catchM, sim.tick - sim.phaseTick).stage}` : ""} · x ${Math.round(sim.x)} · ${Math.round(sim.depthM).toLocaleString()}m · tick ${sim.tick} · ×${sim.multiplier} · hooked ${sim.world[sim.hooked]?.id ?? "none"}`
 								: "no run"}
+						</Note>
+						<Actions>
+							<Button variant="secondary" disabled={!recording} onClick={saveRun}>
+								Save run
+							</Button>
+						</Actions>
+						<Note data-testid="save-status">
+							{saved && saved.of === recording ? saved.text : "Finish a run, then save it to the recording library."}
 						</Note>
 					</Fields>
 				</Accordion>

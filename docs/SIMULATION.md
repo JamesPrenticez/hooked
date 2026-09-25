@@ -80,13 +80,13 @@ Provably fair → 7. Real rounds → 8. Phase 0 is groundwork.
 - **Versioned.** `SIM_VERSION` bumps whenever a rule, constant, species or mouth
   changes a trajectory; the golden-trajectory test fails until it does.
 
-| File              | Holds                                                                                                                |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `simConfig.ts`    | `SIM_VERSION`, `TICK_HZ` (60), `SIM_WIDTH` (1920), hook + phase constants, frozen depth/speed table, `SIM_FISH`      |
-| `simRandom.ts`    | mulberry32, lifted out of `creatureSpecies.ts` (which imports it back — no behaviour change)                         |
-| `simWorld.ts`     | `spawnWorld(worldSeed)`, `fishX(fish, tick)`, `mouthAt(fish, tick)`                                                  |
-| `simStep.ts`      | `createSim`, `step(sim, axis)`, `runInputs(worldSeed, inputs)`                                                       |
-| `simRecording.ts` | `Recording`, run-length codec, canonical bytes, state hash (FNV-1a over float bits — isomorphic, no `crypto.subtle`) |
+| File              | Holds                                                                                                            |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `simConfig.ts`    | `SIM_VERSION`, `TICK_HZ` (60), `SIM_WIDTH` (1920), hook + phase constants, frozen depth/speed table, `SIM_FISH`  |
+| `simRandom.ts`    | mulberry32, lifted out of `creatureSpecies.ts` (which imports it back — no behaviour change)                     |
+| `simWorld.ts`     | `spawnWorld(worldSeed)`, `fishX(fish, tick)`, `mouthAt(fish, tick)`                                              |
+| `simStep.ts`      | `createSim`, `step(sim, axis)` (the server re-runs inputs itself, in `recordings.ts`)                            |
+| `simRecording.ts` | `Recording`, run-length codec, canonical bytes, base64; state hash (FNV-1a over float bits) with the golden test |
 
 `simConfig.ts` is a **frozen snapshot** of today's numbers (zone starts, speeds,
 `PX_PER_METER`, `CAST_METERS`, the ascent speed). A drift-guard test compares it
@@ -215,6 +215,7 @@ Phase 0 with screenshots (§11).
 interface Recording {
 	simVersion: number;
 	worldSeed: number; // uint32 → spawnWorld
+	multiplier: number; // catch weight — sets the landing, so it is part of the run
 	inputs: Uint8Array; // per-tick axis −1/0/+1, run-length coded
 	result: { fish: string; depthM: number; ticks: number };
 }
@@ -226,7 +227,10 @@ The request's "hook path / fish paths / number of fish":
 - **fish paths** = `worldSeed` (closed form, §3.3);
 - **fish count, path length, catch depth…** = summary columns, queryable.
 
-A ~8,000-tick run is ≈0.1–2 KB (estimate; measured in Phase 4). Wire form is base64
+Measured: a run that never steers is 2 bytes; each change of direction adds about one, so a hand-steered run is tens
+of bytes and the worst case (flipping every tick) one byte a tick. A run is only ever the inputs up to SURFACED —
+steering after the hook takes is ignored by the sim, so the server stores it as 0 and two runs that steered alike are
+one row. Wire form is base64
 (`btoa`/`atob`, no `Buffer` — the codec must run in both runtimes). A decoded-path
 cache column is a later add, only if playback ever needs it. A recording only plays
 on the `SIM_VERSION` it was made with; the client refuses a mismatch and falls back
@@ -246,6 +250,7 @@ CREATE TABLE recordings (
   source       TEXT    NOT NULL CHECK (source IN ('bot','human')),
   bot          TEXT,                    -- policy + params
   world_seed   INTEGER NOT NULL,
+  multiplier   INTEGER NOT NULL,
   fish         TEXT    NOT NULL,        -- roster id caught = bucket key
   depth        TEXT    NOT NULL,        -- DepthId
   idx          INTEGER,                 -- dense per (sim_version, fish); assigned at freeze
@@ -337,7 +342,9 @@ round.
 - **Verify on server** → `POST /api/debug/recordings/:id/verify` re-simulates and
   compares hash + result;
 - **Save run** → `POST /api/debug/recordings` — the server re-simulates, ignores any
-  client-claimed result, rejects a `simVersion` mismatch, stores `source = 'human'`.
+  client-claimed result, rejects a `simVersion` mismatch (409) or inputs that don't end in SURFACED (400), stores
+  `source = 'human'`. The body carries no `result` at all. The mock server sends CORS headers in debug builds so the
+  browser can reach it (the client is on another origin).
 
 All under `config.debugControls`, so the routes don't exist in production.
 
@@ -400,7 +407,7 @@ outcome X" button that runs the same pick.
 - Round length now follows the catch: a few seconds (shallow) to ≈2½ min (Kraken) at
   today's debug speeds.
 - `node:sqlite` is experimental in Node 24 (isolated in `db.ts`).
-- CI doesn't run `pnpm test:server` today; Phase 4 adds it.
+- `meta` and `sim_runs` (§6) aren't created yet — Phase 6 adds them (`CREATE TABLE IF NOT EXISTS`).
 
 **Open questions** (default in bold):
 

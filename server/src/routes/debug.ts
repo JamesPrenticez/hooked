@@ -5,14 +5,16 @@
 //
 // Covers: force outcome (depth/fish/tier — "Force Kraken" is just
 // { depth: "jackpot", fish: "kraken", tier: "jackpot" } from the toolbar),
-// reset balance, reset session, and simulated latency/errors. Deterministic
-// seeded outcomes are the provably-fair RNG instead — see server/src/rng.ts
-// and the /api/seed/* endpoints.
+// reset balance, reset session, simulated latency/errors, and saving a
+// sandbox run to the recording library. Deterministic seeded outcomes are the
+// provably-fair RNG instead — see server/src/rng.ts and the /api/seed/*
+// endpoints.
 
 import { config } from "../config.ts";
 import { getDebugState, resetDebugState, setForcedOutcome, setSimulation } from "../debug-state.ts";
 import { HttpError, route } from "../http.ts";
 import { toCents } from "../money.ts";
+import { saveRecording } from "../recordings.ts";
 import { resetRounds } from "../rounds.ts";
 import { resetSeeds } from "../seeds.ts";
 import { resetBalances, resetSessions } from "../sessions.ts";
@@ -79,6 +81,10 @@ if (config.debugControls) {
 		resetBalances(balance as string | undefined);
 		return { ok: true };
 	});
+
+	// Body: { simVersion, worldSeed, multiplier, inputs } — `inputs` the base64 run-length-coded steering.
+	// The server re-simulates the run and stores what that produced; any `result` sent is ignored.
+	route("POST", "/api/debug/recordings", ctx => saveRecording(ctx.body));
 
 	// Drops every session + round + debug override. The client's token dies and it re-launches.
 	route("POST", "/api/debug/reset-session", () => {

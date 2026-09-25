@@ -504,6 +504,67 @@ paths:
                 properties:
                   ok: { type: boolean, example: true }
 
+  /api/debug/recordings:
+    post:
+      tags: [debug]
+      summary: Save a sandbox run to the recording library (dev only)
+      description: >
+        A finished manual-mode run (docs/SIMULATION.md, BUILD_PLAN 29.4): the world
+        seed, catch multiplier and per-tick steering. The server re-simulates it with
+        the same sim the client runs and stores what *that* produced — any `result`
+        in the body is ignored. Steering after the hook takes changes nothing, so it
+        is stored as neutral: two runs that steered alike are the same recording
+        (`duplicate: true`, nothing inserted). Stored with `source = human`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [simVersion, worldSeed, multiplier, inputs]
+              properties:
+                simVersion:
+                  type: integer
+                  description: Must equal the server's SIM_VERSION (src/utils/simConfig.ts), else 409.
+                  example: 2
+                worldSeed: { type: integer, minimum: 0, maximum: 4294967295, example: 1 }
+                multiplier:
+                  type: integer
+                  minimum: 1
+                  maximum: 500
+                  description: How heavy the catch is — it sets the landing, so it is part of the run.
+                inputs:
+                  type: string
+                  format: byte
+                  description: >
+                    Base64 of the run-length-coded steering axis (−1/0/+1) per tick — one
+                    varint per run, `length·4 + axis + 1` (src/utils/simRecording.ts). Must
+                    take the hook all the way to the surface, with no ticks left over.
+      responses:
+        "200":
+          description: Stored, or already stored
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, sha256, fish, depth, ticks, duplicate]
+                properties:
+                  id: { type: integer, example: 12 }
+                  sha256:
+                    type: string
+                    description: Over the run's canonical bytes; the same run always hashes the same.
+                  fish:
+                    type: string
+                    description: Roster id the re-simulation caught — the library bucket.
+                    example: sardine
+                  depth: { type: string, enum: [shallow, reef, deep, abyss, jackpot] }
+                  ticks: { type: integer, description: The run's length at 60 Hz. }
+                  duplicate: { type: boolean }
+        "400":
+          $ref: "#/components/responses/Error" # invalid_recording
+        "409":
+          $ref: "#/components/responses/Error" # sim_version_mismatch
+
   /operator/launch:
     post:
       tags: [operator]

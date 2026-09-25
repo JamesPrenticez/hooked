@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 
 import { useHookStore } from "@stores/hookStore";
-import { TICK_HZ } from "@utils/simConfig";
+import { SIM_VERSION, TICK_HZ } from "@utils/simConfig";
+import { encodeInputs } from "@utils/simRecording";
 import { createSim, step } from "@utils/simStep";
 
 import { useHookKeys } from "./useHookKeys";
@@ -12,7 +13,8 @@ const MAX_FRAME_MS = 250;
 /**
  * Runs the sim from the arrow keys while `active`, on a fixed-step accumulator
  * (`timeScale` just runs more ticks per frame), publishing one snapshot per
- * frame to `hookStore.sim` and clearing it when `active` drops. Calls `onSurfaced` when the run ends.
+ * frame to `hookStore.sim` and clearing it when `active` drops. Every tick's steering is kept, and when the
+ * run ends it is published as `hookStore.recording` before `onSurfaced` is called. A run cut short leaves none.
  */
 export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 	const axis = useHookKeys(active);
@@ -23,20 +25,30 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 		if (!active) return;
 		const { worldSeed, multiplier } = useHookStore.getState();
 		const sim = createSim(worldSeed, multiplier);
+		const axes: number[] = [];
 		let accumulator = 0;
 		let last = performance.now();
 		const publish = () => useHookStore.setState({ sim: { ...sim } });
 		publish();
+		useHookStore.setState({ recording: undefined });
 
 		let frame = requestAnimationFrame(function tick(now) {
 			accumulator += (Math.min(now - last, MAX_FRAME_MS) / 1000) * useHookStore.getState().timeScale;
 			last = now;
-			while (accumulator >= 1 / TICK_HZ) {
-				step(sim, axis());
+			// Stops the tick it surfaces: a recording carries exactly the run, nothing from the rest of the frame.
+			while (accumulator >= 1 / TICK_HZ && !sim.result) {
+				axes.push(axis());
+				step(sim, axes[axes.length - 1]);
 				accumulator -= 1 / TICK_HZ;
 			}
 			publish();
-			if (sim.phase === "surfaced") return onSurfacedRef.current?.();
+			if (sim.result) {
+				const inputs = encodeInputs(axes);
+				useHookStore.setState({
+					recording: { simVersion: SIM_VERSION, worldSeed, multiplier, inputs, result: sim.result }
+				});
+				return onSurfacedRef.current?.();
+			}
 			frame = requestAnimationFrame(tick);
 		});
 		return () => {

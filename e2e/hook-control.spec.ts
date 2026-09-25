@@ -136,3 +136,18 @@ test("a hook steered off the centre line misses the fish it would have taken", a
 	expect(missed).toMatch(/^descend · x 1920 ·/);
 	expect(missed).toMatch(/hooked none$/);
 });
+
+// Goes to the real server, which re-simulates the run in Node: the catch it reports is the browser's own
+// recording replayed on another engine, so a match is a cross-engine determinism check too.
+test("Save run stores a finished run once the server has re-simulated it to the same catch", async ({ page }) => {
+	test.setTimeout(300_000);
+	await castManualOnPausedClock(page, { speed: 8 });
+
+	// Nothing to save while the run is still going.
+	await expect(page.getByTestId("save-status")).toHaveText(/^Finish a run/);
+	await watchUntil(page, "ended");
+
+	await page.getByRole("button", { name: "DEBUG" }).click();
+	await page.getByRole("button", { name: "Save run" }).click();
+	await expect(page.getByTestId("save-status")).toHaveText(/^Saved #\d+: sardine \(shallow\)/);
+});

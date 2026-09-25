@@ -167,6 +167,8 @@ server/                     mock game server — a real HTTP service, not a stub
     ├── rng.ts              HMAC-SHA256 seed stream (provably fair, §36)
     ├── constants.ts        probabilities + payout table (authoritative)
     ├── debug-state.ts      forced outcomes / seeded outcomes
+    ├── db.ts               SQLite recording library (node:sqlite; the only importer)
+    ├── recordings.ts       re-simulates a saved sandbox run, then stores it
     └── routes/
         ├── session.ts      POST /api/session
         ├── operator.ts     POST /operator/launch

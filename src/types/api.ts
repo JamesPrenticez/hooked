@@ -186,3 +186,47 @@ export interface DebugStateResponse {
 	forcedOutcome: ForcedOutcome;
 	simulation: DebugSimulation;
 }
+
+/** POST /api/debug/recordings — a finished sandbox run (BUILD_PLAN 29.4). The server re-simulates it and never
+ *  reads a claimed result, so there isn't one here. */
+export interface SaveRecordingRequest {
+	simVersion: number;
+	worldSeed: number;
+	multiplier: number;
+	/** Base64 of the run-length-coded per-tick steering. */
+	inputs: string;
+}
+
+export interface SavedRecordingResponse {
+	id: number;
+	/** Over the canonical bytes of the run — the same run always hashes the same. */
+	sha256: string;
+	/** Roster id the server's re-simulation says it caught. */
+	fish: string;
+	depth: DepthId;
+	ticks: number;
+	/** An identical run was already stored, so nothing was added. */
+	duplicate: boolean;
+}
+
+/** POST /api/debug/recordings — a finished sandbox run (§29.4). The server re-simulates it and never reads a claimed
+ *  result, so there isn't one here. */
+export interface SaveRecordingRequest {
+	simVersion: number;
+	worldSeed: number;
+	multiplier: number;
+	/** Base64 of the run-length-coded per-tick steering. */
+	inputs: string;
+}
+
+export interface SavedRecordingResponse {
+	id: number;
+	/** Over the canonical bytes of the run — the same run always hashes the same. */
+	sha256: string;
+	/** Roster id the server's re-simulation says it caught. */
+	fish: string;
+	depth: DepthId;
+	ticks: number;
+	/** An identical run was already stored, so nothing was added. */
+	duplicate: boolean;
+}

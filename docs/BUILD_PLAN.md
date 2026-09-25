@@ -1445,11 +1445,12 @@ Design and decisions: `docs/SIMULATION.md`. Built alongside §13–16 (descent, 
 
 ### 29.4 Record → SQL
 
-- [ ] `Recording` — RLE input codec, canonical bytes, hash
-- [ ] `server/src/db.ts` (`node:sqlite`), schema, `server/data/` gitignored
-- [ ] `POST /api/debug/recordings` (server re-simulates, never trusts the client's result) + "Save run"
-- [ ] `pnpm test:server` in CI
-- [ ] `server/openapi.yaml` updated
+- [x] `Recording` — RLE input codec, canonical bytes (`sha256` over them, server-side). The FNV state hash comes with the golden-trajectory test (29.3)
+- [x] `server/src/db.ts` (`node:sqlite`), schema, `server/data/` gitignored
+- [x] `POST /api/debug/recordings` (server re-simulates, never trusts the client's result) + "Save run"
+- [x] `pnpm test:server` in CI
+- [x] `server/openapi.yaml` updated
+- [x] e2e: a finished run saves, and the server's re-simulation catches the same fish
 
 ### 29.5 Re-run
 

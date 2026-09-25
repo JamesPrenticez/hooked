@@ -1,6 +1,7 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
 import type { Bet } from "@type/api";
+import { encodeInputs, fromBase64 } from "@utils/simRecording";
 
 import {
 	adoptSessionTokenFromUrl,
@@ -12,9 +13,16 @@ import {
 	getRound,
 	initSession,
 	refreshSession,
+	saveRecording,
 	setOnSessionExpired,
 	startRound
 } from "./index";
+
+// The debug helpers refuse to run unless VITE_DEBUG=true, which CI doesn't set.
+vi.mock("@constants/config", async importOriginal => ({
+	...(await importOriginal<typeof import("@constants/config")>()),
+	DEBUG: true
+}));
 
 const fetchMock = vi.fn();
 beforeEach(() => {
@@ -242,4 +250,27 @@ it("initSession propagates a non-401 failure while validating a restored token",
 
 	await expect(initSession()).rejects.toThrow("boom");
 	expect(fetchMock).toHaveBeenCalledOnce();
+});
+
+it("saveRecording posts the run's world, multiplier and base64 inputs — and not its result", async () => {
+	fetchMock.mockResolvedValueOnce(
+		jsonRes(200, { id: 3, sha256: "ab", fish: "sardine", depth: "shallow", ticks: 9, duplicate: false })
+	);
+	const inputs = encodeInputs([0, 0, 1, 1, -1]);
+
+	const saved = await saveRecording({
+		simVersion: 2,
+		worldSeed: 7,
+		multiplier: 250,
+		inputs,
+		result: { fish: "sardine", depthM: 0, ticks: 9 }
+	});
+
+	const [url, init] = fetchMock.mock.calls[0];
+	expect(url).toContain("/api/debug/recordings");
+	expect(init.method).toBe("POST");
+	const body = JSON.parse(init.body);
+	expect(Object.keys(body).sort()).toEqual(["inputs", "multiplier", "simVersion", "worldSeed"]);
+	expect(fromBase64(body.inputs)).toEqual(inputs);
+	expect(saved.id).toBe(3);
 });

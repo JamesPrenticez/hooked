@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 import { DEBUG } from "@constants/config";
 import { MIN_MULTIPLIER } from "@utils/simExtraction";
+import type { Recording } from "@utils/simRecording";
 import type { Sim } from "@utils/simStep";
 
 /** `auto` is today's scripted descent; `manual` (debug only) steers the sim with
@@ -27,6 +28,8 @@ interface HookStore {
 	setShowHitboxes: (show: boolean) => void;
 	/** Live snapshot of the running sim; unset when none is running. */
 	sim: Sim | undefined;
+	/** The last run that reached SURFACED — kept after the sim is cleared, so it can be saved. */
+	recording: Recording | undefined;
 }
 
 export const useHookStore = create<HookStore>(set => ({
@@ -40,7 +43,8 @@ export const useHookStore = create<HookStore>(set => ({
 	setTimeScale: timeScale => set({ timeScale }),
 	showHitboxes: false,
 	setShowHitboxes: showHitboxes => set({ showHitboxes }),
-	sim: undefined
+	sim: undefined,
+	recording: undefined
 }));
 
 /** Manual control only exists in debug builds, whatever `hookMode` says. */

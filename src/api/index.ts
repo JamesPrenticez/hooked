@@ -19,11 +19,14 @@ import type {
 	RevealedSeedResponse,
 	RoundDetailResponse,
 	RoundResult,
+	SavedRecordingResponse,
+	SaveRecordingRequest,
 	SeedResponse,
 	SessionResponse,
 	UpcomingSeedResponse,
 	VerifyResponse
 } from "@type/api";
+import { type Recording, toBase64 } from "@utils/simRecording";
 
 // Persisted so a page reload restores the session instead of minting a new one
 // (BUILD_PLAN §4.1). In-memory copy is the source of truth for requests; storage
@@ -261,6 +264,18 @@ export function resetBalance(balance?: string): Promise<{ ok: true }> {
 /** Drop every session + round; the current token dies and the client re-launches. */
 export function resetSession(): Promise<{ ok: true }> {
 	return debugRequest<{ ok: true }>("/api/debug/reset-session");
+}
+
+/** Saves a finished sandbox run to the recording library. The server re-simulates it and stores what that
+ *  catches, so the run's own `result` isn't sent. */
+export function saveRecording({
+	simVersion,
+	worldSeed,
+	multiplier,
+	inputs
+}: Recording): Promise<SavedRecordingResponse> {
+	const body: SaveRecordingRequest = { simVersion, worldSeed, multiplier, inputs: toBase64(inputs) };
+	return debugRequest<SavedRecordingResponse>("/api/debug/recordings", body);
 }
 
 export function getDebugState(): Promise<DebugStateResponse> {

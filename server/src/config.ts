@@ -1,6 +1,8 @@
 // Mock Game Server configuration. Env-driven with dev-safe defaults so the
 // server runs with zero setup; production wiring replaces these later (§34).
 
+import { fileURLToPath } from "node:url";
+
 const num = (v: string | undefined, fallback: number) => (v ? Number(v) : fallback);
 
 export const config = {
@@ -19,5 +21,7 @@ export const config = {
 	logRequests: process.env.NODE_ENV !== "production",
 	// /api/debug/* controls (forced outcomes, resets, latency/error injection).
 	// Never registered in production — the routes simply don't exist there.
-	debugControls: process.env.NODE_ENV !== "production"
+	debugControls: process.env.NODE_ENV !== "production",
+	// The recording library (docs/SIMULATION.md §6). A file next to src/, whatever the cwd; tests use ":memory:".
+	dbPath: process.env.DB_PATH ?? fileURLToPath(new URL("../data/library.sqlite", import.meta.url))
 };
