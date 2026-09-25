@@ -97,11 +97,12 @@ test("HOOKED! splashes once the fish has fought the hook, and only the camera th
 	}).toPass();
 });
 
-// The multiplier picks who lands the fish: the man in the boat always, then the crane, then the helicopter.
+// The multiplier picks who lands the fish: the man in the boat always, then the crane, the helicopter and the Chinook.
 for (const { multiplier, gear } of [
 	{ multiplier: 1, gear: ["extract:rod"] },
-	{ multiplier: 250, gear: ["extract:rod", "extract:crane"] },
-	{ multiplier: 500, gear: ["extract:rod", "extract:crane", "extract:helicopter"] }
+	{ multiplier: 30, gear: ["extract:rod", "extract:crane"] },
+	{ multiplier: 100, gear: ["extract:rod", "extract:crane", "extract:helicopter"] },
+	{ multiplier: 500, gear: ["extract:rod", "extract:crane", "extract:helicopter", "extract:chinook"] }
 ]) {
 	test(`a ${multiplier}× catch is landed by ${gear.map(g => g.replace("extract:", "")).join(", then ")}`, async ({
 		page
@@ -123,6 +124,22 @@ for (const { multiplier, gear } of [
 		await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
 	});
 }
+
+// The readout climbs as the fish comes out and lands on the catch's own multiplier.
+test("the multiplier readout climbs to the catch's multiplier as it is landed", async ({ page }) => {
+	test.setTimeout(300_000);
+	await castManualOnPausedClock(page, { multiplier: 100, speed: 8 });
+
+	const readoutText = page.getByRole("status", { name: "Catch multiplier" });
+	const seen: number[] = [];
+	for (let elapsed = 0; elapsed < 120_000 && phaseOf(await readout(page)) !== "extract:hold"; elapsed += 60) {
+		if (await readoutText.isVisible()) seen.push(Number((await readoutText.textContent())?.replace("×", "")));
+		await page.clock.runFor(60);
+	}
+	await expect(readoutText).toHaveText("×100");
+	expect(seen.length).toBeGreaterThan(0);
+	expect(seen).toEqual([...seen].sort((a, b) => a - b));
+});
 
 test("a hook steered off the centre line misses the fish it would have taken", async ({ page }) => {
 	test.setTimeout(300_000);

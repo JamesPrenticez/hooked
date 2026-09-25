@@ -924,6 +924,15 @@ Extraction is selected from the server-provided catch tier.
 - [ ] Helicopter
 - [ ] Ultimate extraction
 
+Suspense pass (modelled on Evolution's Ice Fishing): the rod, crane, helicopter and Chinook (`Gear` in
+`simExtraction.ts`, from `CRANE_FROM` 20× / `HELICOPTER_FROM` 60× / `CHINOOK_FROM` 150×, all placeholder
+cut-offs) each take a turn of call-in → strain → lift. During the strain the fish stays stuck, the camera and the
+hooked fish shake with `Extraction.strain`, then it gives and the next gear is needed. Each gear lets go as the
+next arrives (`release`), so the last one alone holds the fish. `ExtractionMultiplier` (HTML, left of screen)
+climbs with `shownMultiplier` as the fish comes out and sticks while a gear strains. The Chinook is
+`helicopter.png` drawn 1.2× and coming in from the right — it needs its own tandem-rotor art.
+`SIM_VERSION` 4.
+
 ### 16.3 Reactions
 
 - [ ] Fisherman

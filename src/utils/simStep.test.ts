@@ -143,8 +143,9 @@ it("takes longer to land a heavier catch, since it needs more gear", () => {
 		runUntil(sim, "surfaced");
 		return sim.tick;
 	};
-	expect(roundTicks(250)).toBeGreaterThan(roundTicks(1));
-	expect(roundTicks(500)).toBeGreaterThan(roundTicks(250));
+	expect(roundTicks(30)).toBeGreaterThan(roundTicks(1));
+	expect(roundTicks(100)).toBeGreaterThan(roundTicks(30));
+	expect(roundTicks(500)).toBeGreaterThan(roundTicks(100));
 });
 
 it("fights the Kraken at the bottom, then reels it in with the camera on the hook", () => {

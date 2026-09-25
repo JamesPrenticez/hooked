@@ -1,6 +1,6 @@
 import type { Texture } from "pixi.js";
 
-import { BOOM_ART, CRANE_ART, craneDrop, craneLayout, type HookPose } from "./extraction";
+import { BOOM_ART, CRANE_ART, craneDrop, craneLayout, type HookPose, release } from "./extraction";
 
 interface DockCraneProps {
 	view: { width: number; height: number };
@@ -26,9 +26,9 @@ export function DockCrane({ view, textures, tint, out, hook }: DockCraneProps) {
 	// The cable and its ball are drawn for the crane on its pier, so they grow with it.
 	const grown = crane.scale / craneLayout(view).scale;
 	const called = hook?.extraction?.arrival.crane ?? 0;
-	// How far down the cable reaches: to the hook once paid out. It doesn't let go when the helicopter is called in
-	// (`craneRelease`) until the helicopter really flies in to take the fish — or the fish would hang in the air.
-	const reach = craneDrop(called);
+	// How far down the cable reaches: to the hook once paid out, then back up as the helicopter, called in after it,
+	// flies in to take the fish (`release`).
+	const reach = craneDrop(called) * (1 - release(hook?.extraction?.arrival.helicopter ?? 0));
 	const end = {
 		x: crane.jib.x + ((hook?.x ?? crane.jib.x) - crane.jib.x) * reach,
 		y: crane.jib.y + ((hook?.y ?? crane.jib.y) - crane.jib.y) * reach

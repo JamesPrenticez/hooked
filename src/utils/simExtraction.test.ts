@@ -4,13 +4,16 @@ import { TICK_HZ } from "./simConfig";
 import {
 	ascentDepth,
 	ascentTicks,
+	CHINOOK_FROM,
+	CRANE_FROM,
 	extractionAt,
 	extractionTicks,
 	type Gear,
 	gearsFor,
 	HELICOPTER_FROM,
 	MAX_MULTIPLIER,
-	MIN_MULTIPLIER
+	MIN_MULTIPLIER,
+	shownMultiplier
 } from "./simExtraction";
 
 const CATCH_M = 2400;
@@ -25,9 +28,10 @@ describe("gearsFor", () => {
 		expect(gearsFor(MIN_MULTIPLIER)).toEqual(["rod"]);
 	});
 
-	it("calls in the crane for a 250× catch and the helicopter after it for a 500×", () => {
-		expect(gearsFor(250)).toEqual(["rod", "crane"]);
-		expect(gearsFor(MAX_MULTIPLIER)).toEqual(["rod", "crane", "helicopter"]);
+	it("calls in the crane, then the helicopter, then the Chinook, as the catch gets heavier", () => {
+		expect(gearsFor(CRANE_FROM)).toEqual(["rod", "crane"]);
+		expect(gearsFor(HELICOPTER_FROM)).toEqual(["rod", "crane", "helicopter"]);
+		expect(gearsFor(MAX_MULTIPLIER)).toEqual(["rod", "crane", "helicopter", "chinook"]);
 	});
 
 	it("only ever adds gear as the multiplier grows", () => {
@@ -37,8 +41,8 @@ describe("gearsFor", () => {
 			expect(count).toBeGreaterThanOrEqual(last);
 			last = count;
 		}
-		expect(gearsFor(HELICOPTER_FROM - 1)).toHaveLength(2);
-		expect(gearsFor(HELICOPTER_FROM)).toHaveLength(3);
+		expect(gearsFor(CHINOOK_FROM - 1)).toHaveLength(3);
+		expect(gearsFor(CHINOOK_FROM)).toHaveLength(4);
 	});
 });
 
@@ -64,12 +68,13 @@ describe("ascentDepth", () => {
 
 describe("extractionAt", () => {
 	it("starts at the catch depth with nothing out of the water and no gear called", () => {
-		for (const gears of [gearsFor(1), gearsFor(250), gearsFor(500)]) {
+		for (const gears of [gearsFor(1), gearsFor(30), gearsFor(500)]) {
 			expect(extractionAt(gears, CATCH_M, 0)).toEqual({
 				stage: "haul",
 				depthM: CATCH_M,
 				reveal: 0,
-				arrival: { crane: 0, helicopter: 0 }
+				arrival: { crane: 0, helicopter: 0, chinook: 0 },
+				strain: 0
 			});
 		}
 	});
@@ -85,7 +90,7 @@ describe("extractionAt", () => {
 		}
 	});
 
-	it.each([1, 250, 500])("slowly and steadily brings a %i× fish fully out, then holds", multiplier => {
+	it.each([1, 30, 100, 500])("slowly and steadily brings a %i× fish fully out, then holds", multiplier => {
 		const frames = landing(gearsFor(multiplier));
 		for (let i = 1; i < frames.length; i++) expect(frames[i].reveal).toBeGreaterThanOrEqual(frames[i - 1].reveal);
 		expect(frames.at(-1)).toMatchObject({ stage: "hold", reveal: 1 });
@@ -96,12 +101,13 @@ describe("extractionAt", () => {
 	it("hands over from the rod to the crane to the helicopter, in that order, never back", () => {
 		const order = (multiplier: number) => [...new Set(landing(gearsFor(multiplier)).map(f => f.stage))];
 		expect(order(1)).toEqual(["haul", "rod", "hold"]);
-		expect(order(250)).toEqual(["haul", "rod", "crane", "hold"]);
-		expect(order(500)).toEqual(["haul", "rod", "crane", "helicopter", "hold"]);
+		expect(order(30)).toEqual(["haul", "rod", "crane", "hold"]);
+		expect(order(100)).toEqual(["haul", "rod", "crane", "helicopter", "hold"]);
+		expect(order(500)).toEqual(["haul", "rod", "crane", "helicopter", "chinook", "hold"]);
 	});
 
 	it("holds the fish where it is while the next gear is called in", () => {
-		const frames = landing(gearsFor(250));
+		const frames = landing(gearsFor(30));
 		const calling = frames.filter(f => f.stage === "crane" && f.arrival.crane > 0 && f.arrival.crane < 1);
 		expect(calling.length).toBeGreaterThan(0);
 		expect(new Set(calling.map(f => f.reveal)).size).toBe(1);
@@ -111,12 +117,12 @@ describe("extractionAt", () => {
 	});
 
 	it("gives the crane time to come out and get its cable down before it lifts", () => {
-		const calling = landing(gearsFor(250)).filter(f => f.stage === "crane" && f.arrival.crane < 1);
+		const calling = landing(gearsFor(30)).filter(f => f.stage === "crane" && f.arrival.crane < 1);
 		expect(calling.length).toBeGreaterThanOrEqual(2 * TICK_HZ);
 	});
 
 	it("lifts a crane catch out slowly, never more than a fifth of it in a second, so it feels heavy", () => {
-		const frames = landing(gearsFor(250));
+		const frames = landing(gearsFor(30));
 		for (let i = TICK_HZ; i < frames.length; i++) {
 			expect(frames[i].reveal - frames[i - TICK_HZ].reveal).toBeLessThan(0.2);
 		}
@@ -127,18 +133,51 @@ describe("extractionAt", () => {
 			const frames = landing(gearsFor(multiplier));
 			return frames[frames.length - 1].arrival;
 		};
-		expect(arrivalAtEnd(1)).toEqual({ crane: 0, helicopter: 0 });
-		expect(arrivalAtEnd(250)).toEqual({ crane: 1, helicopter: 0 });
-		expect(arrivalAtEnd(500)).toEqual({ crane: 1, helicopter: 1 });
+		expect(arrivalAtEnd(1)).toEqual({ crane: 0, helicopter: 0, chinook: 0 });
+		expect(arrivalAtEnd(30)).toEqual({ crane: 1, helicopter: 0, chinook: 0 });
+		expect(arrivalAtEnd(500)).toEqual({ crane: 1, helicopter: 1, chinook: 1 });
 	});
 
 	it("takes longer the heavier the catch", () => {
-		expect(extractionTicks(gearsFor(250), CATCH_M)).toBeGreaterThan(extractionTicks(gearsFor(1), CATCH_M));
-		expect(extractionTicks(gearsFor(500), CATCH_M)).toBeGreaterThan(extractionTicks(gearsFor(250), CATCH_M));
+		expect(extractionTicks(gearsFor(30), CATCH_M)).toBeGreaterThan(extractionTicks(gearsFor(1), CATCH_M));
+		expect(extractionTicks(gearsFor(100), CATCH_M)).toBeGreaterThan(extractionTicks(gearsFor(30), CATCH_M));
+		expect(extractionTicks(gearsFor(500), CATCH_M)).toBeGreaterThan(extractionTicks(gearsFor(100), CATCH_M));
 	});
 
 	it("gives the finished catch a beat to hang there before the round ends", () => {
 		const held = landing(gearsFor(500)).filter(f => f.stage === "hold");
 		expect(held.length).toBeGreaterThan(TICK_HZ);
+	});
+
+	it("makes each gear strain against a stuck fish, building to the moment it gives", () => {
+		const frames = landing(gearsFor(500));
+		for (const gear of ["rod", "crane", "helicopter", "chinook"]) {
+			const turn = frames.filter(f => f.stage === gear);
+			const stuck = turn.filter(f => f.strain > 0);
+			expect(stuck.length).toBeGreaterThanOrEqual(TICK_HZ);
+			// It pulls hardest right before the fish gives, and the fish hasn't moved while it does.
+			expect(stuck.at(-1)?.strain).toBeCloseTo(1, 1);
+			expect(new Set(stuck.map(f => f.reveal)).size).toBe(1);
+			// Once it lifts, the pull is over.
+			expect(turn.at(-1)?.strain).toBe(0);
+		}
+	});
+
+	it("doesn't strain a catch the rod lands alone, or one that is hung and held", () => {
+		expect(landing(gearsFor(1)).every(f => f.strain === 0)).toBe(true);
+		expect(
+			landing(gearsFor(500))
+				.filter(f => f.stage === "hold")
+				.every(f => f.strain === 0)
+		).toBe(true);
+	});
+});
+
+describe("shownMultiplier", () => {
+	it("climbs from 1× to the catch's own multiplier as the fish comes out", () => {
+		expect(shownMultiplier(62, 0)).toBe(MIN_MULTIPLIER);
+		expect(shownMultiplier(62, 0.5)).toBeGreaterThan(MIN_MULTIPLIER);
+		expect(shownMultiplier(62, 0.5)).toBeLessThan(62);
+		expect(shownMultiplier(62, 1)).toBe(62);
 	});
 });

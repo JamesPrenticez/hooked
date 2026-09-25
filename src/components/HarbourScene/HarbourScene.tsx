@@ -6,11 +6,7 @@ import boomSegmentUrl from "@assets/dock-crane/boom-segment.png";
 import boomTipUrl from "@assets/dock-crane/boom-tip.png";
 import towerUrl from "@assets/dock-crane/tower.png";
 import helicopterUrl from "@assets/helicopter/helicopter.png";
-import bgDesktopUrl from "@assets/layers/hub/background/bg-desktop.webp";
 import bgDesktopWideUrl from "@assets/layers/hub/background/bg-desktop-wide.png";
-import bgLightsDesktopUrl from "@assets/layers/hub/background/bg-lights-desktop.webp";
-import bgLightsMobileUrl from "@assets/layers/hub/background/bg-lights-mobile.webp";
-import bgMobileUrl from "@assets/layers/hub/background/bg-mobile.webp";
 import bgMobileWideUrl from "@assets/layers/hub/background/bg-mobile-wide.png";
 import seamUrl from "@assets/layers/hub/water/seam.png";
 import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
@@ -59,8 +55,8 @@ import { waterSwell } from "./waterSwell";
  * the whole screen. Ascending plays it in reverse, so the return is seamless
  * too.
  *
- * Real art lands one layer at a time. The background strip (`bg-desktop` /
- * `bg-mobile`, picked by viewport shape — see `backgroundFit`) is in and
+ * Real art lands one layer at a time. The background strip (`bg-desktop-wide` /
+ * `bg-mobile-wide`, picked by viewport shape — see `backgroundFit`) is in and
  * carries the buildings and docks. The sky, sun / moon and overall light level
  * are code, cycled through a day / night loop by `useDayNightClock` +
  * `computeAmbience` — the strip is painted at midday and tinted from there.
@@ -86,12 +82,8 @@ interface HarbourSceneProps {
 }
 
 const HARBOUR_URLS = [
-	bgDesktopUrl,
-	bgMobileUrl,
 	bgDesktopWideUrl,
 	bgMobileWideUrl,
-	bgLightsDesktopUrl,
-	bgLightsMobileUrl,
 	waterTileUrl,
 	seamUrl,
 	basicSheetUrl,
@@ -128,14 +120,8 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 		// mipmaps. The player sheets are drawn larger than their 256px frames, so
 		// they don't.
 		Assets.load([
-			bgDesktopUrl,
-			bgMobileUrl,
 			bgDesktopWideUrl,
 			bgMobileWideUrl,
-			bgDesktopWideUrl,
-			bgMobileWideUrl,
-			bgLightsDesktopUrl,
-			bgLightsMobileUrl,
 			mipmapped(waterTileUrl),
 			mipmapped(seamUrl),
 			basicSheetUrl,
@@ -197,18 +183,11 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 						<CelestialBody view={view} celestial={celestial} />
 						<BackgroundLayer
 							view={view}
-							desktop={textures?.[bgDesktopUrl]}
-							mobile={textures?.[bgMobileUrl]}
 							desktopWide={textures?.[bgDesktopWideUrl]}
 							mobileWide={textures?.[bgMobileWideUrl]}
-							litDesktop={textures?.[bgLightsDesktopUrl]}
-							litMobile={textures?.[bgLightsMobileUrl]}
 							tint={bgTint}
-							windowGlow={windowGlow}
-							seconds={seconds}
 						/>
 						<SeamWaves surface={surface} view={view} tint={bgTint} texture={textures?.[seamUrl]} seconds={seconds} />
-						<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} />
 						{/* Part of the harbour, just chilling until a catch is too heavy for the rod — and then out in front of it. */}
 						<DockCrane
 							view={view}
@@ -221,6 +200,9 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 							out={scene.crane}
 							hook={hook}
 						/>
+						{/* Called in over the crane for a heavier catch, and the Chinook over it for a heavier one still. */}
+						<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} hook={hook} />
+						<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} hook={hook} heavy />
 					</pixiContainer>
 					{boat && (
 						<FishingLine

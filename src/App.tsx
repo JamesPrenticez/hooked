@@ -8,6 +8,7 @@ import { Balance } from "@components/Balance";
 import { BottomBar } from "@components/BottomBar";
 import { DebugPanel } from "@components/DebugPanel";
 import { DepthIndicator } from "@components/DepthIndicator";
+import { ExtractionMultiplier } from "@components/ExtractionMultiplier";
 import { HarbourScene } from "@components/HarbourScene";
 import { HookedBanner } from "@components/HookedBanner";
 import { LoadingScreen } from "@components/LoadingScreen";
@@ -113,6 +114,7 @@ export function App() {
 			{phase === "game" && <Balance />}
 			{phase === "game" && underwater && <DepthIndicator depth={depth} />}
 			{phase === "game" && <HookedBanner />}
+			{phase === "game" && <ExtractionMultiplier />}
 			{phase === "game" && (
 				<BottomBar
 					descending={underwater}

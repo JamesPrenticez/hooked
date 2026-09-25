@@ -182,6 +182,9 @@ const HELI_WIDTH = 0.24;
 const HELI_MAX_WIDTH = 0.5;
 /** It idles in the sky this much smaller — further off — than it works. */
 const HELI_IDLE_SCALE = 0.5;
+/** The Chinook is the same art drawn this much bigger, waiting off the right-hand edge until it is called. ponytail:
+ *  helicopter.png stands in until it has its own tandem-rotor art. */
+const CHINOOK_SCALE = 1.2;
 const HELI_IDLE = { x: 0.17, y: 0.16 };
 /** The helipad on the skyline's rooftop, in `bg-desktop`'s pixels — where it idles on a landscape screen. */
 const HELIPAD = { x: 1115, y: 150, artWidth: 1672, dockLine: 0.438 * 941 };
@@ -199,12 +202,20 @@ function helipad(view: Size): Point {
 	return { x: HELIPAD.x * scale, y: horizonY(view) + (HELIPAD.y - HELIPAD.dockLine) * scale };
 }
 
-/** Where the helicopter's winch ring is: idling in the sky until called, then flying over the hook and hovering there. */
-export function heliLayout(view: Size, hook: HookPose, arrival: number): HeliLayout {
-	const near = Math.min(HELI_WIDTH * view.height, HELI_MAX_WIDTH * view.width) / HELI_ART.solid;
+/** Where the helicopter's winch ring is: idling in the sky until called, then flying over the hook and hovering there —
+ *  until the heavier gear after it takes the fish (`release`, 0..1), when it flies back to where it idles. */
+export function heliLayout(
+	view: Size,
+	hook: HookPose,
+	arrival: number,
+	{ heavy = false, release = 0 } = {}
+): HeliLayout {
+	const near =
+		(Math.min(HELI_WIDTH * view.height, HELI_MAX_WIDTH * view.width) / HELI_ART.solid) * (heavy ? CHINOOK_SCALE : 1);
 	const far = near * HELI_IDLE_SCALE;
-	const fly = between(arrival, 0, 0.6);
-	const idle = helipad(view);
+	const fly = between(arrival, 0, 0.6) * (1 - release);
+	const pad = helipad(view);
+	const idle = heavy ? { x: view.width * 1.15, y: pad.y } : pad;
 	const hover = { x: hook.x, y: (hook.finalY ?? hook.y) - HELI_CABLE * view.height };
 
 	return {
@@ -229,11 +240,12 @@ export interface HookPose extends Point {
 }
 
 /** Over the crane's call-in: how far (0..1) it has come out from its pier, then how far its cable has paid out to the
- *  hook, then — for the helicopter's call-in — how far the crane's cable has gone slack and the helicopter's has paid out. */
+ *  hook. Over a helicopter's (or the Chinook's): how far its cable has paid out, and — over the next gear's call-in —
+ *  how far this one lets go of the fish and slackens. */
 export const craneOut = (arrival: number) => between(arrival, 0, 0.6);
 export const craneDrop = (arrival: number) => between(arrival, 0.5, 1);
 export const heliDrop = (arrival: number) => between(arrival, 0.3, 0.75);
-export const craneRelease = (arrival: number) => between(arrival, 0.55, 1);
+export const release = (arrival: number) => between(arrival, 0.55, 1);
 /** How far (0..1) the man has backed away from the hook and the camera has pulled out, over the crane's call-in — a
  *  touch after the crane has started, and after it has got there. */
 const pullOut = (arrival: number) => between(arrival, 0, 0.8);
@@ -312,18 +324,25 @@ export function hookPose(sim: Sim, view: Size, tip: Point): HookPose {
 const FIGHT_SHAKE_PX = 4;
 const JOLT_SHAKE_PX = 12;
 const JOLT_TICKS = 30;
+/** The shake at full strain, while a gear pulls against a fish that won't come. */
+const STRAIN_SHAKE_PX = 7;
 
 export function cameraShake(sim: Sim): Point {
 	let amount = 0;
 	if (sim.phase === "hooked") amount = FIGHT_SHAKE_PX;
 	else if (sim.phase === "announce") amount = JOLT_SHAKE_PX * Math.max(0, 1 - (sim.tick - sim.phaseTick) / JOLT_TICKS);
+	else if (sim.phase === "extract") {
+		amount = STRAIN_SHAKE_PX * extractionAt(gearsFor(sim.multiplier), sim.catchM, sim.tick - sim.phaseTick).strain;
+	}
 	if (amount <= 0) return { x: 0, y: 0 };
 	return { x: Math.sin(sim.tick * 2.1) * amount, y: Math.sin(sim.tick * 3.3 + 1) * amount * 0.6 };
 }
 
 /** The hooked fish sways from its mouth: a slow hang, and a hard pull while it fights. Radians. */
 export function fishSway(sim: Sim): number {
-	const fighting = sim.phase === "hooked";
+	const straining =
+		sim.phase === "extract" && extractionAt(gearsFor(sim.multiplier), sim.catchM, sim.tick - sim.phaseTick).strain > 0;
+	const fighting = sim.phase === "hooked" || straining;
 	return Math.sin((sim.tick / TICK_HZ) * (fighting ? 11 : 2.4)) * (fighting ? 0.12 : 0.06);
 }
 

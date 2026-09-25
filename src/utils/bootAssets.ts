@@ -4,11 +4,7 @@ import boomSegmentUrl from "@assets/dock-crane/boom-segment.png";
 import boomTipUrl from "@assets/dock-crane/boom-tip.png";
 import towerUrl from "@assets/dock-crane/tower.png";
 import helicopterUrl from "@assets/helicopter/helicopter.png";
-import bgDesktopUrl from "@assets/layers/hub/background/bg-desktop.webp";
 import bgDesktopWideUrl from "@assets/layers/hub/background/bg-desktop-wide.png";
-import bgLightsDesktopUrl from "@assets/layers/hub/background/bg-lights-desktop.webp";
-import bgLightsMobileUrl from "@assets/layers/hub/background/bg-lights-mobile.webp";
-import bgMobileUrl from "@assets/layers/hub/background/bg-mobile.webp";
 import bgMobileWideUrl from "@assets/layers/hub/background/bg-mobile-wide.png";
 import seamUrl from "@assets/layers/hub/water/seam.png";
 import causticsUrl from "@assets/layers/hub/water/underwater-caustics.webp";
@@ -29,12 +25,8 @@ export const mipmapped = (src: string) => ({
 
 /** Everything the game scenes draw from the first frame, so nothing pops in after the loading screen. */
 const BOOT_ASSETS = [
-	bgDesktopUrl,
-	bgMobileUrl,
 	bgDesktopWideUrl,
 	bgMobileWideUrl,
-	bgLightsDesktopUrl,
-	bgLightsMobileUrl,
 	mipmapped(waterTileUrl),
 	mipmapped(seamUrl),
 	basicSheetUrl,

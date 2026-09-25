@@ -12,6 +12,7 @@ import { useKrakenStore } from "@stores/krakenStore";
 import { usePlayerStore } from "@stores/playerStore";
 import type { StoredRecording } from "@type/api";
 import {
+	CHINOOK_FROM,
 	CRANE_FROM,
 	extractionAt,
 	gearsFor,
@@ -22,7 +23,7 @@ import {
 import { fromBase64, type Recording } from "@utils/simRecording";
 
 /** The multipliers worth jumping straight to: a plain reel-in, a crane catch and a helicopter catch. */
-const MULTIPLIER_PRESETS = [MIN_MULTIPLIER, 250, MAX_MULTIPLIER];
+const MULTIPLIER_PRESETS = [MIN_MULTIPLIER, CRANE_FROM, HELICOPTER_FROM, CHINOOK_FROM, MAX_MULTIPLIER];
 
 const Trigger = styled(Button)`
 	position: absolute;
@@ -325,7 +326,8 @@ export function DebugPanel() {
 						</Actions>
 						<Note>
 							How heavy the next catch is: from {CRANE_FROM}× the crane is called in, from {HELICOPTER_FROM}× the
-							helicopter too — and the fish comes out of the water bigger. Applies to the next Cast.
+							helicopter too, from {CHINOOK_FROM}× the Chinook — and the fish comes out of the water bigger. Applies to
+							the next Cast.
 						</Note>
 						<Field>
 							Speed
