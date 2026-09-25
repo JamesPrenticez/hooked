@@ -89,20 +89,60 @@ export interface BoatLayout {
 	x: number;
 	y: number;
 	scale: number;
+	/** `scale` with the boat at rest: what the hook is sized off, so it doesn't shrink as the boat backs away. */
+	restScale: number;
 	/** Rod tip in world space (camera at rest) — where the line hangs from. */
 	tip: { x: number; y: number };
 }
 
-/** The boat, centred on screen and floating on the waterline, its resting pose
- *  filling the middle third. `scale` is screen px per sheet pixel; `bob` is the
- *  swell offset in px. */
-export function boatLayout(view: Size, bob: number): BoatLayout {
-	const scale = Math.min(
+/** Where the boat is while a catch is landed, both 0..1 with 0 the boat at rest: `station` pulls it back and shrinks it
+ *  until its rod tip is over the hook at the middle of the screen; `retire` then has it back away to the sidelines. */
+export interface BoatStance {
+	station: number;
+	retire: number;
+}
+
+/** The stationed boat is this much of its resting size, or less if it wouldn't fit beside the hook. */
+const STATION_SCALE = 0.8;
+/** A share of the screen width the stationed boat's whole frame may fill, from its left edge to the hook. */
+const STATION_FIT = 0.92;
+/** The sidelined boat is this much of its resting size, and this far along the screen from its left edge. */
+const SIDELINE_SCALE = 0.5;
+const SIDELINE_X = 0.18;
+/** How far back each stance sits, as a share of the harbour water — the boat's waterline runs from the seam (0) to
+ *  the horizon (1), so further back is higher up the screen. */
+const STATION_BACK = 0.2;
+const SIDELINE_BACK = 0.55;
+
+const mixed = (from: number, to: number, u: number) => from + (to - from) * u;
+
+/** The boat floating on the waterline, its resting pose filling the middle third — centred on screen at rest, and
+ *  through a landing (`BoatStance`) stationed beside the hook and then on the sidelines. `scale` is screen px per
+ *  sheet pixel; `bob` is the swell offset in px. */
+export function boatLayout(
+	view: Size,
+	bob: number,
+	{ station, retire }: BoatStance = { station: 0, retire: 0 }
+): BoatLayout {
+	const restScale = Math.min(
 		((view.height / 3) * BOAT_MAX_HEIGHT) / REST_HEIGHT,
 		(view.width * BOAT_MAX_WIDTH) / PLAYER_FRAME.width
 	);
-	const x = view.width / 2;
-	const y = waterlineY(view) + bob;
+	const centre = view.width / 2;
+	const water = waterlineY(view) - horizonY(view);
+
+	// Sheet px from the boat's centre to its rod tip, and from its left edge to its rod tip.
+	const tipReach = (ROD_TIP.x - BOAT_ANCHOR.x) * PLAYER_FRAME.width;
+	const stationScale = Math.min(
+		restScale * STATION_SCALE,
+		(centre * STATION_FIT) / (tipReach + PLAYER_FRAME.width * BOAT_ANCHOR.x)
+	);
+
+	const scale = mixed(mixed(restScale, stationScale, station), restScale * SIDELINE_SCALE, retire);
+	const x = mixed(mixed(centre, centre - tipReach * stationScale, station), view.width * SIDELINE_X, retire);
+	const back = mixed(mixed(0, STATION_BACK, station), SIDELINE_BACK, retire);
+	// A boat further off bobs less.
+	const y = waterlineY(view) - back * water + bob * (scale / restScale);
 	const left = x - PLAYER_FRAME.width * scale * BOAT_ANCHOR.x;
 	const top = y - PLAYER_FRAME.height * scale * BOAT_ANCHOR.y;
 
@@ -110,6 +150,7 @@ export function boatLayout(view: Size, bob: number): BoatLayout {
 		x,
 		y,
 		scale,
+		restScale,
 		tip: { x: left + ROD_TIP.x * PLAYER_FRAME.width * scale, y: top + ROD_TIP.y * PLAYER_FRAME.height * scale }
 	};
 }

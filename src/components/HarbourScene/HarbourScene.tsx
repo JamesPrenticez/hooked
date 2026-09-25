@@ -15,6 +15,7 @@ import extendedSheetUrl from "@assets/player/player-succes-fail.png";
 import { DescentScene } from "@components/DescentScene";
 import { Creatures } from "@components/DescentScene/Creatures";
 import { FishingLine } from "@components/DescentScene/FishingLine";
+import { useAnimatedNumber } from "@hooks/useAnimatedNumber";
 import { useDayNightClock } from "@hooks/useDayNightClock";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
 import { useHookStore } from "@stores/hookStore";
@@ -24,7 +25,7 @@ import { computeAmbience } from "./ambience";
 import { BackgroundLayer } from "./BackgroundLayer";
 import { CelestialBody } from "./CelestialBody";
 import { DockCrane } from "./DockCrane";
-import { cameraShake, hookPose } from "./extraction";
+import { cameraShake, hookPose, type LandingScene, landingScene } from "./extraction";
 import { Fisherman } from "./Fisherman";
 import { boatLayout, cameraScroll, hookWorldY, waterlineY } from "./framing";
 import { Helicopter } from "./Helicopter";
@@ -59,6 +60,12 @@ import { waterSwell } from "./waterSwell";
  * `Fisherman` (§7.2) is the boat + player, animated from two placeholder sprite
  * sheets and cued by `usePlayerStore`. §7.3 ambient activity is a separate
  * sub-milestone and is not here yet.
+ *
+ * Landing a catch (`extraction.ts`) moves the harbour on from how it rests: the hook is at the middle of the
+ * screen, the boat pulls back beside it and — for a catch too heavy for the rod — backs away to the sidelines
+ * as the crane comes out to take it, while the camera pulls out about the spot the fish comes out of the water
+ * (`landingScene`, eased here so it also settles back when the round ends). The harbour's layers carry on past
+ * the view (`OVERSCAN`) for that.
  */
 interface HarbourSceneProps {
 	/** Metres below the boat — owned by App so the HTML depth readout can share
@@ -85,6 +92,16 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const t = useDayNightClock();
 	const seconds = useElapsedSeconds();
 	const sim = useHookStore(state => state.sim);
+	// How the landing has moved the boat, the crane and the camera from how the harbour rests. Each eases to where
+	// the landing puts it, so when the round ends the harbour settles back to rest instead of snapping.
+	const landing = landingScene(sim);
+	const scene: LandingScene = {
+		station: useAnimatedNumber(landing.station),
+		retire: useAnimatedNumber(landing.retire),
+		crane: useAnimatedNumber(landing.crane),
+		zoom: useAnimatedNumber(landing.zoom),
+		line: useAnimatedNumber(landing.line)
+	};
 
 	useEffect(() => {
 		let live = true;
@@ -125,60 +142,65 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const view = { width: app.screen.width, height: app.screen.height };
 	const { skyTop, skyHorizon, bgTint, windowGlow, celestial } = computeAmbience(t, view);
 	const scroll = cameraScroll(depth, view);
-	const boat = player && boatLayout(view, waterSwell(seconds));
+	const boat = player && boatLayout(view, waterSwell(seconds), scene);
 	// Where the hook hangs, which is no longer where the camera is once a fish is on it: it stays at
 	// the depth it was caught while the camera goes up, then is hauled to the surface and lifted out.
 	const hook = sim && boat ? hookPose(sim, view, boat.tip) : undefined;
 	const shake = sim ? cameraShake(sim) : { x: 0, y: 0 };
+	// The camera pulls out about the spot the fish comes out of the water, so that stays where it is on screen.
+	const seam = waterlineY(view);
 
 	return (
 		<pixiContainer x={shake.x} y={shake.y}>
 			<DescentScene depth={depth} tint={bgTint} seconds={seconds} />
-			{/* The harbour layers have nothing to draw once the camera has scrolled them
-			    off-screen, but the fishing line and hook follow the hook down. */}
-			<pixiContainer y={-scroll}>
-				<pixiContainer visible={scroll < waterlineY(view)}>
-					<SkyLayer view={view} skyTop={skyTop} skyHorizon={skyHorizon} />
-					<OceanLayer
-						view={view}
-						tint={bgTint}
-						texture={textures?.[waterTileUrl]}
-						seconds={seconds}
-						celestial={celestial}
-						windowGlow={windowGlow}
-					/>
-					<CelestialBody view={view} celestial={celestial} />
-					<BackgroundLayer
-						view={view}
-						desktop={textures?.[bgDesktopUrl]}
-						mobile={textures?.[bgMobileUrl]}
-						litDesktop={textures?.[bgLightsDesktopUrl]}
-						litMobile={textures?.[bgLightsMobileUrl]}
-						tint={bgTint}
-						windowGlow={windowGlow}
-						seconds={seconds}
-					/>
-					<SeamWaves view={view} tint={bgTint} texture={textures?.[seamUrl]} seconds={seconds} />
-					{/* Part of the harbour, just chilling until a catch is too heavy for the rod. */}
-					<DockCrane view={view} texture={textures?.[craneUrl]} tint={bgTint} hook={hook} />
-					<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} />
+			<pixiContainer x={(view.width / 2) * (1 - scene.zoom)} y={seam * (1 - scene.zoom)} scale={scene.zoom}>
+				{/* The harbour layers have nothing to draw once the camera has scrolled them
+				    off-screen, but the fishing line and hook follow the hook down. */}
+				<pixiContainer y={-scroll}>
+					<pixiContainer visible={scroll < seam}>
+						<SkyLayer view={view} skyTop={skyTop} skyHorizon={skyHorizon} />
+						<OceanLayer
+							view={view}
+							tint={bgTint}
+							texture={textures?.[waterTileUrl]}
+							seconds={seconds}
+							celestial={celestial}
+							windowGlow={windowGlow}
+						/>
+						<CelestialBody view={view} celestial={celestial} />
+						<BackgroundLayer
+							view={view}
+							desktop={textures?.[bgDesktopUrl]}
+							mobile={textures?.[bgMobileUrl]}
+							litDesktop={textures?.[bgLightsDesktopUrl]}
+							litMobile={textures?.[bgLightsMobileUrl]}
+							tint={bgTint}
+							windowGlow={windowGlow}
+							seconds={seconds}
+						/>
+						<SeamWaves view={view} tint={bgTint} texture={textures?.[seamUrl]} seconds={seconds} />
+						<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} />
+						{/* Part of the harbour, just chilling until a catch is too heavy for the rod — and then out in front of it. */}
+						<DockCrane view={view} texture={textures?.[craneUrl]} tint={bgTint} out={scene.crane} hook={hook} />
+					</pixiContainer>
+					{boat && (
+						<FishingLine
+							tip={boat.tip}
+							hookY={hook?.y ?? hookWorldY(depth, boat.tip.y, view)}
+							hookX={hook?.x}
+							scroll={scroll}
+							waterY={seam}
+							view={view}
+							boatScale={boat.restScale}
+							seconds={seconds}
+							lineAlpha={scene.line}
+						/>
+					)}
+					{player && boat && <Fisherman frames={player} boat={boat} tint={bgTint} seconds={seconds} />}
 				</pixiContainer>
-				{boat && (
-					<FishingLine
-						tip={boat.tip}
-						hookY={hook?.y ?? hookWorldY(depth, boat.tip.y, view)}
-						hookX={hook?.x}
-						scroll={scroll}
-						waterY={waterlineY(view)}
-						view={view}
-						boatScale={boat.scale}
-						seconds={seconds}
-					/>
-				)}
-				{player && boat && <Fisherman frames={player} boat={boat} tint={bgTint} seconds={seconds} />}
+				{/* Above the hook: the hooked fish overlaps it. */}
+				<Creatures view={view} depth={depth} seconds={seconds} hook={hook} onlyHooked />
 			</pixiContainer>
-			{/* Screen space, above the hook: the hooked fish overlaps it. */}
-			<Creatures view={view} depth={depth} seconds={seconds} hook={hook} onlyHooked />
 		</pixiContainer>
 	);
 }

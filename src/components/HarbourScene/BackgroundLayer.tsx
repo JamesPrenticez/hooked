@@ -24,6 +24,10 @@ interface BackgroundLayerProps {
 	seconds: number;
 }
 
+/** The strip, and the copies of it that carry the harbour on past its ends: each mirrored, so it picks up where its
+ *  neighbour leaves off. Only seen once the camera pulls out (`ZOOM_OUT`). */
+const COPIES = [-1, 0, 1];
+
 /**
  * The harbour background strip — real art carrying the buildings, dock and
  * cranes, painted at midday and tinted for the time of day. Picks the
@@ -48,10 +52,18 @@ export function BackgroundLayer({
 
 	return (
 		<>
-			<pixiSprite texture={bg.texture} anchor={0.5} x={bg.x} y={bg.y} scale={bg.scale} tint={tint} />
-			{lit && windowGlow > 0.01 && (
-				<pixiSprite texture={lit} anchor={0.5} x={bg.x} y={bg.y} scale={bg.scale} alpha={alpha} />
-			)}
+			{COPIES.map(side => {
+				// The art is fit to the width of the view, so a copy is a view's width along.
+				const copy = { x: bg.x + side * view.width, scale: { x: side === 0 ? bg.scale : -bg.scale, y: bg.scale } };
+				return (
+					<pixiContainer key={side}>
+						<pixiSprite texture={bg.texture} anchor={0.5} x={copy.x} y={bg.y} scale={copy.scale} tint={tint} />
+						{lit && windowGlow > 0.01 && (
+							<pixiSprite texture={lit} anchor={0.5} x={copy.x} y={bg.y} scale={copy.scale} alpha={alpha} />
+						)}
+					</pixiContainer>
+				);
+			})}
 		</>
 	);
 }

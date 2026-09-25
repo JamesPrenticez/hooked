@@ -110,6 +110,18 @@ describe("extractionAt", () => {
 		expect(calling[0].reveal).toBeLessThan(0.2);
 	});
 
+	it("gives the crane time to come out and get its cable down before it lifts", () => {
+		const calling = landing(gearsFor(250)).filter(f => f.stage === "crane" && f.arrival.crane < 1);
+		expect(calling.length).toBeGreaterThanOrEqual(2 * TICK_HZ);
+	});
+
+	it("lifts a crane catch out slowly, never more than a fifth of it in a second, so it feels heavy", () => {
+		const frames = landing(gearsFor(250));
+		for (let i = TICK_HZ; i < frames.length; i++) {
+			expect(frames[i].reveal - frames[i - TICK_HZ].reveal).toBeLessThan(0.2);
+		}
+	});
+
 	it("only calls in the gear the catch needs", () => {
 		const arrivalAtEnd = (multiplier: number) => {
 			const frames = landing(gearsFor(multiplier));

@@ -21,9 +21,11 @@ interface FishingLineProps {
 	/** World y of the water surface (`waterlineY`). */
 	waterY: number;
 	view: { width: number; height: number };
-	/** The boat's sprite scale (`boatLayout`) — the hook is sized off it. */
+	/** The boat's sprite scale at rest (`boatLayout`'s `restScale`) — the hook is sized off it. */
 	boatScale: number;
 	seconds: number;
+	/** How much of the line is there, 1..0 — the man lets go of it when the crane takes over. Defaults to all of it. */
+	lineAlpha?: number;
 }
 
 /** `hook.png` is a 1254px square with the hook drawn small inside it (~1076px
@@ -47,7 +49,17 @@ const HOOK_EYE = { x: 0.545, y: 0.067 };
  * its coil instead (`krakenFightPose`), the line following it. The hook is
  * placeholder art.
  */
-export function FishingLine({ tip, hookY, hookX, scroll, waterY, view, boatScale, seconds }: FishingLineProps) {
+export function FishingLine({
+	tip,
+	hookY,
+	hookX,
+	scroll,
+	waterY,
+	view,
+	boatScale,
+	seconds,
+	lineAlpha = 1
+}: FishingLineProps) {
 	const [hook, setHook] = useState<Texture | undefined>(() => cachedTextures([hookUrl])?.[hookUrl]);
 	const fightStart = useKrakenStore(state => state.fightStart);
 	const depthZones = useDebugStore(state => state.depthZones);
@@ -80,9 +92,10 @@ export function FishingLine({ tip, hookY, hookX, scroll, waterY, view, boatScale
 			<pixiGraphics
 				draw={g => {
 					g.clear();
+					if (lineAlpha <= 0) return;
 					g.moveTo(tip.x, tip.y);
 					if (y >= waterY) g.lineTo(x, waterY);
-					g.lineTo(x, y).stroke({ width: 1.5, color: 0xe8e8e8, alpha: 0.8 });
+					g.lineTo(x, y).stroke({ width: 1.5, color: 0xe8e8e8, alpha: 0.8 * lineAlpha });
 				}}
 			/>
 			{hook && (

@@ -3,7 +3,7 @@
  * one changes a trajectory; `simConfig.test.ts` fails if it drifts from the
  * live auto-descent values. No imports — runs under Node.
  */
-export const SIM_VERSION = 2;
+export const SIM_VERSION = 3;
 export const TICK_HZ = 60;
 /** Sim world width in px (the desktop reference); the client scales it to the view. */
 export const SIM_WIDTH = 1920;

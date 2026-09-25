@@ -1,7 +1,7 @@
 import type { Texture } from "pixi.js";
 
 import { waterlineY } from "./framing";
-import type { HarbourView } from "./layers";
+import { type HarbourView, OVERSCAN } from "./layers";
 import { waterSwell } from "./waterSwell";
 
 /** Where the foam line sits on `seam.png`, as a fraction of its height. */
@@ -34,6 +34,7 @@ interface SeamWavesProps {
 export function SeamWaves({ view, tint, texture, seconds }: SeamWavesProps) {
 	if (!texture) return null;
 	const waterline = waterlineY(view);
+	const left = -view.width * OVERSCAN;
 
 	return (
 		<pixiContainer>
@@ -43,12 +44,13 @@ export function SeamWaves({ view, tint, texture, seconds }: SeamWavesProps) {
 					<pixiTilingSprite
 						key={pass.swellPhase}
 						texture={texture}
-						x={0}
+						x={left}
 						y={waterline - FOAM_Y * texture.height * scale + waterSwell(seconds, pass.swellPhase)}
-						width={view.width}
+						width={view.width * (1 + 2 * OVERSCAN)}
 						height={texture.height * scale}
 						tileScale={{ x: scale, y: scale }}
-						tilePosition={{ x: seconds * pass.drift, y: 0 }}
+						// The tiles stay where they were with the sprite's left edge out past the screen's.
+						tilePosition={{ x: seconds * pass.drift - left, y: 0 }}
 						blendMode="add"
 						alpha={pass.alpha}
 						tint={tint}

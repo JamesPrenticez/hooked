@@ -2,13 +2,16 @@ import { describe, expect, it } from "vitest";
 
 import { PX_PER_METER } from "@constants/depthZones";
 
+import { ZOOM_OUT } from "./extraction";
 import {
+	BOAT_ANCHOR,
 	boatLayout,
 	cameraScroll,
 	CAST_METERS,
 	castProgress,
 	depthToScreenY,
 	hookWorldY,
+	horizonY,
 	PLAYER_FRAME,
 	REST_HEIGHT,
 	waterlineY
@@ -111,5 +114,56 @@ describe("boatLayout", () => {
 
 	it("moves the rod tip with the bob", () => {
 		expect(boatLayout(VIEW, 6).tip.y - boatLayout(VIEW, 0).tip.y).toBeCloseTo(6);
+	});
+});
+
+describe("boatLayout while a catch is landed", () => {
+	const views = [VIEW, PORTRAIT, { width: 844, height: 390 }];
+	const stationed = { station: 1, retire: 0 };
+	const sidelined = { station: 1, retire: 1 };
+	const left = ({ x, scale }: { x: number; scale: number }) => x - PLAYER_FRAME.width * scale * BOAT_ANCHOR.x;
+
+	it("is the boat at rest by default", () => {
+		expect(boatLayout(VIEW, 3, { station: 0, retire: 0 })).toEqual(boatLayout(VIEW, 3));
+	});
+
+	it("stations the boat with its rod tip over the middle of the screen, smaller and further back, and still on screen", () => {
+		for (const view of views) {
+			const rest = boatLayout(view, 0);
+			const boat = boatLayout(view, 0, stationed);
+			expect(boat.tip.x).toBeCloseTo(view.width / 2);
+			expect(boat.scale).toBeLessThan(rest.scale);
+			expect(boat.y).toBeLessThan(rest.y);
+			expect(boat.y).toBeGreaterThan(horizonY(view));
+			expect(left(boat)).toBeGreaterThanOrEqual(0);
+		}
+	});
+
+	it("has the man back away further once the crane has taken over: smaller, further back, off to the side", () => {
+		for (const view of views) {
+			const boat = boatLayout(view, 0, stationed);
+			const away = boatLayout(view, 0, sidelined);
+			expect(away.scale).toBeLessThan(boat.scale);
+			expect(away.y).toBeLessThan(boat.y);
+			expect(away.y).toBeGreaterThan(horizonY(view));
+			expect(away.x).toBeLessThan(boat.x);
+			// He's only ever seen with the camera pulled out, which draws the harbour in towards the middle.
+			expect(view.width / 2 + (left(away) - view.width / 2) * ZOOM_OUT).toBeGreaterThanOrEqual(0);
+		}
+	});
+
+	it("bobs less the further back the boat is", () => {
+		const bob = (stance: { station: number; retire: number }) =>
+			boatLayout(VIEW, 6, stance).y - boatLayout(VIEW, 0, stance).y;
+		expect(bob(stationed)).toBeLessThan(6);
+		expect(bob(sidelined)).toBeLessThan(bob(stationed));
+	});
+
+	it("keeps the hook's size where it was, whatever the boat is doing", () => {
+		for (const view of views) {
+			const { restScale } = boatLayout(view, 0);
+			expect(boatLayout(view, 0, stationed).restScale).toBe(restScale);
+			expect(boatLayout(view, 0, sidelined).restScale).toBe(restScale);
+		}
 	});
 });

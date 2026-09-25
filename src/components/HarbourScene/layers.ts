@@ -10,6 +10,10 @@ export interface HarbourView {
 	height: number;
 }
 
+/** The harbour's layers carry on this many screens (of width, and of height above) past the edges of the view, for
+ *  when the camera pulls out (`ZOOM_OUT`) and shows what is out there. */
+export const OVERSCAN = 1;
+
 export interface HarbourLayer {
 	id: string;
 	/** The BUILD_PLAN §7.1 checklist item this layer stands in for. */

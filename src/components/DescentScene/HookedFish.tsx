@@ -6,18 +6,18 @@ const SUBMERGED = { alpha: 0.7, tint: 0x9cc6e6 };
 
 interface HookedFishProps {
 	texture: Texture;
-	/** Where the sprite's centre is, screen space, and how it is turned and scaled. */
+	/** Where the sprite's centre is, in the camera's space (the screen's, until the camera pulls out), and how it is turned and scaled. */
 	x: number;
 	y: number;
 	rotation: number;
 	scale: { x: number; y: number };
 	blendMode: "screen" | "normal";
-	/** The fish's mouth, on the hook, screen space — what it hangs and sways from. */
+	/** The fish's mouth, on the hook, in the camera's space — what it hangs and sways from. */
 	mouth: { x: number; y: number };
 	/** How far the fish is swung out of true around its mouth, radians. */
 	sway: number;
 	view: { width: number; height: number };
-	/** Screen y of the water's surface while the fish is being landed: only the part above it is drawn in full, so
+	/** The water's surface, in the camera's space, while the fish is being landed: only the part above it is drawn in full, so
 	 *  the fish comes out lips first. Unset, the fish is drawn whole. */
 	seamY?: number;
 }

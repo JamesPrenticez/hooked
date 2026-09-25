@@ -53,16 +53,21 @@ interface Turn {
 	to: number;
 }
 
+/** The crane takes this long to come out from its pier and get its cable to the hook. Then it lifts: slowly, so the
+ *  fish feels heavy and the wait for the whole of it to come out of the water builds. */
+const CRANE_CALL_IN = 2.4;
+const CRANE_LIFT = 8;
+
 /** Indexed by how many gears the catch needs. Each gear before the last only gets the fish partway. */
 const SCHEDULES: readonly (readonly Turn[])[] = [
 	[{ gear: "rod", callIn: 0, lift: 1.8, to: 1 }],
 	[
 		{ gear: "rod", callIn: 0, lift: 1.2, to: 0.1 },
-		{ gear: "crane", callIn: 1.6, lift: 4.6, to: 1 }
+		{ gear: "crane", callIn: CRANE_CALL_IN, lift: CRANE_LIFT, to: 1 }
 	],
 	[
 		{ gear: "rod", callIn: 0, lift: 1.2, to: 0.1 },
-		{ gear: "crane", callIn: 1.6, lift: 3, to: 0.55 },
+		{ gear: "crane", callIn: CRANE_CALL_IN, lift: 3, to: 0.55 },
 		{ gear: "helicopter", callIn: 1.8, lift: 4, to: 1 }
 	]
 ];

@@ -2,7 +2,7 @@ import type { Texture } from "pixi.js";
 
 import type { Celestial } from "./ambience";
 import { horizonY, waterlineY } from "./framing";
-import { HARBOUR_LAYERS, type HarbourView } from "./layers";
+import { HARBOUR_LAYERS, type HarbourView, OVERSCAN } from "./layers";
 import { WaterReflections } from "./WaterReflections";
 import { waterSwell } from "./waterSwell";
 
@@ -65,6 +65,7 @@ export function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow
 	);
 
 	if (texture) {
+		const left = -view.width * OVERSCAN;
 		return (
 			<pixiContainer>
 				{LAYERS.map(layer => {
@@ -73,12 +74,13 @@ export function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow
 						<pixiTilingSprite
 							key={layer.swellPhase}
 							texture={texture}
-							x={0}
+							x={left}
 							y={top}
-							width={view.width}
+							width={view.width * (1 + 2 * OVERSCAN)}
 							height={bottom - top}
 							tileScale={{ x: layer.tileScale, y: layer.tileScale }}
-							tilePosition={{ x: seconds * layer.driftX, y: seconds * layer.driftY }}
+							// The tiles stay where they were with the sprite's left edge out past the screen's.
+							tilePosition={{ x: seconds * layer.driftX - left, y: seconds * layer.driftY }}
 							tint={tint}
 							alpha={layer.alpha}
 						/>

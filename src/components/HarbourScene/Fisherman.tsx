@@ -19,8 +19,9 @@ interface FishermanProps {
 
 /**
  * The fisherman in his boat (BUILD_PLAN §7.2), centred in the middle third of
- * the screen with his hull on the waterline (`boatLayout`) and drawn above the
- * ocean and the background strip. Plays whichever animation `usePlayerStore`
+ * the screen with his hull on the waterline (`boatLayout`) — or, while a catch
+ * is landed, pulled back beside the hook and then off to the sidelines — and
+ * drawn above the ocean and the background strip. Plays whichever animation `usePlayerStore`
  * cues — idle until something says otherwise.
  */
 export function Fisherman({ frames, boat, tint, seconds }: FishermanProps) {

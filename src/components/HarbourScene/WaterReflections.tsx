@@ -2,7 +2,7 @@ import { FillGradient } from "pixi.js";
 
 import type { Celestial } from "./ambience";
 import { bucketColor, cachedGradient } from "./gradientCache";
-import type { HarbourView } from "./layers";
+import { type HarbourView, OVERSCAN } from "./layers";
 import { windowFlicker } from "./windowFlicker";
 
 interface WaterReflectionsProps {
@@ -98,7 +98,10 @@ export function WaterReflections({
 				if (windowGlow > 0.01) {
 					const glowHeight = span * 0.14;
 					const glowAlpha = 0.22 * windowGlow * windowFlicker(seconds);
-					g.rect(0, waterTop, view.width, glowHeight).fill({ fill: windowGlowGradient, alpha: glowAlpha });
+					g.rect(-view.width * OVERSCAN, waterTop, view.width * (1 + 2 * OVERSCAN), glowHeight).fill({
+						fill: windowGlowGradient,
+						alpha: glowAlpha
+					});
 				}
 
 				if (!celestial.isMoon || celestial.intensity <= 0.02) return;
