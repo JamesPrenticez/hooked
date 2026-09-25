@@ -457,9 +457,9 @@ Create the game's initial presentation and asset loading pipeline.
 
 ### 5.1 Visual
 
-- [x] Background — `src/assets/loading/background.svg`, full-bleed
+- [x] Background — `src/assets/loading/background.png`, full-bleed
       (`object-fit: cover`) behind the panel
-- [x] Deep Catch logo — `src/assets/loading/logo.svg`, centred, gentle bob
+- [x] Deep Catch logo — `src/assets/loading/logo.png`, centred, gentle bob
 - [x] Loading indicator — CSS spinner with `role="status"` / `aria-label`
 - [x] Progress display — percentage text, `tabular-nums` so digits don't jitter
 - [x] Loading animation — `spin` + `bob` keyframes; both drop under

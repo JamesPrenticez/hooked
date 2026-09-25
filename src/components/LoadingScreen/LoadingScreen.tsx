@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
-import background from "@assets/loading/background.svg";
-import logo from "@assets/loading/logo.svg";
+import background from "@assets/loading/background.png";
+import logo from "@assets/loading/logo.png";
 import { MIN_LOADING_MS } from "@constants/config";
 import { breakpoint } from "@utils/breakpoint";
 
