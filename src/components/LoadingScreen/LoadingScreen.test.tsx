@@ -2,6 +2,8 @@ import { act } from "react";
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+import { MIN_LOADING_MS } from "@constants/config";
+
 import { LoadingScreen } from "./LoadingScreen";
 
 beforeEach(() => {
@@ -12,31 +14,33 @@ afterEach(() => {
 	vi.useRealTimers();
 });
 
-it("shows the logo, a loading indicator and a starting progress of 0%", () => {
-	render(<LoadingScreen />);
+it("shows the logo, a progress bar and a starting progress of 0%", () => {
+	render(<LoadingScreen progress={0} />);
 
 	expect(screen.getByAltText("Hooked")).toBeInTheDocument();
-	expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument();
+	expect(screen.getByRole("progressbar", { name: "Loading" })).toBeInTheDocument();
 	expect(screen.getByText("0%")).toBeInTheDocument();
 });
 
-it("advances the progress display as the load ramps", () => {
-	render(<LoadingScreen />);
+it("holds a finished load back until the minimum display time has run", () => {
+	render(<LoadingScreen progress={1} />);
 
 	act(() => {
-		vi.advanceTimersByTime(1000);
+		vi.advanceTimersByTime(MIN_LOADING_MS / 2);
 	});
+	expect(screen.getByText("50%")).toBeInTheDocument();
 
-	const pct = Number((screen.getByText(/%$/).textContent ?? "").replace("%", ""));
-	expect(pct).toBeGreaterThan(0);
+	act(() => {
+		vi.advanceTimersByTime(MIN_LOADING_MS);
+	});
+	expect(screen.getByText("100%")).toBeInTheDocument();
 });
 
-it("settles at 100% once the ramp completes", () => {
-	render(<LoadingScreen />);
+it("follows a slow load rather than the ramp", () => {
+	render(<LoadingScreen progress={0.3} />);
 
 	act(() => {
-		vi.advanceTimersByTime(10000);
+		vi.advanceTimersByTime(MIN_LOADING_MS);
 	});
-
-	expect(screen.getByText("100%")).toBeInTheDocument();
+	expect(screen.getByText("30%")).toBeInTheDocument();
 });

@@ -1,38 +1,47 @@
 import { useCallback, useEffect, useState } from "react";
 import { type Application, UPDATE_PRIORITY } from "pixi.js";
 
+import { MIN_LOADING_MS } from "@constants/config";
 import { useGameStore } from "@stores/gameStore";
+import { loadBootAssets } from "@utils/bootAssets";
 
 /**
- * Drives the loading → tutorial transition (BUILD_PLAN §0.2): advance only
- * once the asset load has resolved AND Pixi has rendered its first frame.
- * Skips straight to "game" if the player previously toggled "skip tutorial".
- * Returns the onInit handler to pass to <Application>.
+ * Drives the loading → game transition (BUILD_PLAN §0.2): advance only once
+ * every boot asset has loaded, Pixi has rendered its first frame AND
+ * MIN_LOADING_MS has passed (so the loading screen is actually seen).
+ * Returns the onInit handler to pass to <Application> and the 0–1 load progress.
  */
 export function useGameBootstrap() {
 	const setPhase = useGameStore(state => state.setPhase);
+	const [progress, setProgress] = useState(0);
 	const [assetsLoaded, setAssetsLoaded] = useState(false);
 	const [frameRendered, setFrameRendered] = useState(false);
+	const [minElapsed, setMinElapsed] = useState(false);
 
 	useEffect(() => {
-		// ponytail: no real art yet — resolving immediately proves the load-gate
-		// wiring. Swap in Assets.load(manifest) when fish/harbour/ui assets
-		// land (milestone 5+).
-		Promise.resolve().then(() => setAssetsLoaded(true));
+		const id = setTimeout(() => setMinElapsed(true), MIN_LOADING_MS);
+		return () => clearTimeout(id);
 	}, []);
 
 	useEffect(() => {
-		// Read skipTutorial via getState(), not a subscribed value: this effect
-		// is only meant to fire once, for the loading → tutorial/game
-		// transition. Subscribing would re-run it (and re-set the phase) every
-		// time the player toggles "skip tutorial" from within the tutorial
-		// screen itself, slamming them straight into "game".
-		if (assetsLoaded && frameRendered) setPhase(useGameStore.getState().skipTutorial ? "game" : "tutorial");
-	}, [assetsLoaded, frameRendered, setPhase]);
+		let live = true;
+		loadBootAssets(p => live && setProgress(p))
+			.catch(error => console.error("Error loading assets:", error))
+			.then(() => live && setAssetsLoaded(true));
+		return () => {
+			live = false;
+		};
+	}, []);
 
-	return useCallback((app: Application) => {
+	useEffect(() => {
+		if (assetsLoaded && frameRendered && minElapsed) setPhase("game");
+	}, [assetsLoaded, frameRendered, minElapsed, setPhase]);
+
+	const onInit = useCallback((app: Application) => {
 		// UTILITY runs after the TickerPlugin's render (registered at LOW), so
 		// this only fires once that first frame has actually been drawn.
 		app.ticker.addOnce(() => setFrameRendered(true), undefined, UPDATE_PRIORITY.UTILITY);
 	}, []);
+
+	return { onInit, progress };
 }

@@ -5,6 +5,7 @@ import hookUrl from "@assets/player/hook.png";
 import { useDebugStore } from "@stores/debugStore";
 import { useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
+import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
 import { krakenFightPose, krakenHold } from "./krakenFight";
 import { hookX, simHookX } from "./lineDrift";
@@ -46,7 +47,7 @@ const HOOK_EYE = { x: 0.545, y: 0.067 };
  * placeholder art.
  */
 export function FishingLine({ tip, hookY, scroll, waterY, view, boatScale, seconds }: FishingLineProps) {
-	const [hook, setHook] = useState<Texture>();
+	const [hook, setHook] = useState<Texture | undefined>(() => cachedTextures([hookUrl])?.[hookUrl]);
 	const fightStart = useKrakenStore(state => state.fightStart);
 	const depthZones = useDebugStore(state => state.depthZones);
 	const sim = useHookStore(state => state.sim);
@@ -56,7 +57,7 @@ export function FishingLine({ tip, hookY, scroll, waterY, view, boatScale, secon
 		// ponytail: loaded on scene mount, not via the boot manifest — same as
 		// Mackerel; route through §5's manifest when the asset set is real. The
 		// hook is drawn ~9x smaller than its source, so it gets mipmaps.
-		Assets.load<Texture>({ src: hookUrl, data: { autoGenerateMipmaps: true } }).then(loaded => {
+		Assets.load<Texture>(mipmapped(hookUrl)).then(loaded => {
 			if (live) setHook(loaded);
 		});
 		return () => {

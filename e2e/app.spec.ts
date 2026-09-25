@@ -2,7 +2,7 @@ import { expect, type Page, test } from "@playwright/test";
 
 async function startFishing(page: Page) {
 	await page.goto("/");
-	await page.getByRole("button", { name: "Start Fishing" }).click();
+	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
 }
 
 test("the app mounts", async ({ page }) => {
@@ -10,18 +10,13 @@ test("the app mounts", async ({ page }) => {
 	await expect(page.locator("#root")).toBeAttached();
 });
 
-test("the phase machine advances loading -> tutorial -> game", async ({ page }) => {
-	await page.goto("/");
-
+test("loading goes straight to the game", async ({ page }) => {
+	await page.goto("/", { waitUntil: "commit" });
+	await expect(page.getByRole("progressbar", { name: "Loading" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
+	await expect(page.getByRole("progressbar", { name: "Loading" })).not.toBeVisible();
 	await expect(page.locator("canvas")).toBeVisible();
-
-	const startFishing = page.getByRole("button", { name: "Start Fishing" });
-	await expect(startFishing).toBeVisible();
-
-	await startFishing.click();
-	await expect(startFishing).not.toBeVisible();
 });
-
 test("casting and surfacing play out in the one canvas, without leaving the game", async ({ page }) => {
 	await startFishing(page);
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();

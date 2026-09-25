@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Assets, type Texture } from "pixi.js";
+import { Assets } from "pixi.js";
 
 import causticsUrl from "@assets/layers/hub/water/underwater-caustics.webp";
 import shaftsUrl from "@assets/layers/hub/water/underwater-shafts.webp";
 import { waterlineY } from "@components/HarbourScene/framing";
+import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
 import type { DepthAmbience } from "./depthAmbience";
 
@@ -56,10 +57,6 @@ const PASSES = [
 	}
 ] as const;
 
-// Every pass draws its tile well under 1024px, so mipmaps keep the fine
-// caustic lines and particles from shimmering as they drift.
-const mipmapped = (src: string) => ({ src, data: { autoGenerateMipmaps: true } });
-
 interface WaterTilesProps {
 	view: { width: number; height: number };
 	/** Screen y of the water's top edge — same as `WaterLayer`'s. */
@@ -77,7 +74,7 @@ interface WaterTilesProps {
  *  drifting particles all the way down — drawn additively over `WaterLayer`.
  *  Nothing renders until the two tiles load. */
 export function WaterTiles({ view, y, scroll, ambience, tint, seconds }: WaterTilesProps) {
-	const [textures, setTextures] = useState<Record<string, Texture>>();
+	const [textures, setTextures] = useState(() => cachedTextures([causticsUrl, shaftsUrl]));
 
 	useEffect(() => {
 		let live = true;

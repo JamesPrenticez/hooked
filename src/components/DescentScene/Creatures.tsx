@@ -3,6 +3,7 @@ import { Assets, Rectangle, Texture } from "pixi.js";
 
 import { cameraScroll, depthToScreenY, hookWorldY } from "@components/HarbourScene/framing";
 import { useHookStore } from "@stores/hookStore";
+import { cachedTextures } from "@utils/bootAssets";
 import { HOOK_TIP_DY, SIM_WIDTH, TICK_HZ } from "@utils/simConfig";
 import { fishX } from "@utils/simWorld";
 
@@ -30,7 +31,7 @@ interface SpeciesFrames {
 
 /** Swim, bite and struggle frames per species, once every sheet has loaded. */
 function useFrames() {
-	const [sheets, setSheets] = useState<Record<string, Texture>>();
+	const [sheets, setSheets] = useState(() => cachedTextures(SPECIES.map(s => s.url)));
 
 	useEffect(() => {
 		let live = true;

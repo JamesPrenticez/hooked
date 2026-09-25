@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useApplication } from "@pixi/react";
-import { Assets, type Texture } from "pixi.js";
+import { Assets } from "pixi.js";
 
 import bgDesktopUrl from "@assets/layers/hub/background/bg-desktop.webp";
 import bgLightsDesktopUrl from "@assets/layers/hub/background/bg-lights-desktop.webp";
@@ -15,6 +15,7 @@ import { Creatures } from "@components/DescentScene/Creatures";
 import { FishingLine } from "@components/DescentScene/FishingLine";
 import { useDayNightClock } from "@hooks/useDayNightClock";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
+import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
 import { computeAmbience } from "./ambience";
 import { BackgroundLayer } from "./BackgroundLayer";
@@ -59,9 +60,20 @@ interface HarbourSceneProps {
 	depth?: number;
 }
 
+const HARBOUR_URLS = [
+	bgDesktopUrl,
+	bgMobileUrl,
+	bgLightsDesktopUrl,
+	bgLightsMobileUrl,
+	waterTileUrl,
+	seamUrl,
+	basicSheetUrl,
+	extendedSheetUrl
+];
+
 export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const { app, isInitialised } = useApplication();
-	const [textures, setTextures] = useState<Record<string, Texture>>();
+	const [textures, setTextures] = useState(() => cachedTextures(HARBOUR_URLS));
 	const t = useDayNightClock();
 	const seconds = useElapsedSeconds();
 
@@ -78,8 +90,8 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 			bgMobileUrl,
 			bgLightsDesktopUrl,
 			bgLightsMobileUrl,
-			{ src: waterTileUrl, data: { autoGenerateMipmaps: true } },
-			{ src: seamUrl, data: { autoGenerateMipmaps: true } },
+			mipmapped(waterTileUrl),
+			mipmapped(seamUrl),
 			basicSheetUrl,
 			extendedSheetUrl
 		]).then(loaded => {

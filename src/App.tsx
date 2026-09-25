@@ -72,7 +72,7 @@ export function App() {
 	const setPhase = useGameStore(state => state.setPhase);
 	const skipTutorial = useGameStore(state => state.skipTutorial);
 	const setSkipTutorial = useGameStore(state => state.setSkipTutorial);
-	const onAppInit = useGameBootstrap();
+	const { onInit, progress } = useGameBootstrap();
 
 	const [descending, setDescending] = useState(false);
 	const manual = useManualHook();
@@ -93,26 +93,20 @@ export function App() {
 	// this is rebuilt every render — cheap, and SceneManager reconciles by
 	// key/type, not by object identity, so that's harmless.
 	const scenes: Record<GamePhase, ReactNode> = {
-		loading: <PlaceholderScene label="Loading…" color={0x0a1a2f} />,
+		loading: null,
 		tutorial: <PlaceholderScene label="Tutorial" color={0x0f5c5c} />,
 		game: <HarbourScene depth={depth} />
 	};
 
 	return (
 		<Root>
-			<Canvas
-				background={0x000000}
-				resizeTo={window}
-				resolution={window.devicePixelRatio}
-				autoDensity
-				onInit={onAppInit}
-			>
+			<Canvas background={0x000000} resizeTo={window} resolution={window.devicePixelRatio} autoDensity onInit={onInit}>
 				<SceneManager activeKey={phase} scenes={scenes} />
 			</Canvas>
 
 			<StoreSync />
 
-			{phase === "loading" && <LoadingScreen />}
+			{phase === "loading" && <LoadingScreen progress={progress} />}
 
 			{phase === "game" && <Balance />}
 			{phase === "game" && underwater && <DepthIndicator depth={depth} />}
