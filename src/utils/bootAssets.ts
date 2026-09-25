@@ -1,5 +1,7 @@
 import { Assets, type Texture } from "pixi.js";
 
+import craneUrl from "@assets/dock-crane/dock-crane-static.png";
+import helicopterUrl from "@assets/helicopter/helicopter.png";
 import bgDesktopUrl from "@assets/layers/hub/background/bg-desktop.webp";
 import bgLightsDesktopUrl from "@assets/layers/hub/background/bg-lights-desktop.webp";
 import bgLightsMobileUrl from "@assets/layers/hub/background/bg-lights-mobile.webp";
@@ -31,6 +33,9 @@ const BOOT_ASSETS = [
 	mipmapped(causticsUrl),
 	mipmapped(shaftsUrl),
 	mipmapped(hookUrl),
+	// Both drawn at well under a third of their source size.
+	mipmapped(craneUrl),
+	mipmapped(helicopterUrl),
 	...SPECIES.map(s => s.url),
 	SHEET_URLS[KRAKEN_ANIMATIONS[KRAKEN_FIGHT[0]].sheet]
 ];

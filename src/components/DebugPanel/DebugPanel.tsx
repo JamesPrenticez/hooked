@@ -9,6 +9,17 @@ import { useDebugStore } from "@stores/debugStore";
 import { type HookMode, TIME_SCALES, useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
 import { usePlayerStore } from "@stores/playerStore";
+import {
+	CRANE_FROM,
+	extractionAt,
+	gearsFor,
+	HELICOPTER_FROM,
+	MAX_MULTIPLIER,
+	MIN_MULTIPLIER
+} from "@utils/simExtraction";
+
+/** The multipliers worth jumping straight to: a plain reel-in, a crane catch and a helicopter catch. */
+const MULTIPLIER_PRESETS = [MIN_MULTIPLIER, 250, MAX_MULTIPLIER];
 
 const Trigger = styled(Button)`
 	position: absolute;
@@ -148,6 +159,8 @@ export function DebugPanel() {
 	const setHookMode = useHookStore(state => state.setHookMode);
 	const worldSeed = useHookStore(state => state.worldSeed);
 	const setWorldSeed = useHookStore(state => state.setWorldSeed);
+	const multiplier = useHookStore(state => state.multiplier);
+	const setMultiplier = useHookStore(state => state.setMultiplier);
 	const timeScale = useHookStore(state => state.timeScale);
 	const setTimeScale = useHookStore(state => state.setTimeScale);
 	const showHitboxes = useHookStore(state => state.showHitboxes);
@@ -267,6 +280,35 @@ export function DebugPanel() {
 							/>
 						</Field>
 						<Field>
+							Catch multiplier
+							<input
+								type="number"
+								min={MIN_MULTIPLIER}
+								max={MAX_MULTIPLIER}
+								step={1}
+								value={multiplier}
+								onChange={e =>
+									setMultiplier(
+										Math.min(
+											MAX_MULTIPLIER,
+											Math.max(MIN_MULTIPLIER, Math.round(Number(e.target.value)) || MIN_MULTIPLIER)
+										)
+									)
+								}
+							/>
+						</Field>
+						<Actions>
+							{MULTIPLIER_PRESETS.map(preset => (
+								<Button key={preset} variant="secondary" onClick={() => setMultiplier(preset)}>
+									{preset}×
+								</Button>
+							))}
+						</Actions>
+						<Note>
+							How heavy the next catch is: from {CRANE_FROM}× the crane is called in, from {HELICOPTER_FROM}× the
+							helicopter too — and the fish comes out of the water bigger. Applies to the next Cast.
+						</Note>
+						<Field>
 							Speed
 							<select value={timeScale} onChange={e => setTimeScale(Number(e.target.value))}>
 								{TIME_SCALES.map(scale => (
@@ -283,7 +325,7 @@ export function DebugPanel() {
 						<Note>Manual: Cast Line, then steer with ← / →. The "Hook" speeds above drive Auto only.</Note>
 						<Note data-testid="hook-readout">
 							{sim
-								? `${sim.phase} · x ${Math.round(sim.x)} · ${Math.round(sim.depthM).toLocaleString()}m · tick ${sim.tick} · hooked ${sim.world[sim.hooked]?.id ?? "none"}`
+								? `${sim.phase}${sim.phase === "extract" ? `:${extractionAt(gearsFor(sim.multiplier), sim.catchM, sim.tick - sim.phaseTick).stage}` : ""} · x ${Math.round(sim.x)} · ${Math.round(sim.depthM).toLocaleString()}m · tick ${sim.tick} · ×${sim.multiplier} · hooked ${sim.world[sim.hooked]?.id ?? "none"}`
 								: "no run"}
 						</Note>
 					</Fields>

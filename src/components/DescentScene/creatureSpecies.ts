@@ -42,6 +42,9 @@ export const SHEET_ROWS = 4;
  *  sheet has 6 bite frames and 8 struggle frames but the tuna's 5 bite frames. */
 export const BITE: SheetAnimation = { row: 2, fps: 12, frameCount: 6 };
 export const STRUGGLE: SheetAnimation = { row: 3, fps: 12, frameCount: 8 };
+/** A fish being landed gasps: the bite row's mouth opening and closing on loop, five frames so the tuna's short row
+ *  is safe. The struggle row thrashes the fish through poses turned right around, which tears a big fish off its hook. */
+export const GASP: SheetAnimation = { row: 2, fps: 6, frameCount: 5 };
 
 const swim = (frameCount: number, fps = 10): SheetAnimation => ({ row: 1, fps, frameCount });
 

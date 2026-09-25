@@ -25,10 +25,13 @@ export function HitboxOverlay({ view, depth }: HitboxOverlayProps) {
 					const x = (mouth.x / SIM_WIDTH) * view.width;
 					g.circle(x, y, mouth.r).stroke({ width: 2, color: i === sim.hooked ? 0xff3b30 : 0xffd60a });
 				});
-				g.circle((sim.x / SIM_WIDTH) * view.width, view.height / 2 + HOOK_TIP_DY, HOOK_R).stroke({
-					width: 2,
-					color: 0x30d158
-				});
+				// The hook is only level with the camera until a fish bites and the camera goes up without it.
+				if (sim.cameraM === sim.depthM) {
+					g.circle((sim.x / SIM_WIDTH) * view.width, view.height / 2 + HOOK_TIP_DY, HOOK_R).stroke({
+						width: 2,
+						color: 0x30d158
+					});
+				}
 			}}
 		/>
 	);

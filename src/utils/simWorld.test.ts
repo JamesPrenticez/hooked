@@ -63,6 +63,7 @@ it("hooks the mouth on first touch and freezes the hook", () => {
 	while (sim.phase === "descend" && guard++ < 60 * 30) step(sim, 0);
 	expect(sim.phase).toBe("hooked");
 	expect(sim.hooked).toBe(0);
+	expect(sim.catchM).toBe(sim.depthM);
 	const { depthM, x, tick } = sim;
 	step(sim, 1);
 	expect({ depthM, x }).toEqual({ depthM: sim.depthM, x: sim.x });

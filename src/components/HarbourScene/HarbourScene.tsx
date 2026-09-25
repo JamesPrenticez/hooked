@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useApplication } from "@pixi/react";
 import { Assets } from "pixi.js";
 
+import craneUrl from "@assets/dock-crane/dock-crane-static.png";
+import helicopterUrl from "@assets/helicopter/helicopter.png";
 import bgDesktopUrl from "@assets/layers/hub/background/bg-desktop.webp";
 import bgLightsDesktopUrl from "@assets/layers/hub/background/bg-lights-desktop.webp";
 import bgLightsMobileUrl from "@assets/layers/hub/background/bg-lights-mobile.webp";
@@ -15,13 +17,17 @@ import { Creatures } from "@components/DescentScene/Creatures";
 import { FishingLine } from "@components/DescentScene/FishingLine";
 import { useDayNightClock } from "@hooks/useDayNightClock";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
+import { useHookStore } from "@stores/hookStore";
 import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
 import { computeAmbience } from "./ambience";
 import { BackgroundLayer } from "./BackgroundLayer";
 import { CelestialBody } from "./CelestialBody";
+import { DockCrane } from "./DockCrane";
+import { cameraShake, hookPose } from "./extraction";
 import { Fisherman } from "./Fisherman";
 import { boatLayout, cameraScroll, hookWorldY, waterlineY } from "./framing";
+import { Helicopter } from "./Helicopter";
 import { OceanLayer } from "./OceanLayer";
 import { buildPlayerFrames } from "./playerFrames";
 import { SeamWaves } from "./SeamWaves";
@@ -68,7 +74,9 @@ const HARBOUR_URLS = [
 	waterTileUrl,
 	seamUrl,
 	basicSheetUrl,
-	extendedSheetUrl
+	extendedSheetUrl,
+	craneUrl,
+	helicopterUrl
 ];
 
 export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
@@ -76,6 +84,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const [textures, setTextures] = useState(() => cachedTextures(HARBOUR_URLS));
 	const t = useDayNightClock();
 	const seconds = useElapsedSeconds();
+	const sim = useHookStore(state => state.sim);
 
 	useEffect(() => {
 		let live = true;
@@ -93,7 +102,10 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 			mipmapped(waterTileUrl),
 			mipmapped(seamUrl),
 			basicSheetUrl,
-			extendedSheetUrl
+			extendedSheetUrl,
+			// Both are drawn at well under a third of their source size.
+			mipmapped(craneUrl),
+			mipmapped(helicopterUrl)
 		]).then(loaded => {
 			if (live) setTextures(loaded);
 		});
@@ -114,10 +126,14 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const { skyTop, skyHorizon, bgTint, windowGlow, celestial } = computeAmbience(t, view);
 	const scroll = cameraScroll(depth, view);
 	const boat = player && boatLayout(view, waterSwell(seconds));
+	// Where the hook hangs, which is no longer where the camera is once a fish is on it: it stays at
+	// the depth it was caught while the camera goes up, then is hauled to the surface and lifted out.
+	const hook = sim && boat ? hookPose(sim, view, boat.tip) : undefined;
+	const shake = sim ? cameraShake(sim) : { x: 0, y: 0 };
 
 	return (
-		<pixiContainer>
-			<DescentScene depth={depth} tint={bgTint} seconds={seconds} tip={boat?.tip} />
+		<pixiContainer x={shake.x} y={shake.y}>
+			<DescentScene depth={depth} tint={bgTint} seconds={seconds} />
 			{/* The harbour layers have nothing to draw once the camera has scrolled them
 			    off-screen, but the fishing line and hook follow the hook down. */}
 			<pixiContainer y={-scroll}>
@@ -143,11 +159,15 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 						seconds={seconds}
 					/>
 					<SeamWaves view={view} tint={bgTint} texture={textures?.[seamUrl]} seconds={seconds} />
+					{/* Part of the harbour, just chilling until a catch is too heavy for the rod. */}
+					<DockCrane view={view} texture={textures?.[craneUrl]} tint={bgTint} hook={hook} />
+					<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} hook={hook} seconds={seconds} />
 				</pixiContainer>
 				{boat && (
 					<FishingLine
 						tip={boat.tip}
-						hookY={hookWorldY(depth, boat.tip.y, view)}
+						hookY={hook?.y ?? hookWorldY(depth, boat.tip.y, view)}
+						hookX={hook?.x}
 						scroll={scroll}
 						waterY={waterlineY(view)}
 						view={view}
@@ -158,7 +178,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 				{player && boat && <Fisherman frames={player} boat={boat} tint={bgTint} seconds={seconds} />}
 			</pixiContainer>
 			{/* Screen space, above the hook: the hooked fish overlaps it. */}
-			<Creatures view={view} depth={depth} seconds={seconds} tip={boat?.tip} onlyHooked />
+			<Creatures view={view} depth={depth} seconds={seconds} hook={hook} onlyHooked />
 		</pixiContainer>
 	);
 }

@@ -9,6 +9,7 @@ import { BottomBar } from "@components/BottomBar";
 import { DebugPanel } from "@components/DebugPanel";
 import { DepthIndicator } from "@components/DepthIndicator";
 import { HarbourScene } from "@components/HarbourScene";
+import { HookedBanner } from "@components/HookedBanner";
 import { LoadingScreen } from "@components/LoadingScreen";
 import { PlaceholderScene } from "@components/PlaceholderScene/PlaceholderScene";
 import { SceneManager } from "@components/SceneManager/SceneManager";
@@ -79,7 +80,8 @@ export function App() {
 	// Manual (debug) runs the arrow-key sim instead of the scripted descent.
 	const descentDepth = useDescentDepth(descending && !manual, () => setDescending(false));
 	useHookSim(descending && manual, () => setDescending(false));
-	const simDepth = useHookStore(state => state.sim?.depthM ?? 0);
+	// The camera's depth, not the hook's: after a fish bites the camera returns to the surface alone.
+	const simDepth = useHookStore(state => state.sim?.cameraM ?? 0);
 
 	// DEBUG panel's Kraken toggle: the hook is parked at the bottom of the trench
 	// at once, whatever the cast is doing, until it's unticked or Surface is hit.
@@ -110,6 +112,7 @@ export function App() {
 
 			{phase === "game" && <Balance />}
 			{phase === "game" && underwater && <DepthIndicator depth={depth} />}
+			{phase === "game" && <HookedBanner />}
 			{phase === "game" && (
 				<BottomBar
 					descending={underwater}

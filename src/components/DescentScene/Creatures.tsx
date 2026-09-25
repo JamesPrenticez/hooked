@@ -1,24 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { Assets, Rectangle, Texture } from "pixi.js";
 
-import { cameraScroll, depthToScreenY, hookWorldY } from "@components/HarbourScene/framing";
+import { fishSway, type HookPose, MOUTH_DY } from "@components/HarbourScene/extraction";
+import { cameraScroll, depthToScreenY, waterlineY } from "@components/HarbourScene/framing";
 import { useHookStore } from "@stores/hookStore";
 import { cachedTextures } from "@utils/bootAssets";
-import { HOOK_TIP_DY, SIM_WIDTH, TICK_HZ } from "@utils/simConfig";
+import { SIM_WIDTH, TICK_HZ } from "@utils/simConfig";
 import { fishX } from "@utils/simWorld";
 
-import { BITE, CREATURES, SHEET_ROWS, SPECIES, type Species, STRUGGLE } from "./creatureSpecies";
-import { simHookX } from "./lineDrift";
+import { BITE, CREATURES, GASP, SHEET_ROWS, SPECIES, type Species, STRUGGLE } from "./creatureSpecies";
+import { HookedFish } from "./HookedFish";
 import { cellRect, frameIndex, type SheetAnimation } from "./spriteSheet";
-
-/** Px the hooked fish is lifted past the hook tip, so the hook sits inside its mouth. Tune by eye. */
-const HOOK_IN_MOUTH = 30;
 
 interface CreaturesProps {
 	view: { width: number; height: number };
+	/** The camera's depth. */
 	depth: number;
 	seconds: number;
-	tip?: { x: number; y: number };
+	/** Where the hook hangs and how the fish hangs from it (`hookPose`) — what places the hooked fish. */
+	hook?: HookPose;
 	/** Draw only the hooked fish — mounted above the fishing line so it overlaps the hook. Otherwise all but it. */
 	onlyHooked?: boolean;
 }
@@ -59,8 +59,10 @@ function useFrames() {
 	}, [sheets]);
 }
 
-/** The frame a fish shows while it is on the hook: the bite once, then the struggle on loop. */
-function hookedFrame({ bite, struggle }: SpeciesFrames, seconds: number): Texture {
+/** The frame a fish shows while it is on the hook: the bite once, then the struggle on loop — and once it is
+ *  being landed, gasping. */
+function hookedFrame({ bite, struggle }: SpeciesFrames, seconds: number, landing: boolean): Texture {
+	if (landing) return bite[frameIndex(seconds, GASP)];
 	const biteSeconds = BITE.frameCount / BITE.fps;
 	return seconds < biteSeconds
 		? bite[frameIndex(seconds, BITE)]
@@ -71,9 +73,10 @@ function hookedFrame({ bite, struggle }: SpeciesFrames, seconds: number): Textur
  * Every sea creature. On the scripted descent (`auto`) each cruises back and forth
  * across the screen on loop at its own world depth on the wall clock; with a sim
  * running (manual) they are the sim's world, placed by `fishX` at the sim's tick,
- * and the hooked one sits mouth-to-hook playing its bite then struggle rows.
+ * and the hooked one sits mouth-to-hook playing its bite then struggle rows — at the size it swims
+ * until the landing shows its true one, and then coming up out of the water a bit at a time.
  */
-export function Creatures({ view, depth, seconds, tip, onlyHooked = false }: CreaturesProps) {
+export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: CreaturesProps) {
 	const frames = useFrames();
 	const sim = useHookStore(state => state.sim);
 	if (!frames || (onlyHooked && !sim)) return null;
@@ -84,33 +87,43 @@ export function Creatures({ view, depth, seconds, tip, onlyHooked = false }: Cre
 			if ((i === sim.hooked) !== onlyHooked) return null;
 			const species = bySpecies.get(fish.art)!;
 			const set = frames.get(species)!;
-			const hooked = i === sim.hooked;
-			const clock = sim.tick / TICK_HZ;
-			let x = (fishX(fish, sim.tick) / SIM_WIDTH) * view.width;
-			let y = depthToScreenY(fish.meters, depth, view);
-			if (hooked) {
-				// Hung head-up: rotated a quarter turn so the mouth points up, then the centre is
-				// offset so the rotated mouth sits on the hook tip (which follows the hook's x).
-				// The hook rides the same path as `FishingLine`'s: eased from the rod tip over the cast.
-				const hookX = simHookX(tip?.x ?? view.width / 2, sim.x, sim.depthM, view.width);
-				const hookY = hookWorldY(sim.depthM, tip?.y ?? view.height / 2, view) - cameraScroll(sim.depthM, view);
-				x = hookX - fish.direction * fish.mouth.dy;
-				y = hookY + HOOK_TIP_DY - HOOK_IN_MOUTH - fish.mouth.dx;
-			} else if (Math.abs(y - view.height / 2) > view.height / 2 + fish.height) return null;
+
+			if (i === sim.hooked) {
+				if (!hook) return null;
+				// Hung head-up: rotated a quarter turn so the mouth points up, then the centre is offset so the
+				// rotated mouth sits `MOUTH_DY` under the hook's line end. The mouth grows with the fish, so its
+				// offset does too — the hook stays put in it.
+				const { grow } = hook;
+				const scroll = cameraScroll(depth, view);
+				const mouthY = hook.y - scroll + MOUTH_DY;
+				return (
+					<HookedFish
+						key={i}
+						texture={hookedFrame(set, (sim.tick - sim.hookedTick) / TICK_HZ, !!hook.extraction)}
+						blendMode={species.opaque ? "screen" : "normal"}
+						x={hook.x - fish.direction * fish.mouth.dy * grow}
+						y={mouthY - fish.mouth.dx * grow}
+						rotation={(-fish.direction * Math.PI) / 2}
+						scale={{ x: species.scale * grow * -fish.direction, y: species.scale * grow }}
+						mouth={{ x: hook.x, y: mouthY }}
+						sway={fishSway(sim)}
+						view={view}
+						seamY={hook.extraction && waterlineY(view) - scroll}
+					/>
+				);
+			}
+
+			const y = depthToScreenY(fish.meters, depth, view);
+			if (Math.abs(y - view.height / 2) > view.height / 2 + fish.height) return null;
 
 			return (
 				<pixiSprite
 					key={i}
-					texture={
-						hooked
-							? hookedFrame(set, (sim.tick - sim.hookedTick) / TICK_HZ)
-							: set.swim[frameIndex(clock + fish.phase, species.swim)]
-					}
+					texture={set.swim[frameIndex(sim.tick / TICK_HZ + fish.phase, species.swim)]}
 					anchor={0.5}
 					blendMode={species.opaque ? "screen" : "normal"}
-					x={x}
+					x={(fishX(fish, sim.tick) / SIM_WIDTH) * view.width}
 					y={y}
-					rotation={hooked ? (-fish.direction * Math.PI) / 2 : 0}
 					scale={{ x: species.scale * -fish.direction, y: species.scale }}
 				/>
 			);

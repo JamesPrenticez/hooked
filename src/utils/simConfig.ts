@@ -3,7 +3,7 @@
  * one changes a trajectory; `simConfig.test.ts` fails if it drifts from the
  * live auto-descent values. No imports — runs under Node.
  */
-export const SIM_VERSION = 1;
+export const SIM_VERSION = 2;
 export const TICK_HZ = 60;
 /** Sim world width in px (the desktop reference); the client scales it to the view. */
 export const SIM_WIDTH = 1920;
@@ -13,10 +13,12 @@ export const PX_PER_METER = 0.6;
 /** Mouth tests arm from here (29.2), once the cast blend is over. */
 export const CAST_METERS = 300;
 
-/** Reel-in speed (m/s), the hooked fish's bite beat, and the Kraken fight — frozen from the live auto scene. */
+/** Reel-in speed (m/s) and the Kraken fight — frozen from the live auto scene. The Kraken is reeled in whole;
+ *  a fish is landed by `simExtraction.ts`. */
 export const REEL_METERS_PER_SECOND = 600;
-export const HOOKED_TICKS = TICK_HZ / 2;
 export const KRAKEN_FIGHT_TICKS = 8 * TICK_HZ;
+/** How long the hooked fish fights the hook underwater: its bite beat, then the struggle loop. */
+export const HOOKED_TICKS = Math.round(1.5 * TICK_HZ);
 
 /** Depth zones ascending: where each starts and its descent speed (m/s). */
 export const ZONES = [

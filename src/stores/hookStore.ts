@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import { DEBUG } from "@constants/config";
+import { MIN_MULTIPLIER } from "@utils/simExtraction";
 import type { Sim } from "@utils/simStep";
 
 /** `auto` is today's scripted descent; `manual` (debug only) steers the sim with
@@ -14,6 +15,10 @@ interface HookStore {
 	setHookMode: (mode: HookMode) => void;
 	worldSeed: number;
 	setWorldSeed: (seed: number) => void;
+	/** How heavy the next catch is. The server doesn't send one yet, so the debug panel sets it — it picks the
+	 *  gear that lands the fish (rod, crane, helicopter) and how big the fish is once it is out of the water. */
+	multiplier: number;
+	setMultiplier: (multiplier: number) => void;
 	/** Sim ticks per real tick — fast-forwards a run without changing it. */
 	timeScale: number;
 	setTimeScale: (scale: number) => void;
@@ -29,6 +34,8 @@ export const useHookStore = create<HookStore>(set => ({
 	setHookMode: hookMode => set({ hookMode }),
 	worldSeed: 1,
 	setWorldSeed: worldSeed => set({ worldSeed }),
+	multiplier: MIN_MULTIPLIER,
+	setMultiplier: multiplier => set({ multiplier }),
 	timeScale: 1,
 	setTimeScale: timeScale => set({ timeScale }),
 	showHitboxes: false,

@@ -21,7 +21,8 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 
 	useEffect(() => {
 		if (!active) return;
-		const sim = createSim(useHookStore.getState().worldSeed);
+		const { worldSeed, multiplier } = useHookStore.getState();
+		const sim = createSim(worldSeed, multiplier);
 		let accumulator = 0;
 		let last = performance.now();
 		const publish = () => useHookStore.setState({ sim: { ...sim } });

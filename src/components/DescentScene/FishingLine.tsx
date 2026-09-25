@@ -3,18 +3,19 @@ import { Assets, type Texture } from "pixi.js";
 
 import hookUrl from "@assets/player/hook.png";
 import { useDebugStore } from "@stores/debugStore";
-import { useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
 import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
 import { krakenFightPose, krakenHold } from "./krakenFight";
-import { hookX, simHookX } from "./lineDrift";
+import { hookX as sweptHookX } from "./lineDrift";
 
 interface FishingLineProps {
 	/** Rod tip in world space (`boatLayout`) — the line hangs from it until the hook hits the water. */
 	tip: { x: number; y: number };
-	/** World y of the hook (`hookWorldY`). */
+	/** World y of the hook (`hookWorldY`, or the sim's `hookPose`). */
 	hookY: number;
+	/** World x of the hook when the sim is driving it (`hookPose`); otherwise it sweeps on its own (`hookX`). */
+	hookX?: number;
 	/** Pixels the world has scrolled up (`cameraScroll`) — turns a screen y into a world y. */
 	scroll: number;
 	/** World y of the water surface (`waterlineY`). */
@@ -46,11 +47,10 @@ const HOOK_EYE = { x: 0.545, y: 0.067 };
  * its coil instead (`krakenFightPose`), the line following it. The hook is
  * placeholder art.
  */
-export function FishingLine({ tip, hookY, scroll, waterY, view, boatScale, seconds }: FishingLineProps) {
+export function FishingLine({ tip, hookY, hookX, scroll, waterY, view, boatScale, seconds }: FishingLineProps) {
 	const [hook, setHook] = useState<Texture | undefined>(() => cachedTextures([hookUrl])?.[hookUrl]);
 	const fightStart = useKrakenStore(state => state.fightStart);
 	const depthZones = useDebugStore(state => state.depthZones);
-	const sim = useHookStore(state => state.sim);
 
 	useEffect(() => {
 		let live = true;
@@ -65,11 +65,7 @@ export function FishingLine({ tip, hookY, scroll, waterY, view, boatScale, secon
 		};
 	}, []);
 
-	let x = hookX(tip.x, view, hookY - waterY, seconds);
-	if (sim) {
-		// Manual: the hook is the sim's, eased from under the rod tip over the cast.
-		x = simHookX(tip.x, sim.x, sim.depthM, view.width);
-	}
+	let x = hookX ?? sweptHookX(tip.x, view, hookY - waterY, seconds);
 	let y = hookY;
 	if (fightStart !== undefined) {
 		const elapsed = seconds - fightStart;

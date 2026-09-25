@@ -23,8 +23,6 @@ interface DescentSceneProps {
 	/** Wall-clock seconds — HarbourScene's clock, so the Kraken and the hook the
 	 *  fishing line draws stay in step. */
 	seconds: number;
-	/** Rod tip in world space — where a hooked fish is hung from while the hook is still easing in. */
-	tip?: { x: number; y: number };
 }
 
 /**
@@ -38,7 +36,7 @@ interface DescentSceneProps {
  * harbour. No catch mechanic, target outcome or server round yet: this is the
  * visual descent loop only.
  */
-export function DescentScene({ depth, tint, seconds, tip }: DescentSceneProps) {
+export function DescentScene({ depth, tint, seconds }: DescentSceneProps) {
 	const { app, isInitialised } = useApplication();
 	const depthZones = useDebugStore(state => state.depthZones);
 	const depthUnit = useDebugStore(state => state.depthUnit);
@@ -69,7 +67,7 @@ export function DescentScene({ depth, tint, seconds, tip }: DescentSceneProps) {
 			/>
 			<WaterTiles view={view} y={waterY} scroll={scroll} ambience={ambience} tint={tint} seconds={seconds} />
 			<DepthMarkers view={view} depth={depth} zones={depthZones} unit={depthUnit} />
-			<Creatures view={view} depth={depth} seconds={seconds} tip={tip} />
+			<Creatures view={view} depth={depth} seconds={seconds} />
 			<HitboxOverlay view={view} depth={depth} />
 			{bossEncounter && <Kraken view={view} seconds={seconds} />}
 		</pixiContainer>

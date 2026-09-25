@@ -79,6 +79,12 @@ export default defineConfig(({ mode }) => {
 					"src/components/DescentScene/WaterTiles.tsx",
 					"src/components/DescentScene/FishingLine.tsx",
 					"src/components/DescentScene/DepthMarkers.tsx",
+					// The landing's drawing — crane, helicopter and the fish clipped at the
+					// waterline. Thin @pixi/react wiring over extraction.ts (which IS covered),
+					// and masks need a real WebGL canvas.
+					"src/components/DescentScene/HookedFish.tsx",
+					"src/components/HarbourScene/DockCrane.tsx",
+					"src/components/HarbourScene/Helicopter.tsx",
 					"src/**/*.d.ts",
 					"src/**/index.ts",
 					// hooked-ui (vendored from @animo-gaming/ui): stories aren't
