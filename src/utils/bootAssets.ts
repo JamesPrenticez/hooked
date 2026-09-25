@@ -1,6 +1,8 @@
 import { Assets, type Texture } from "pixi.js";
 
-import craneUrl from "@assets/dock-crane/dock-crane-static.png";
+import boomSegmentUrl from "@assets/dock-crane/boom-segment.png";
+import boomTipUrl from "@assets/dock-crane/boom-tip.png";
+import towerUrl from "@assets/dock-crane/tower.png";
 import helicopterUrl from "@assets/helicopter/helicopter.png";
 import bgDesktopUrl from "@assets/layers/hub/background/bg-desktop.webp";
 import bgLightsDesktopUrl from "@assets/layers/hub/background/bg-lights-desktop.webp";
@@ -36,8 +38,10 @@ const BOOT_ASSETS = [
 	mipmapped(causticsUrl),
 	mipmapped(shaftsUrl),
 	mipmapped(hookUrl),
-	// Both drawn at well under a third of their source size.
-	mipmapped(craneUrl),
+	// All drawn at well under a third of their source size.
+	mipmapped(towerUrl),
+	mipmapped(boomSegmentUrl),
+	mipmapped(boomTipUrl),
 	mipmapped(helicopterUrl),
 	...SPECIES.map(s => s.url),
 	SHEET_URLS[KRAKEN_ANIMATIONS[KRAKEN_FIGHT[0]].sheet]

@@ -11,6 +11,7 @@ import {
 	craneDrop,
 	craneLayout,
 	craneOut,
+	craneRoom,
 	fishSway,
 	heliLayout,
 	hookPose,
@@ -107,8 +108,8 @@ describe("hookPose", () => {
 	it("shows only the lips at the surface when the reveal starts, and the whole fish clear when it ends", () => {
 		const art = ART_FILL * createSim(1).world[0].width;
 		const seam = waterlineY(VIEW);
-		// A catch that needs the crane is drawn for the harbour pulled out, so it is that much bigger in the world.
-		const length = catchLength(250, art, VIEW) / ZOOM_OUT;
+		// A catch that needs the crane is no longer than the room under its boom.
+		const length = catchLength(250, art, VIEW, craneRoom(VIEW) * ZOOM_OUT) / ZOOM_OUT;
 
 		const start = hookPose(landing(250, tickAtReveal(250, 0.0001)), VIEW, tip);
 		expect(start.y + MOUTH_DY).toBeCloseTo(seam, 0);
@@ -149,13 +150,15 @@ describe("hookPose", () => {
 		}
 	});
 
-	it("draws a fish that needs the crane as long as the pulled-out camera shows it, and any other as long as it is", () => {
+	it("draws a fish that needs the crane no longer than fits under its boom, and any other as long as it is", () => {
 		const art = ART_FILL * createSim(1).world[0].width;
 		const grown = (multiplier: number) =>
 			hookPose(landing(multiplier, extractionTicks(gearsFor(multiplier), 2400)), VIEW, tip).grow * art;
 		expect(grown(1)).toBeCloseTo(catchLength(1, art, VIEW));
-		expect(grown(250) * ZOOM_OUT).toBeCloseTo(catchLength(250, art, VIEW));
-		expect(grown(500) * ZOOM_OUT).toBeCloseTo(catchLength(500, art, VIEW));
+		for (const m of [250, 500])
+			expect(grown(m) * ZOOM_OUT).toBeCloseTo(catchLength(m, art, VIEW, craneRoom(VIEW) * ZOOM_OUT));
+		expect(grown(500)).toBeLessThanOrEqual(craneRoom(VIEW) + 0.001);
+		expect(grown(500)).toBeGreaterThan(grown(250));
 	});
 
 	it("brings the hook to the middle of the screen as it is hauled up, from wherever it was caught", () => {
@@ -256,24 +259,24 @@ describe("craneLayout", () => {
 		expect(craneLayout(PORTRAIT).width).toBeLessThanOrEqual(PORTRAIT.width * 0.55 + 0.001);
 	});
 
-	it("comes out to put its jib over the middle of the screen, up high, with its feet on the waterline", () => {
+	it("stays where it stands at its resting size, the boom running out to put its jib over the middle of the screen", () => {
 		for (const view of [VIEW, PORTRAIT, LANDSCAPE]) {
+			const rest = craneLayout(view);
 			const job = craneLayout(view, 1);
-			expect(job.jib.x).toBeCloseTo(view.width / 2);
-			// With the camera pulled out: in the top quarter of the screen, over the middle.
-			expect(pulledOut(job.jib.y, view)).toBeGreaterThan(0);
-			expect(pulledOut(job.jib.y, view)).toBeLessThan(view.height / 4);
-			expect(job.y).toBeCloseTo(waterlineY(view));
-			expect(job.scale).toBeGreaterThan(craneLayout(view).scale);
+			expect(job.jib.x).toBeLessThanOrEqual(rest.jib.x);
+			expect(job.jib.x).toBeCloseTo(Math.min(rest.jib.x, view.width / 2));
+			for (const key of ["x", "y", "scale", "width", "height"] as const) expect(job[key]).toBe(rest[key]);
+			expect(job.jib.y).toBe(rest.jib.y);
 		}
+		expect(craneLayout(VIEW, 1).boom).toBeGreaterThan(0);
 	});
 
-	it("gets there steadily, growing and sliding in from the pier", () => {
+	it("runs its boom out steadily", () => {
 		let last = craneLayout(VIEW, 0);
 		for (let out = 0.1; out <= 1.0001; out += 0.1) {
 			const crane = craneLayout(VIEW, out);
-			expect(crane.scale).toBeGreaterThan(last.scale);
 			expect(crane.jib.x).toBeLessThan(last.jib.x);
+			expect(crane.boom).toBeGreaterThan(last.boom);
 			last = crane;
 		}
 	});

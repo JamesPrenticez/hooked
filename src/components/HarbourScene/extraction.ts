@@ -23,9 +23,10 @@ interface Point {
 	y: number;
 }
 
-/** How much of its size the harbour is drawn at once the crane is on the job: the camera pulls out about the spot the
- *  fish comes out of the water, so the fish it lifts looms that much bigger beside the boat, the crane and the city. */
-export const ZOOM_OUT = 0.72;
+/** How much of its size the harbour is drawn at once the crane is on the job. 1: the harbour is not scaled — pulling it
+ *  out would show the mirrored copies of the background at its edges (`BackgroundLayer`) and shrink the crane off its
+ *  docks — so the fish is capped to fit under the crane's boom instead (`hookPose`). */
+export const ZOOM_OUT = 1;
 
 /** Px the hook's barb sits inside a hooked fish's mouth, so the hook is in the mouth and not under it. Tune by eye. */
 export const HOOK_IN_MOUTH = 30;
@@ -51,23 +52,34 @@ const MIN_BASE_LENGTH = 0.09;
 export const MAX_BASE_LENGTH = 0.2;
 export const MAX_LENGTH = 0.44;
 
-/** How long the fish is, mouth to tail, once landed. `artLength` is its natural length underwater, px. */
-export function catchLength(multiplier: number, artLength: number, view: Size): number {
+/** How long the fish is, mouth to tail, once landed. `artLength` is its natural length underwater, px; `max` is the
+ *  most it may grow to. */
+export function catchLength(multiplier: number, artLength: number, view: Size, max = MAX_LENGTH * view.height): number {
 	const base = Math.min(
 		MAX_BASE_LENGTH * view.height,
-		Math.max(MIN_BASE_LENGTH * view.height, artLength * BASE_SHRINK)
+		Math.max(MIN_BASE_LENGTH * view.height, artLength * BASE_SHRINK),
+		max
 	);
 	const growth = (multiplier - MIN_MULTIPLIER) / (MAX_MULTIPLIER - MIN_MULTIPLIER);
 	// Eased out: the first few multipliers are the visible ones, a 250× is already most of the way to a 500×.
-	return base + (MAX_LENGTH * view.height - base) * (1 - (1 - growth) ** 2);
+	return base + (max - base) * (1 - (1 - growth) ** 2);
 }
 
-/** `dock-crane-static.png`: the art's size, where its feet meet the ground, and where the hoist cable leaves the jib. */
+/** `tower.png`: the crane without its boom — the art's size, where its feet meet the ground, and the sleeve the
+ *  boom slides out of (its top edge). */
 export const CRANE_ART = {
 	width: 1145,
 	height: 1374,
 	foot: { x: 0.33, y: 0.978 },
-	jib: { x: 1085 / 1145, y: 385 / 1374 }
+	mount: { x: 565, y: 497 }
+};
+/** The boom, in the tower art's px: `boom-segment.png` (2172×262) tiled out from the sleeve, capped by `boom-tip.png`
+ *  (1503×635) — its beam matched to the segment's and to the sleeve. The tip overlaps the segment by `overlap`. */
+export const BOOM_ART = {
+	segment: { scale: 0.65, y: 433, width: 2172, height: 262 },
+	tip: { scale: 0.386, y: 430, width: 1503, height: 635, overlap: 8 },
+	/** Where the hoist cable leaves the tip's sheave: x from the tip's left edge, y in the tower art. */
+	cable: { x: 513, y: 665 }
 };
 /** The feet's outer edge, as a share of the art width from the anchor — its feet against the left pier. */
 const CRANE_FOOT_REACH = 0.317;
@@ -76,6 +88,8 @@ const CRANE_MAX_WIDTH = 0.55;
 /** Where the feet stand: the harbour's horizon, and how far in from the screen edge. */
 const CRANE_GROUND_OFFSET = -0.025;
 const CRANE_EDGE_GAP = -0.015;
+/** Screen height left between the boom's cable and the top of a landed fish. */
+const CRANE_FISH_GAP = 0.04;
 
 export interface CraneLayout {
 	/** Where its feet meet the ground, world space. The sprite is anchored here. */
@@ -85,38 +99,21 @@ export interface CraneLayout {
 	scale: number;
 	width: number;
 	height: number;
-	/** Where the hoist cable leaves the jib. */
+	/** How far the boom's tiled segment runs out of the tower's sleeve, art px. */
+	boom: number;
+	/** Where the hoist cable leaves the boom's tip. */
 	jib: Point;
 }
 
-/** Where the crane's jib is once it is out on the job, as a share of the screen height with the camera pulled out — high
- *  enough to leave a hooked fish hanging under it. Its feet then stand on the waterline, which sets how big it is. */
-const CRANE_JOB_JIB_Y = 0.16;
-
-/** Px from the crane's feet to its jib at `scale`. The art faces right; on the right-hand pier it is mirrored, so the
- *  jib is to the left of the feet. */
-const jibFromFoot = (scale: number) => ({
-	x: (CRANE_ART.jib.x - CRANE_ART.foot.x) * CRANE_ART.width * scale,
-	y: (CRANE_ART.foot.y - CRANE_ART.jib.y) * CRANE_ART.height * scale
-});
-
-/** A crane of `scale` with its feet at (`x`, `y`). */
-function craneStanding(scale: number, x: number, y: number): CraneLayout {
-	const off = jibFromFoot(scale);
-	return {
-		x,
-		y,
-		scale,
-		width: CRANE_ART.width * scale,
-		height: CRANE_ART.height * scale,
-		jib: { x: x - off.x, y: y - off.y }
-	};
-}
+/** Art px from the tower's sleeve to where the cable leaves the tip, for a segment of `boom` px. */
+const boomReach = (boom: number) => boom - BOOM_ART.tip.overlap + BOOM_ART.cable.x;
+/** Art px from the feet up to where the cable leaves the tip. */
+const jibRise = CRANE_ART.foot.y * CRANE_ART.height - BOOM_ART.cable.y;
 
 /**
- * The dock crane: on the right-hand pier with its jib reaching out over the harbour (`out` 0), or, once it is called in
- * (`out` 1), scaled right up so the jib reaches the middle of the screen, over the hook. Between, it grows and slides
- * in from the pier.
+ * The dock crane: it stands on the right-hand pier, the same size as the background, and stays there. Its boom reaches
+ * out over the harbour (`out` 0), or, once it is called in (`out` 1), runs out until the cable leaves it over the middle
+ * of the screen, over the hook. The art faces right and is mirrored, so the boom runs to the left of the feet.
  */
 export function craneLayout(view: Size, out = 0): CraneLayout {
 	const height = Math.min(
@@ -124,25 +121,29 @@ export function craneLayout(view: Size, out = 0): CraneLayout {
 		(CRANE_MAX_WIDTH * view.width * CRANE_ART.height) / CRANE_ART.width
 	);
 	const scale = height / CRANE_ART.height;
-	const pierX = view.width - (view.width * CRANE_EDGE_GAP + CRANE_FOOT_REACH * CRANE_ART.width * scale);
-	const idle = craneStanding(scale, pierX, horizonY(view) + view.height * CRANE_GROUND_OFFSET);
-	if (out <= 0) return idle;
+	const x = view.width - (view.width * CRANE_EDGE_GAP + CRANE_FOOT_REACH * CRANE_ART.width * scale);
+	const y = horizonY(view) + view.height * CRANE_GROUND_OFFSET;
+	// Art px from the feet to the cable with the boom drawn in.
+	const reach = CRANE_ART.mount.x + boomReach(0) - CRANE_ART.foot.x * CRANE_ART.width;
+	const idleJibX = x - reach * scale;
+	// Only as long as it takes to put the cable at the middle: a screen too narrow for that leaves it drawn in.
+	const boom = Math.max(0, ((idleJibX - view.width / 2) * out) / scale);
 
-	// On the job the camera is pulled out, so the jib is placed for how it will look then — up in the top sixth of the
-	// screen, over the middle — with the crane's feet on the seam, which sets how big it is.
-	const seam = waterlineY(view);
-	const jibY = seam - (seam - CRANE_JOB_JIB_Y * view.height) / ZOOM_OUT;
-	const jobScale = (seam - jibY) / jibFromFoot(1).y;
-	const jib = {
-		x: idle.jib.x + (view.width / 2 - idle.jib.x) * out,
-		y: idle.jib.y + (jibY - idle.jib.y) * out
+	return {
+		x,
+		y,
+		scale,
+		width: CRANE_ART.width * scale,
+		height: CRANE_ART.height * scale,
+		boom,
+		jib: { x: idleJibX - boom * scale, y: y - jibRise * scale }
 	};
-	// Grown by the same factor each step, so it doesn't seem to speed up as it gets big.
-	const grown = idle.scale ** (1 - out) * jobScale ** out;
-	const off = jibFromFoot(grown);
-
-	return craneStanding(grown, jib.x + off.x, jib.y + off.y);
 }
+
+/** Px between the water and the boom's cable, less the gap left above a landed fish: the longest a fish the crane lifts
+ *  can be, world space. */
+export const craneRoom = (view: Size) =>
+	waterlineY(view) - MOUTH_DY - craneLayout(view).jib.y - CRANE_FISH_GAP * view.height;
 
 /** `helicopter.png`: the art's size, the width of its solid part (rotor tip to rotor tip), and where the winch cable
  *  leaves its belly. */
@@ -251,10 +252,11 @@ export function hookPose(sim: Sim, view: Size, tip: Point): HookPose {
 	const gears = gearsFor(sim.multiplier);
 	const extraction = extractionAt(gears, sim.catchM, sim.tick - sim.phaseTick);
 	const artLength = ART_FILL * fish.width;
-	// A catch that needs the crane is landed with the harbour pulled out, and drawn as long as it is to look then.
-	const length = catchLength(sim.multiplier, artLength, view) / (gears.length > 1 ? ZOOM_OUT : 1);
 	// The line's end when the fish's lips are just at the surface.
 	const lips = waterlineY(view) - MOUTH_DY;
+	// A catch that needs the crane hangs from its boom, so it grows no longer than the room under it.
+	const max = gears.length > 1 ? Math.min(MAX_LENGTH * view.height, craneRoom(view) * ZOOM_OUT) : undefined;
+	const length = catchLength(sim.multiplier, artLength, view, max) / (gears.length > 1 ? ZOOM_OUT : 1);
 
 	return {
 		x: hanging.x,

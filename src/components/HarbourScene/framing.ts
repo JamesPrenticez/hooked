@@ -139,7 +139,9 @@ export function boatLayout(
 	);
 
 	const scale = mixed(mixed(restScale, stationScale, station), restScale * SIDELINE_SCALE, retire);
-	const x = mixed(mixed(centre, centre - tipReach * stationScale, station), view.width * SIDELINE_X, retire);
+	// On the sidelines the whole boat stays on screen.
+	const sidelineX = Math.max(view.width * SIDELINE_X, PLAYER_FRAME.width * restScale * SIDELINE_SCALE * BOAT_ANCHOR.x);
+	const x = mixed(mixed(centre, centre - tipReach * stationScale, station), sidelineX, retire);
 	const back = mixed(mixed(0, STATION_BACK, station), SIDELINE_BACK, retire);
 	// A boat further off bobs less.
 	const y = waterlineY(view) - back * water + bob * (scale / restScale);

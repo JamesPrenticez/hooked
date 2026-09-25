@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useApplication } from "@pixi/react";
 import { Assets } from "pixi.js";
 
-import craneUrl from "@assets/dock-crane/dock-crane-static.png";
+import boomSegmentUrl from "@assets/dock-crane/boom-segment.png";
+import boomTipUrl from "@assets/dock-crane/boom-tip.png";
+import towerUrl from "@assets/dock-crane/tower.png";
 import helicopterUrl from "@assets/helicopter/helicopter.png";
 import bgDesktopUrl from "@assets/layers/hub/background/bg-desktop.webp";
 import bgLightsDesktopUrl from "@assets/layers/hub/background/bg-lights-desktop.webp";
@@ -82,7 +84,9 @@ const HARBOUR_URLS = [
 	seamUrl,
 	basicSheetUrl,
 	extendedSheetUrl,
-	craneUrl,
+	towerUrl,
+	boomSegmentUrl,
+	boomTipUrl,
 	helicopterUrl
 ];
 
@@ -120,8 +124,10 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 			mipmapped(seamUrl),
 			basicSheetUrl,
 			extendedSheetUrl,
-			// Both are drawn at well under a third of their source size.
-			mipmapped(craneUrl),
+			// All drawn at well under a third of their source size.
+			mipmapped(towerUrl),
+			mipmapped(boomSegmentUrl),
+			mipmapped(boomTipUrl),
 			mipmapped(helicopterUrl)
 		]).then(loaded => {
 			if (live) setTextures(loaded);
@@ -181,7 +187,17 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 						<SeamWaves view={view} tint={bgTint} texture={textures?.[seamUrl]} seconds={seconds} />
 						<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} />
 						{/* Part of the harbour, just chilling until a catch is too heavy for the rod — and then out in front of it. */}
-						<DockCrane view={view} texture={textures?.[craneUrl]} tint={bgTint} out={scene.crane} hook={hook} />
+						<DockCrane
+							view={view}
+							textures={{
+								tower: textures?.[towerUrl],
+								segment: textures?.[boomSegmentUrl],
+								tip: textures?.[boomTipUrl]
+							}}
+							tint={bgTint}
+							out={scene.crane}
+							hook={hook}
+						/>
 					</pixiContainer>
 					{boat && (
 						<FishingLine
