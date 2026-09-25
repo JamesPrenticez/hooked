@@ -58,3 +58,22 @@ export function textureToScreen<T extends Size>(fit: BackgroundFit<T>, point: { 
 		y: fit.y + (point.y - fit.texture.height / 2) * fit.scale
 	};
 }
+
+/** Where each wide export sits against its standard one: a wide pixel (u, v) is the standard pixel (ax·u + bx, ay·v + by).
+ *  Measured by matching the two silhouettes; retune if either is re-exported. The wide art is the harbour drawn
+ *  further back, so it runs on past the standard one's edges for when the camera pulls out (`ZOOM_OUT`). */
+const WIDE_FIT = {
+	desktop: { ax: 1.96, bx: -751.3, ay: 2.07, by: -251.4 },
+	mobile: { ax: 1.91, bx: -1149, ay: 1.91, by: -172.8 }
+};
+
+/** Where to draw the wide export (top-left anchored) so it lines up with the standard one drawn at `fit`. */
+export function computeWideFit<T extends Size>(fit: BackgroundFit<T>, landscape: boolean) {
+	const { ax, bx, ay, by } = WIDE_FIT[landscape ? "desktop" : "mobile"];
+	const { texture, scale } = fit;
+	return {
+		x: fit.x + (bx - texture.width / 2) * scale,
+		y: fit.y + (by - texture.height / 2) * scale,
+		scale: { x: ax * scale, y: ay * scale }
+	};
+}

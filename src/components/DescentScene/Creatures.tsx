@@ -108,7 +108,7 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 						mouth={{ x: hook.x, y: mouthY }}
 						sway={fishSway(sim)}
 						view={view}
-						seamY={hook.extraction && waterlineY(view) - scroll}
+						seamY={hook.extraction && hook.atSurface ? waterlineY(view) - scroll : undefined}
 					/>
 				);
 			}

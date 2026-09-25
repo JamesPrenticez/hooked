@@ -7,9 +7,11 @@ import boomTipUrl from "@assets/dock-crane/boom-tip.png";
 import towerUrl from "@assets/dock-crane/tower.png";
 import helicopterUrl from "@assets/helicopter/helicopter.png";
 import bgDesktopUrl from "@assets/layers/hub/background/bg-desktop.webp";
+import bgDesktopWideUrl from "@assets/layers/hub/background/bg-desktop-wide.png";
 import bgLightsDesktopUrl from "@assets/layers/hub/background/bg-lights-desktop.webp";
 import bgLightsMobileUrl from "@assets/layers/hub/background/bg-lights-mobile.webp";
 import bgMobileUrl from "@assets/layers/hub/background/bg-mobile.webp";
+import bgMobileWideUrl from "@assets/layers/hub/background/bg-mobile-wide.png";
 import seamUrl from "@assets/layers/hub/water/seam.png";
 import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
 import basicSheetUrl from "@assets/player/player-idle-cast-reel.png";
@@ -27,7 +29,7 @@ import { computeAmbience } from "./ambience";
 import { BackgroundLayer } from "./BackgroundLayer";
 import { CelestialBody } from "./CelestialBody";
 import { DockCrane } from "./DockCrane";
-import { cameraShake, hookPose, type LandingScene, landingScene } from "./extraction";
+import { cameraShake, hookPose, landingPivotY, type LandingScene, landingScene } from "./extraction";
 import { Fisherman } from "./Fisherman";
 import { boatLayout, cameraScroll, hookWorldY, waterlineY } from "./framing";
 import { Helicopter } from "./Helicopter";
@@ -65,7 +67,7 @@ import { waterSwell } from "./waterSwell";
  *
  * Landing a catch (`extraction.ts`) moves the harbour on from how it rests: the hook is at the middle of the
  * screen, the boat pulls back beside it and — for a catch too heavy for the rod — backs away to the sidelines
- * as the crane comes out to take it, while the camera pulls out about the spot the fish comes out of the water
+ * as the crane comes out to take it, while the camera pulls right back about a point near the top of the screen
  * (`landingScene`, eased here so it also settles back when the round ends). The harbour's layers carry on past
  * the view (`OVERSCAN`) for that.
  */
@@ -78,6 +80,8 @@ interface HarbourSceneProps {
 const HARBOUR_URLS = [
 	bgDesktopUrl,
 	bgMobileUrl,
+	bgDesktopWideUrl,
+	bgMobileWideUrl,
 	bgLightsDesktopUrl,
 	bgLightsMobileUrl,
 	waterTileUrl,
@@ -118,6 +122,10 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 		Assets.load([
 			bgDesktopUrl,
 			bgMobileUrl,
+			bgDesktopWideUrl,
+			bgMobileWideUrl,
+			bgDesktopWideUrl,
+			bgMobileWideUrl,
 			bgLightsDesktopUrl,
 			bgLightsMobileUrl,
 			mipmapped(waterTileUrl),
@@ -153,13 +161,14 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	// the depth it was caught while the camera goes up, then is hauled to the surface and lifted out.
 	const hook = sim && boat ? hookPose(sim, view, boat.tip) : undefined;
 	const shake = sim ? cameraShake(sim) : { x: 0, y: 0 };
-	// The camera pulls out about the spot the fish comes out of the water, so that stays where it is on screen.
+	// The camera pulls back about a point near the top of the screen, so the crane's jib stays high and the harbour falls away below it.
 	const seam = waterlineY(view);
+	const pivotY = landingPivotY(view);
 
 	return (
 		<pixiContainer x={shake.x} y={shake.y}>
-			<DescentScene depth={depth} tint={bgTint} seconds={seconds} />
-			<pixiContainer x={(view.width / 2) * (1 - scene.zoom)} y={seam * (1 - scene.zoom)} scale={scene.zoom}>
+			<DescentScene depth={depth} tint={bgTint} seconds={seconds} surfaceY={pivotY + (seam - pivotY) * scene.zoom} />
+			<pixiContainer x={(view.width / 2) * (1 - scene.zoom)} y={pivotY * (1 - scene.zoom)} scale={scene.zoom}>
 				{/* The harbour layers have nothing to draw once the camera has scrolled them
 				    off-screen, but the fishing line and hook follow the hook down. */}
 				<pixiContainer y={-scroll}>
@@ -178,6 +187,8 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 							view={view}
 							desktop={textures?.[bgDesktopUrl]}
 							mobile={textures?.[bgMobileUrl]}
+							desktopWide={textures?.[bgDesktopWideUrl]}
+							mobileWide={textures?.[bgMobileWideUrl]}
 							litDesktop={textures?.[bgLightsDesktopUrl]}
 							litMobile={textures?.[bgLightsMobileUrl]}
 							tint={bgTint}

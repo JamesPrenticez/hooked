@@ -1,6 +1,6 @@
 import type { Texture } from "pixi.js";
 
-import { computeBackgroundFit } from "./backgroundFit";
+import { computeBackgroundFit, computeWideFit } from "./backgroundFit";
 import type { HarbourView } from "./layers";
 import { windowFlicker } from "./windowFlicker";
 
@@ -10,6 +10,10 @@ interface BackgroundLayerProps {
 	desktop?: Texture;
 	/** 9:16 `bg-mobile` export; `undefined` until the load resolves. */
 	mobile?: Texture;
+	/** `bg-desktop-wide` / `bg-mobile-wide`: the same harbour drawn further back, running on past the edges of the
+	 *  standard exports — what is seen either side once the camera pulls out. Optional. */
+	desktopWide?: Texture;
+	mobileWide?: Texture;
 	/** Day / night multiply tint from `computeAmbience`. */
 	tint: number;
 	/** Lit-windows overlay matching `desktop` pixel-for-pixel — transparent
@@ -24,10 +28,6 @@ interface BackgroundLayerProps {
 	seconds: number;
 }
 
-/** The strip, and the copies of it that carry the harbour on past its ends: each mirrored, so it picks up where its
- *  neighbour leaves off. Only seen once the camera pulls out (`ZOOM_OUT`). */
-const COPIES = [-1, 0, 1];
-
 /**
  * The harbour background strip — real art carrying the buildings, dock and
  * cranes, painted at midday and tinted for the time of day. Picks the
@@ -38,6 +38,8 @@ export function BackgroundLayer({
 	view,
 	desktop,
 	mobile,
+	desktopWide,
+	mobileWide,
 	tint,
 	litDesktop,
 	litMobile,
@@ -50,20 +52,16 @@ export function BackgroundLayer({
 	const lit = landscape ? litDesktop : litMobile;
 	const alpha = Math.min(1, windowGlow * windowFlicker(seconds));
 
+	const wide = landscape ? desktopWide : mobileWide;
+	const wideFit = computeWideFit(bg, landscape);
+
 	return (
 		<>
-			{COPIES.map(side => {
-				// The art is fit to the width of the view, so a copy is a view's width along.
-				const copy = { x: bg.x + side * view.width, scale: { x: side === 0 ? bg.scale : -bg.scale, y: bg.scale } };
-				return (
-					<pixiContainer key={side}>
-						<pixiSprite texture={bg.texture} anchor={0.5} x={copy.x} y={bg.y} scale={copy.scale} tint={tint} />
-						{lit && windowGlow > 0.01 && (
-							<pixiSprite texture={lit} anchor={0.5} x={copy.x} y={bg.y} scale={copy.scale} alpha={alpha} />
-						)}
-					</pixiContainer>
-				);
-			})}
+			{wide && <pixiSprite texture={wide} x={wideFit.x} y={wideFit.y} scale={wideFit.scale} tint={tint} />}
+			<pixiSprite texture={bg.texture} anchor={0.5} x={bg.x} y={bg.y} scale={bg.scale} tint={tint} />
+			{lit && windowGlow > 0.01 && (
+				<pixiSprite texture={lit} anchor={0.5} x={bg.x} y={bg.y} scale={bg.scale} alpha={alpha} />
+			)}
 		</>
 	);
 }

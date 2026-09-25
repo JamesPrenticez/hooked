@@ -23,6 +23,8 @@ interface DescentSceneProps {
 	/** Wall-clock seconds — HarbourScene's clock, so the Kraken and the hook the
 	 *  fishing line draws stay in step. */
 	seconds: number;
+	/** Where the water's surface is on screen when the harbour has been pulled back for a landing; unset, at rest. */
+	surfaceY?: number;
 }
 
 /**
@@ -36,7 +38,7 @@ interface DescentSceneProps {
  * harbour. No catch mechanic, target outcome or server round yet: this is the
  * visual descent loop only.
  */
-export function DescentScene({ depth, tint, seconds }: DescentSceneProps) {
+export function DescentScene({ depth, tint, seconds, surfaceY }: DescentSceneProps) {
 	const { app, isInitialised } = useApplication();
 	const depthZones = useDebugStore(state => state.depthZones);
 	const depthUnit = useDebugStore(state => state.depthUnit);
@@ -53,7 +55,7 @@ export function DescentScene({ depth, tint, seconds }: DescentSceneProps) {
 	const view = { width: app.screen.width, height: app.screen.height };
 	const ambience = computeDepthAmbience(depth, depthZones);
 	const scroll = cameraScroll(depth, view);
-	const waterY = Math.max(0, waterlineY(view) - scroll);
+	const waterY = Math.max(0, (surfaceY ?? waterlineY(view)) - scroll);
 
 	return (
 		<pixiContainer>

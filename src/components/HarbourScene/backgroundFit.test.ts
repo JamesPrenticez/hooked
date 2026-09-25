@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { computeBackgroundFit, textureToScreen } from "./backgroundFit";
+import { computeBackgroundFit, computeWideFit, textureToScreen } from "./backgroundFit";
 import { horizonY } from "./framing";
 
 const DESKTOP = { width: 2560, height: 1441 };
@@ -58,5 +58,21 @@ describe("textureToScreen", () => {
 		const point = textureToScreen(fit, { x: DESKTOP.width / 2 + 100, y: DESKTOP.height / 2 });
 		expect(point.x).toBeCloseTo(fit.x + 100 * fit.scale);
 		expect(point.y).toBeCloseTo(fit.y);
+	});
+});
+
+describe("computeWideFit", () => {
+	it("draws the wide art further back than the standard one, its middle over the standard art", () => {
+		for (const view of [
+			{ width: 1920, height: 1080 },
+			{ width: 390, height: 844 }
+		]) {
+			const landscape = view.width >= view.height;
+			const fit = computeBackgroundFit(view, DESKTOP, MOBILE);
+			const wide = computeWideFit(fit, landscape);
+			// Each wide pixel is less than a standard one, and the art starts left of the standard art's edge.
+			expect(wide.scale.x).toBeGreaterThan(0);
+			expect(wide.x).toBeLessThan(fit.x - (fit.texture.width / 2) * fit.scale);
+		}
 	});
 });

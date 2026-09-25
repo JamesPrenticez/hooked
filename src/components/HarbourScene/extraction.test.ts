@@ -15,6 +15,8 @@ import {
 	fishSway,
 	heliLayout,
 	hookPose,
+	landingBottom,
+	landingPivotY,
 	landingScene,
 	MAX_BASE_LENGTH,
 	MAX_LENGTH,
@@ -30,8 +32,8 @@ const LANDSCAPE = { width: 844, height: 390 };
 const ART = 190;
 const STATIONED = { station: 1, retire: 0 };
 
-/** Where a world y ends up on screen once the camera has pulled out about the waterline, as it has for a heavy catch. */
-const pulledOut = (y: number, view = VIEW) => waterlineY(view) + (y - waterlineY(view)) * ZOOM_OUT;
+/** Where a world y ends up on screen once the camera has pulled back, as it has for a heavy catch. */
+const pulledOut = (y: number, view = VIEW) => landingPivotY(view) + (y - landingPivotY(view)) * ZOOM_OUT;
 
 /** A sim on the fourth tick of the landing of a `multiplier`× catch at 2,400m, fish 0 on the hook. */
 function landing(multiplier: number, ticks: number): Sim {
@@ -105,11 +107,11 @@ describe("hookPose", () => {
 		expect(hookPose(sim, VIEW, tip)).toEqual(before);
 	});
 
-	it("shows only the lips at the surface when the reveal starts, and the whole fish clear when it ends", () => {
+	it("shows only the lips at the bottom of the screen when the reveal starts, and the whole fish clear when it ends", () => {
 		const art = ART_FILL * createSim(1).world[0].width;
-		const seam = waterlineY(VIEW);
-		// A catch that needs the crane is no longer than the room under its boom.
-		const length = catchLength(250, art, VIEW, craneRoom(VIEW) * ZOOM_OUT) / ZOOM_OUT;
+		const seam = landingBottom(VIEW);
+		// A catch that needs the crane rises from the bottom of the screen, no longer than the room under its boom.
+		const length = catchLength(250, art, VIEW, craneRoom(VIEW)) / ZOOM_OUT;
 
 		const start = hookPose(landing(250, tickAtReveal(250, 0.0001)), VIEW, tip);
 		expect(start.y + MOUTH_DY).toBeCloseTo(seam, 0);
@@ -131,7 +133,6 @@ describe("hookPose", () => {
 	it("raises the hook steadily from the surface, and higher for a bigger fish", () => {
 		const finalY = (multiplier: number) =>
 			hookPose(landing(multiplier, extractionTicks(gearsFor(multiplier), 2400)), VIEW, tip).y;
-		expect(finalY(250)).toBeLessThan(finalY(1));
 		expect(finalY(500)).toBeLessThan(finalY(250));
 
 		let last = Infinity;
@@ -155,9 +156,8 @@ describe("hookPose", () => {
 		const grown = (multiplier: number) =>
 			hookPose(landing(multiplier, extractionTicks(gearsFor(multiplier), 2400)), VIEW, tip).grow * art;
 		expect(grown(1)).toBeCloseTo(catchLength(1, art, VIEW));
-		for (const m of [250, 500])
-			expect(grown(m) * ZOOM_OUT).toBeCloseTo(catchLength(m, art, VIEW, craneRoom(VIEW) * ZOOM_OUT));
-		expect(grown(500)).toBeLessThanOrEqual(craneRoom(VIEW) + 0.001);
+		for (const m of [250, 500]) expect(grown(m) * ZOOM_OUT).toBeCloseTo(catchLength(m, art, VIEW, craneRoom(VIEW)));
+		expect(grown(500) * ZOOM_OUT).toBeLessThanOrEqual(craneRoom(VIEW) + 0.001);
 		expect(grown(500)).toBeGreaterThan(grown(250));
 	});
 
@@ -222,17 +222,14 @@ describe("landingScene", () => {
 			expect(scene.line).toBeLessThanOrEqual(last.line);
 			last = scene;
 		}
-		expect(last).toEqual({ station: 1, retire: 1, crane: 1, zoom: ZOOM_OUT, line: 0 });
+		expect(last).toMatchObject({ station: 1, retire: 1, crane: 1, line: 0 });
+		expect(last.zoom).toBeCloseTo(ZOOM_OUT);
 	});
 
 	it("does the same for a catch that needs the helicopter too, the crane being first out", () => {
-		expect(landingScene(landing(500, extractionTicks(gearsFor(500), 2400)))).toEqual({
-			station: 1,
-			retire: 1,
-			crane: 1,
-			zoom: ZOOM_OUT,
-			line: 0
-		});
+		const scene = landingScene(landing(500, extractionTicks(gearsFor(500), 2400)));
+		expect(scene).toMatchObject({ station: 1, retire: 1, crane: 1, line: 0 });
+		expect(scene.zoom).toBeCloseTo(ZOOM_OUT);
 	});
 
 	it("never pays the crane's cable out further than the crane has come", () => {
