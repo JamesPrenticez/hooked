@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Assets, Rectangle, Texture } from "pixi.js";
 
 import { fishSway, type HookPose, MOUTH_DY } from "@components/HarbourScene/extraction";
-import { cameraScroll, depthToScreenY, waterlineY } from "@components/HarbourScene/framing";
+import { cameraScroll, depthToScreenY } from "@components/HarbourScene/framing";
 import { useHookStore } from "@stores/hookStore";
 import { cachedTextures } from "@utils/bootAssets";
 import { SIM_WIDTH, TICK_HZ } from "@utils/simConfig";
@@ -93,7 +93,7 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 				// Hung head-up: rotated a quarter turn so the mouth points up, then the centre is offset so the
 				// rotated mouth sits `MOUTH_DY` under the hook's line end. The mouth grows with the fish, so its
 				// offset does too — the hook stays put in it.
-				const { grow } = hook;
+				const { grow, girth = 1 } = hook;
 				const scroll = cameraScroll(depth, view);
 				const mouthY = hook.y - scroll + MOUTH_DY;
 				return (
@@ -101,14 +101,14 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 						key={i}
 						texture={hookedFrame(set, (sim.tick - sim.hookedTick) / TICK_HZ, !!hook.extraction)}
 						blendMode={species.opaque ? "screen" : "normal"}
-						x={hook.x - fish.direction * fish.mouth.dy * grow}
+						x={hook.x - fish.direction * fish.mouth.dy * grow * girth}
 						y={mouthY - fish.mouth.dx * grow}
 						rotation={(-fish.direction * Math.PI) / 2}
-						scale={{ x: species.scale * grow * -fish.direction, y: species.scale * grow }}
+						scale={{ x: species.scale * grow * -fish.direction, y: species.scale * grow * girth }}
 						mouth={{ x: hook.x, y: mouthY }}
 						sway={fishSway(sim)}
 						view={view}
-						seamY={hook.extraction && hook.atSurface ? waterlineY(view) - scroll : undefined}
+						seamY={hook.extraction && hook.surfaceY !== undefined ? hook.surfaceY - scroll : undefined}
 					/>
 				);
 			}

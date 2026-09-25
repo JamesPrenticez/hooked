@@ -57,7 +57,24 @@ export function BackgroundLayer({
 
 	return (
 		<>
-			{wide && <pixiSprite texture={wide} x={wideFit.x} y={wideFit.y} scale={wideFit.scale} tint={tint} />}
+			{wide && (
+				// Mirrored copies carry the wide art on past its own ends, so the harbour never just stops.
+				<>
+					{[-1, 0, 1].map(side => {
+						const width = wide.width * wideFit.scale.x;
+						return (
+							<pixiSprite
+								key={side}
+								texture={wide}
+								x={wideFit.x + side * width + (side === 0 ? 0 : width)}
+								y={wideFit.y}
+								scale={{ x: side === 0 ? wideFit.scale.x : -wideFit.scale.x, y: wideFit.scale.y }}
+								tint={tint}
+							/>
+						);
+					})}
+				</>
+			)}
 			<pixiSprite texture={bg.texture} anchor={0.5} x={bg.x} y={bg.y} scale={bg.scale} tint={tint} />
 			{lit && windowGlow > 0.01 && (
 				<pixiSprite texture={lit} anchor={0.5} x={bg.x} y={bg.y} scale={bg.scale} alpha={alpha} />

@@ -26,14 +26,16 @@ interface SeamWavesProps {
 	texture?: Texture;
 	/** Wall-clock seconds (`useElapsedSeconds`), driving the drift and bob. */
 	seconds: number;
+	/** World y of the water’s surface: the waterline at rest, dropping away as a landing pulls the camera back. */
+	surface?: number;
 }
 
 /** Hides the join between the harbour water and the underwater: a row of small
  *  wave crests centred on the waterline, drawn additively so the strip's black
  *  vanishes and only the foam and teal body show over both. */
-export function SeamWaves({ view, tint, texture, seconds }: SeamWavesProps) {
+export function SeamWaves({ view, tint, texture, seconds, surface }: SeamWavesProps) {
 	if (!texture) return null;
-	const waterline = waterlineY(view);
+	const waterline = surface ?? waterlineY(view);
 	const left = -view.width * OVERSCAN;
 
 	return (

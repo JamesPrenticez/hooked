@@ -29,7 +29,15 @@ import { computeAmbience } from "./ambience";
 import { BackgroundLayer } from "./BackgroundLayer";
 import { CelestialBody } from "./CelestialBody";
 import { DockCrane } from "./DockCrane";
-import { cameraShake, hookPose, landingPivotY, type LandingScene, landingScene } from "./extraction";
+import {
+	cameraShake,
+	hookPose,
+	landingPivotY,
+	type LandingScene,
+	landingScene,
+	landingSurface,
+	ZOOM_OUT
+} from "./extraction";
 import { Fisherman } from "./Fisherman";
 import { boatLayout, cameraScroll, hookWorldY, waterlineY } from "./framing";
 import { Helicopter } from "./Helicopter";
@@ -164,10 +172,13 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	// The camera pulls back about a point near the top of the screen, so the crane's jib stays high and the harbour falls away below it.
 	const seam = waterlineY(view);
 	const pivotY = landingPivotY(view);
+	// Over a crane landing the water’s surface drops away down the screen, so the fish comes right out of it.
+	const pull = (1 - scene.zoom) / (1 - ZOOM_OUT);
+	const surface = seam + (landingSurface(view) - seam) * pull;
 
 	return (
 		<pixiContainer x={shake.x} y={shake.y}>
-			<DescentScene depth={depth} tint={bgTint} seconds={seconds} surfaceY={pivotY + (seam - pivotY) * scene.zoom} />
+			<DescentScene depth={depth} tint={bgTint} seconds={seconds} surfaceY={pivotY + (surface - pivotY) * scene.zoom} />
 			<pixiContainer x={(view.width / 2) * (1 - scene.zoom)} y={pivotY * (1 - scene.zoom)} scale={scene.zoom}>
 				{/* The harbour layers have nothing to draw once the camera has scrolled them
 				    off-screen, but the fishing line and hook follow the hook down. */}
@@ -176,6 +187,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 						<SkyLayer view={view} skyTop={skyTop} skyHorizon={skyHorizon} />
 						<OceanLayer
 							view={view}
+							surface={surface}
 							tint={bgTint}
 							texture={textures?.[waterTileUrl]}
 							seconds={seconds}
@@ -195,7 +207,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 							windowGlow={windowGlow}
 							seconds={seconds}
 						/>
-						<SeamWaves view={view} tint={bgTint} texture={textures?.[seamUrl]} seconds={seconds} />
+						<SeamWaves surface={surface} view={view} tint={bgTint} texture={textures?.[seamUrl]} seconds={seconds} />
 						<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} />
 						{/* Part of the harbour, just chilling until a catch is too heavy for the rod — and then out in front of it. */}
 						<DockCrane
@@ -216,7 +228,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 							hookY={hook?.y ?? hookWorldY(depth, boat.tip.y, view)}
 							hookX={hook?.x}
 							scroll={scroll}
-							waterY={seam}
+							waterY={surface}
 							view={view}
 							boatScale={boat.restScale}
 							seconds={seconds}

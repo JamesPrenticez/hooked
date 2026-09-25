@@ -53,11 +53,27 @@ export function HookedFish({ texture, x, y, rotation, scale, blendMode, mouth, s
 	return (
 		<>
 			<pixiContainer mask={above}>
-				<pixiGraphics ref={setAbove} draw={g => g.clear().rect(0, 0, view.width, seamY).fill(0xffffff)} />
+				<pixiGraphics
+					ref={setAbove}
+					draw={g =>
+						g
+							.clear()
+							.rect(-view.width, -2 * view.height, 3 * view.width, seamY + 2 * view.height)
+							.fill(0xffffff)
+					}
+				/>
 				{above && fish()}
 			</pixiContainer>
 			<pixiContainer mask={below}>
-				<pixiGraphics ref={setBelow} draw={g => g.clear().rect(0, seamY, view.width, view.height).fill(0xffffff)} />
+				<pixiGraphics
+					ref={setBelow}
+					draw={g =>
+						g
+							.clear()
+							.rect(-view.width, seamY, 3 * view.width, 2 * view.height)
+							.fill(0xffffff)
+					}
+				/>
 				{below && fish(SUBMERGED)}
 			</pixiContainer>
 		</>

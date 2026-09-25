@@ -25,7 +25,7 @@ interface Point {
 
 /** How much of its size the harbour is drawn at once the crane is on the job: it falls away behind the fish, the crane
  *  with it, so the fish it lifts looms enormous in front. */
-export const ZOOM_OUT = 0.65;
+export const ZOOM_OUT = 0.5;
 
 /** Px the hook's barb sits inside a hooked fish's mouth, so the hook is in the mouth and not under it. Tune by eye. */
 export const HOOK_IN_MOUTH = 30;
@@ -52,11 +52,19 @@ export const MAX_BASE_LENGTH = 0.2;
 export const MAX_LENGTH = 0.44;
 
 /** How long the fish is, mouth to tail, once landed. `artLength` is its natural length underwater, px; `max` is the
- *  most it may grow to. */
-export function catchLength(multiplier: number, artLength: number, view: Size, max = MAX_LENGTH * view.height): number {
+ *  most it may grow to and `min` the least it starts at. */
+export function catchLength(
+	multiplier: number,
+	artLength: number,
+	view: Size,
+	max = MAX_LENGTH * view.height,
+	min = 0
+): number {
 	const base = Math.min(
-		MAX_BASE_LENGTH * view.height,
-		Math.max(MIN_BASE_LENGTH * view.height, artLength * BASE_SHRINK),
+		Math.max(
+			min,
+			Math.min(MAX_BASE_LENGTH * view.height, Math.max(MIN_BASE_LENGTH * view.height, artLength * BASE_SHRINK))
+		),
 		max
 	);
 	const growth = (multiplier - MIN_MULTIPLIER) / (MAX_MULTIPLIER - MIN_MULTIPLIER);
@@ -89,8 +97,15 @@ const CRANE_GROUND_OFFSET = -0.025;
 const CRANE_EDGE_GAP = -0.015;
 /** Where the crane's jib is on screen once the harbour is pulled back, and the height left between it and the top of a
  *  landed fish, both as a share of the screen height. */
-const CRANE_JIB_SCREEN_Y = 0.16;
-const CRANE_FISH_GAP = 0.04;
+const CRANE_JIB_SCREEN_Y = 0.1;
+const CRANE_FISH_GAP = 0.02;
+/** Where the water’s surface is on screen once it has dropped away, as a share of the screen height: still above the
+ *  bet bar, so its waves show while the fish is lifted clear of them. */
+const LANDING_SURFACE_Y = 0.6;
+/** Even the lightest catch the crane lifts is this share of the room under the boom, and every one is this much fatter
+ *  than it swims, so what comes up fills the screen. */
+const CRANE_MIN_SHARE = 0.6;
+export const CRANE_GIRTH = 1.45;
 
 export interface CraneLayout {
 	/** Where its feet meet the ground, world space. The sprite is anchored here. */
@@ -147,14 +162,18 @@ export function landingPivotY(view: Size): number {
 	return (CRANE_JIB_SCREEN_Y * view.height - craneLayout(view).jib.y * ZOOM_OUT) / (1 - ZOOM_OUT);
 }
 
-/** World y of the bottom edge of the screen once the harbour is pulled back: where a landed fish rises from. */
-export function landingBottom(view: Size): number {
+/** World y of the water’s surface once the harbour is pulled back and the water has dropped: where a landed fish rises from. */
+export function landingSurface(view: Size): number {
 	const pivot = landingPivotY(view);
-	return pivot + (view.height - pivot) / ZOOM_OUT;
+	return pivot + (LANDING_SURFACE_Y * view.height - pivot) / ZOOM_OUT;
 }
 
-/** The longest a fish the crane lifts can be, in screen px: from the bottom of the screen up to just under the boom. */
-export const craneRoom = (view: Size) => view.height * (1 - CRANE_JIB_SCREEN_Y - CRANE_FISH_GAP);
+/** The longest a fish the crane lifts can be, in screen px: from the water’s surface up to just under the boom. */
+export const craneRoom = (view: Size) => view.height * (LANDING_SURFACE_Y - CRANE_JIB_SCREEN_Y - CRANE_FISH_GAP);
+
+/** How long a fish the crane lifts is, mouth to tail, in screen px. */
+export const craneCatchLength = (multiplier: number, artLength: number, view: Size) =>
+	catchLength(multiplier, artLength, view, craneRoom(view), CRANE_MIN_SHARE * craneRoom(view));
 
 /** `helicopter.png`: the art's size, the width of its solid part (rotor tip to rotor tip), and where the winch cable
  *  leaves its belly. */
@@ -199,8 +218,10 @@ export function heliLayout(view: Size, hook: HookPose, arrival: number): HeliLay
 export interface HookPose extends Point {
 	/** How much bigger than it swam the hooked fish is drawn: 1 until the landing shows its true size. */
 	grow: number;
-	/** Whether the fish comes out of the water at its surface (a rod catch) rather than up from the bottom of the screen. */
-	atSurface?: boolean;
+	/** World y of the water’s surface the fish is lifted out of, while it is being landed. */
+	surfaceY?: number;
+	/** How much fatter than it swims the fish is drawn, across its length (which is `grow`). */
+	girth?: number;
 	/** The landing in progress, if there is one. */
 	extraction?: Extraction;
 	/** Where the line's end will be once the whole fish is out of the water. */
@@ -265,13 +286,14 @@ export function hookPose(sim: Sim, view: Size, tip: Point): HookPose {
 	const gears = gearsFor(sim.multiplier);
 	const extraction = extractionAt(gears, sim.catchM, sim.tick - sim.phaseTick);
 	const artLength = ART_FILL * fish.width;
-	// A catch that needs the crane is landed with the harbour pulled back, and rises from the bottom of the screen, as
-	// long as the room under the boom allows; any other comes out of the water at its surface.
+	// A catch that needs the crane is landed with the harbour pulled back, and comes out of the water at its dropped surface, as
+	// long as the room under the boom allows.
 	const crane = gears.length > 1;
 	// The line's end when the fish's lips are just at where it comes out.
-	const lips = (crane ? landingBottom(view) : waterlineY(view)) - MOUTH_DY;
+	const surfaceY = crane ? landingSurface(view) : waterlineY(view);
+	const lips = surfaceY - MOUTH_DY;
 	const length = crane
-		? catchLength(sim.multiplier, artLength, view, craneRoom(view)) / ZOOM_OUT
+		? craneCatchLength(sim.multiplier, artLength, view) / ZOOM_OUT
 		: catchLength(sim.multiplier, artLength, view);
 
 	return {
@@ -279,7 +301,8 @@ export function hookPose(sim: Sim, view: Size, tip: Point): HookPose {
 		// While it is hauled in, the hook rises no higher than the lips-at-the-surface mark; the rest is the lift.
 		y: extraction.stage === "haul" ? Math.max(hanging.y, lips) : lips - extraction.reveal * length,
 		grow: length / artLength,
-		atSurface: !crane,
+		surfaceY,
+		girth: crane ? CRANE_GIRTH : 1,
 		extraction,
 		finalY: lips - length
 	};

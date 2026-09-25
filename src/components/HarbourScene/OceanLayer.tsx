@@ -39,6 +39,8 @@ interface OceanLayerProps {
 	/** `0`..`1` overlay strength from `computeAmbience` — the waterline's
 	 *  lit-building glow. */
 	windowGlow: number;
+	/** World y of the water’s surface, where the underwater begins: the waterline at rest, dropping away as a landing pulls the camera back. */
+	surface?: number;
 }
 
 /**
@@ -50,9 +52,9 @@ interface OceanLayerProps {
  * same band.
  * `WaterReflections` adds the moon / building-light shine on top either way.
  */
-export function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow }: OceanLayerProps) {
+export function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow, surface }: OceanLayerProps) {
 	const baseTop = horizonY(view);
-	const bottom = waterlineY(view);
+	const bottom = surface ?? waterlineY(view);
 	const reflections = (
 		<WaterReflections
 			view={view}

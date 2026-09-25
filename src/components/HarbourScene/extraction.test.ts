@@ -8,6 +8,7 @@ import {
 	ART_FILL,
 	cameraShake,
 	catchLength,
+	craneCatchLength,
 	craneDrop,
 	craneLayout,
 	craneOut,
@@ -15,9 +16,9 @@ import {
 	fishSway,
 	heliLayout,
 	hookPose,
-	landingBottom,
 	landingPivotY,
 	landingScene,
+	landingSurface,
 	MAX_BASE_LENGTH,
 	MAX_LENGTH,
 	MOUTH_DY,
@@ -107,11 +108,11 @@ describe("hookPose", () => {
 		expect(hookPose(sim, VIEW, tip)).toEqual(before);
 	});
 
-	it("shows only the lips at the bottom of the screen when the reveal starts, and the whole fish clear when it ends", () => {
+	it("shows only the lips at the water’s dropped surface when the reveal starts, and the whole fish clear when it ends", () => {
 		const art = ART_FILL * createSim(1).world[0].width;
-		const seam = landingBottom(VIEW);
-		// A catch that needs the crane rises from the bottom of the screen, no longer than the room under its boom.
-		const length = catchLength(250, art, VIEW, craneRoom(VIEW)) / ZOOM_OUT;
+		const seam = landingSurface(VIEW);
+		// A catch that needs the crane rises from the dropped surface, no longer than the room under its boom.
+		const length = craneCatchLength(250, art, VIEW) / ZOOM_OUT;
 
 		const start = hookPose(landing(250, tickAtReveal(250, 0.0001)), VIEW, tip);
 		expect(start.y + MOUTH_DY).toBeCloseTo(seam, 0);
@@ -147,7 +148,7 @@ describe("hookPose", () => {
 		for (const view of [VIEW, PORTRAIT]) {
 			const t = boatLayout(view, 0, STATIONED).tip;
 			const pose = hookPose(landing(500, extractionTicks(gearsFor(500), 2400)), view, t);
-			expect(pulledOut(pose.y, view)).toBeGreaterThan(view.height * 0.15);
+			expect(pulledOut(pose.y, view)).toBeGreaterThan(view.height * 0.06);
 		}
 	});
 
@@ -156,7 +157,7 @@ describe("hookPose", () => {
 		const grown = (multiplier: number) =>
 			hookPose(landing(multiplier, extractionTicks(gearsFor(multiplier), 2400)), VIEW, tip).grow * art;
 		expect(grown(1)).toBeCloseTo(catchLength(1, art, VIEW));
-		for (const m of [250, 500]) expect(grown(m) * ZOOM_OUT).toBeCloseTo(catchLength(m, art, VIEW, craneRoom(VIEW)));
+		for (const m of [250, 500]) expect(grown(m) * ZOOM_OUT).toBeCloseTo(craneCatchLength(m, art, VIEW));
 		expect(grown(500) * ZOOM_OUT).toBeLessThanOrEqual(craneRoom(VIEW) + 0.001);
 		expect(grown(500)).toBeGreaterThan(grown(250));
 	});
