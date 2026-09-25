@@ -18,7 +18,10 @@ import { SHEET_URLS } from "@components/DescentScene/krakenSheets";
 import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT } from "@constants/krakenAnimations";
 
 /** Textures drawn well under their source size get mipmaps so fine detail doesn't shimmer. */
-export const mipmapped = (src: string) => ({ src, data: { autoGenerateMipmaps: true } });
+export const mipmapped = (src: string) => ({
+	src,
+	data: { autoGenerateMipmaps: true }
+});
 
 /** Everything the game scenes draw from the first frame, so nothing pops in after the loading screen. */
 const BOOT_ASSETS = [

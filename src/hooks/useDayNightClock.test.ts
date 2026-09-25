@@ -1,13 +1,22 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 
+import { useDebugStore } from "@stores/debugStore";
+
 import { useDayNightClock } from "./useDayNightClock";
+
+it("stays at noon by default", () => {
+	useDebugStore.setState(useDebugStore.getInitialState());
+	const { result } = renderHook(() => useDayNightClock());
+	expect(result.current).toBe(0.5);
+});
 
 let rafCallbacks: Map<number, FrameRequestCallback>;
 let nextRafId = 1;
 let now = 0;
 
 beforeEach(() => {
+	useDebugStore.setState({ frozen: false });
 	rafCallbacks = new Map();
 	nextRafId = 1;
 	now = 0;

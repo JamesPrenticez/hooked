@@ -44,7 +44,7 @@ interface DebugStore {
 
 const getDefaults = () => ({
 	timeOfDay: 0.5,
-	frozen: false,
+	frozen: true,
 	depthUnit: "m" as DepthUnit,
 	depthZones: DEPTH_ZONES.map(zone => ({ ...zone })),
 	zoneSpeeds: { ...DEFAULT_ZONE_SPEEDS }
@@ -66,6 +66,6 @@ export const useDebugStore = create<DebugStore>()(
 			setZoneSpeed: (id, metersPerSecond) =>
 				set(state => ({ zoneSpeeds: { ...state.zoneSpeeds, [id]: metersPerSecond } }))
 		}),
-		{ name: "deepcatch.debug", version: 2, migrate: getDefaults }
+		{ name: "deepcatch.debug", version: 3, migrate: getDefaults }
 	)
 );
