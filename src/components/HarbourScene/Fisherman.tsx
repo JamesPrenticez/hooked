@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { playerPose } from "@constants/playerAnimations";
+import { useTweak } from "@stores/harbourDebugStore";
 import { usePlayerStore } from "@stores/playerStore";
 
 import { BOAT_ANCHOR, type BoatLayout } from "./framing";
@@ -26,6 +27,7 @@ interface FishermanProps {
  */
 export function Fisherman({ frames, boat, tint, seconds }: FishermanProps) {
 	const cue = usePlayerStore(state => state.cue);
+	const tweak = useTweak("player");
 
 	// A new cue starts its clip from the top. Adjusted during render rather than
 	// in an effect, so the first frame of the new clip isn't the old one.
@@ -39,9 +41,9 @@ export function Fisherman({ frames, boat, tint, seconds }: FishermanProps) {
 		<pixiSprite
 			texture={textures[frame]}
 			anchor={BOAT_ANCHOR}
-			x={boat.x}
-			y={boat.y}
-			scale={{ x: boat.scale, y: boat.scale * stretchY }}
+			x={boat.x + tweak.x}
+			y={boat.y + tweak.y}
+			scale={{ x: boat.scale * tweak.scale, y: boat.scale * tweak.scale * stretchY }}
 			tint={tint}
 		/>
 	);

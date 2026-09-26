@@ -1,5 +1,7 @@
 import type { Texture } from "pixi.js";
 
+import { tweakProps, useTweak } from "@stores/harbourDebugStore";
+
 import { computeBackgroundFit, computeWideFit } from "./backgroundFit";
 import type { HarbourView } from "./layers";
 
@@ -18,6 +20,7 @@ interface BackgroundLayerProps {
  * desktop or mobile export by viewport shape (see `backgroundFit`).
  */
 export function BackgroundLayer({ view, desktopWide, mobileWide, tint }: BackgroundLayerProps) {
+	const tweak = useTweak("background");
 	const landscape = view.width >= view.height;
 	const wide = landscape ? desktopWide : mobileWide;
 	if (!wide) return null;
@@ -26,7 +29,7 @@ export function BackgroundLayer({ view, desktopWide, mobileWide, tint }: Backgro
 
 	// Mirrored copies carry the wide art on past its own ends, so the harbour never just stops.
 	return (
-		<>
+		<pixiContainer {...tweakProps(tweak, { x: view.width / 2, y: view.height / 2 })}>
 			{[-1, 0, 1].map(side => {
 				const width = wide.width * wideFit.scale.x;
 				return (
@@ -40,6 +43,6 @@ export function BackgroundLayer({ view, desktopWide, mobileWide, tint }: Backgro
 					/>
 				);
 			})}
-		</>
+		</pixiContainer>
 	);
 }

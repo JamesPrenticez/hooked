@@ -9,6 +9,7 @@ import { BottomBar } from "@components/BottomBar";
 import { DebugPanel } from "@components/DebugPanel";
 import { DepthIndicator } from "@components/DepthIndicator";
 import { ExtractionMultiplier } from "@components/ExtractionMultiplier";
+import { HarbourDebug } from "@components/HarbourDebug";
 import { HarbourScene } from "@components/HarbourScene";
 import { HookedBanner } from "@components/HookedBanner";
 import { LoadingScreen } from "@components/LoadingScreen";
@@ -49,6 +50,15 @@ const Overlay = styled.div`
 	justify-content: flex-end;
 	gap: var(--spacing-md);
 	padding-bottom: var(--spacing-xxxl);
+`;
+
+const DebugDock = styled.div`
+	position: absolute;
+	right: var(--spacing-md);
+	bottom: var(--spacing-md);
+	z-index: 10;
+	display: flex;
+	gap: var(--spacing-sm);
 `;
 
 const SkipTutorial = styled.div`
@@ -137,7 +147,12 @@ export function App() {
 				</Overlay>
 			)}
 
-			{DEBUG && <DebugPanel />}
+			{DEBUG && (
+				<DebugDock>
+					<HarbourDebug />
+					<DebugPanel />
+				</DebugDock>
+			)}
 		</Root>
 	);
 }

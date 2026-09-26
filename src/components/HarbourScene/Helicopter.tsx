@@ -1,5 +1,7 @@
 import type { Texture } from "pixi.js";
 
+import { useTweak } from "@stores/harbourDebugStore";
+
 import { HELI_ART, heliDrop, heliLayout, type HookPose, release } from "./extraction";
 
 interface HelicopterProps {
@@ -16,6 +18,7 @@ interface HelicopterProps {
 
 /** The helicopter, parked still on the skyline's helipad until a catch calls it in. Faces left, as the art is drawn. */
 export function Helicopter({ view, texture, tint, hook, heavy = false }: HelicopterProps) {
+	const tweak = useTweak("helicopter");
 	if (!texture) return null;
 
 	const arrival = hook?.extraction?.arrival;
@@ -28,15 +31,12 @@ export function Helicopter({ view, texture, tint, hook, heavy = false }: Helicop
 	const heli = heliLayout(view, pose, called, { heavy, release: done });
 	// Its cable pays out from the belly to the hook, and reels back in as it lets go.
 	const reach = heliDrop(called) * (1 - done);
-	const ring = {
-		x: heli.x,
-		y: heli.y
-	};
+	const ring = { x: heli.x + tweak.x, y: heli.y + tweak.y };
 	const end = { x: ring.x + (pose.x - ring.x) * reach, y: ring.y + (pose.y - ring.y) * reach };
 
 	return (
 		<>
-			<pixiContainer x={heli.x} y={heli.y} scale={heli.scale}>
+			<pixiContainer x={ring.x} y={ring.y} scale={heli.scale * tweak.scale}>
 				<pixiSprite texture={texture} anchor={HELI_ART.ring} tint={tint} />
 			</pixiContainer>
 			{reach > 0 && (

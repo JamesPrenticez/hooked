@@ -1,0 +1,219 @@
+import { useState } from "react";
+import styled from "styled-components";
+
+import { Button } from "@hooked-ui";
+import { TWEAK_KEYS, type TweakKey, useHarbourDebugStore } from "@stores/harbourDebugStore";
+import { useHookStore } from "@stores/hookStore";
+import { extractionAt, extractionTicks, gearsFor } from "@utils/simExtraction";
+import { createSim } from "@utils/simStep";
+
+const Trigger = styled(Button)`
+	padding: 0.6rem 1.2rem;
+	border: 1px solid var(--color-primary-accent);
+	border-radius: var(--border-radius-sm);
+	background: color-mix(in srgb, var(--color-primary-accent) 20%, transparent);
+	color: var(--color-white);
+	font: var(--font-display-xs);
+	letter-spacing: 0.08em;
+	cursor: pointer;
+`;
+
+/* Not modal, docked top-left: the harbour has to stay visible and live while its sliders are dragged. */
+const Panel = styled.dialog`
+	position: fixed;
+	inset: var(--spacing-md) auto auto var(--spacing-md);
+	z-index: 20;
+	width: min(90vw, 32rem);
+	max-height: calc(100vh - 2 * var(--spacing-md));
+	margin: 0;
+	overflow-y: auto;
+	padding: 1.6rem;
+	border: none;
+	border-radius: 1.2rem;
+	background: color-mix(in srgb, var(--color-black) 85%, transparent);
+	color: var(--color-white);
+`;
+
+const Header = styled.div`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: var(--spacing-sm);
+`;
+
+const Group = styled.fieldset`
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	margin: 0 0 var(--spacing-sm);
+	padding: var(--spacing-xs) 1.2rem 1.2rem;
+	border: 1px solid color-mix(in srgb, var(--color-white) 20%, transparent);
+	border-radius: var(--border-radius-md);
+`;
+
+const Legend = styled.legend`
+	padding: 0 var(--spacing-xs);
+	font: var(--font-display-xs);
+	letter-spacing: 0.08em;
+	color: var(--color-primary-accent);
+	text-transform: capitalize;
+`;
+
+const Row = styled.label`
+	display: grid;
+	grid-template-columns: 4rem 1fr 5rem;
+	align-items: center;
+	gap: var(--spacing-sm);
+	font-size: var(--font-size-legal);
+`;
+
+const Buttons = styled.div`
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--spacing-xs);
+`;
+
+/** Where the catch is taken from when previewing, metres — deep enough that the haul has somewhere to come from. */
+const PREVIEW_CATCH_M = 3000;
+/** The fish it hangs: any of the world's, its species decides only the art. */
+const PREVIEW_FISH = 0;
+
+const STAGE_LABELS = {
+	haul: "Haul",
+	rod: "Rod",
+	crane: "Crane",
+	helicopter: "Helicopter",
+	chinook: "Chinook",
+	hold: "Hold"
+};
+
+/** `[stage, first tick]` for every stage of this catch's landing, in order. */
+function stageStarts(multiplier: number): [string, number][] {
+	const gears = gearsFor(multiplier);
+	const starts: [string, number][] = [];
+	for (let tick = 0; tick <= extractionTicks(gears, PREVIEW_CATCH_M); tick++) {
+		const { stage } = extractionAt(gears, PREVIEW_CATCH_M, tick);
+		if (starts.at(-1)?.[0] !== stage) starts.push([stage, tick]);
+	}
+	return starts;
+}
+
+/** Parks a fabricated run mid-landing, so any moment of the extraction can be looked at without playing a run. */
+function previewExtraction(multiplier: number, tick: number) {
+	const sim = createSim(useHookStore.getState().worldSeed, multiplier);
+	const elapsed = extractionAt(gearsFor(multiplier), PREVIEW_CATCH_M, tick);
+	useHookStore.setState({
+		sim: {
+			...sim,
+			phase: "extract",
+			tick,
+			phaseTick: 0,
+			catchM: PREVIEW_CATCH_M,
+			depthM: elapsed.depthM,
+			hooked: PREVIEW_FISH,
+			hookedTick: 0
+		}
+	});
+}
+
+function TweakGroup({ name }: { name: TweakKey }) {
+	const tweak = useHarbourDebugStore(state => state.tweaks[name]);
+	const setTweak = useHarbourDebugStore(state => state.setTweak);
+	const sliders = [
+		{ key: "x", min: -1500, max: 1500, step: 1 },
+		{ key: "y", min: -1500, max: 1500, step: 1 },
+		{ key: "scale", min: 0.1, max: 3, step: 0.01 }
+	] as const;
+
+	return (
+		<Group>
+			<Legend>{name}</Legend>
+			{sliders.map(({ key, ...range }) => (
+				<Row key={key}>
+					{key}
+					<input
+						{...range}
+						type="range"
+						value={tweak[key]}
+						onChange={e => setTweak(name, { [key]: Number(e.target.value) })}
+					/>
+					<input
+						{...range}
+						type="number"
+						value={tweak[key]}
+						onChange={e => setTweak(name, { [key]: Number(e.target.value) })}
+					/>
+				</Row>
+			))}
+		</Group>
+	);
+}
+
+/**
+ * Dev-only HARBOUR button next to DEBUG: sliders to move (px) and resize (×) the background, player, crane,
+ * helicopter and hooked fish, and a scrubber that parks a fabricated landing at any moment of it — at the
+ * Catch multiplier set in DEBUG's Hook control. The nudges are kept across reloads.
+ */
+export function HarbourDebug() {
+	const [open, setOpen] = useState(false);
+	const reset = useHarbourDebugStore(state => state.reset);
+	const multiplier = useHookStore(state => state.multiplier);
+	const sim = useHookStore(state => state.sim);
+	const total = extractionTicks(gearsFor(multiplier), PREVIEW_CATCH_M);
+	const previewing = sim?.phase === "extract" && sim.catchM === PREVIEW_CATCH_M;
+
+	return (
+		<>
+			<Trigger type="button" onClick={() => setOpen(!open)}>
+				HARBOUR
+			</Trigger>
+
+			<Panel open={open}>
+				<Header>
+					<b>Harbour</b>
+					<Buttons>
+						<Button variant="secondary" onClick={reset}>
+							Reset
+						</Button>
+						<Button variant="secondary" onClick={() => setOpen(false)}>
+							Close
+						</Button>
+					</Buttons>
+				</Header>
+
+				<Group>
+					<Legend>Extraction ×{multiplier}</Legend>
+					<Buttons>
+						{stageStarts(multiplier).map(([stage, tick]) => (
+							<Button key={stage} variant="secondary" onClick={() => previewExtraction(multiplier, tick)}>
+								{STAGE_LABELS[stage as keyof typeof STAGE_LABELS]}
+							</Button>
+						))}
+						<Button
+							variant="secondary"
+							disabled={!previewing}
+							onClick={() => useHookStore.setState({ sim: undefined })}
+						>
+							Clear
+						</Button>
+					</Buttons>
+					<Row>
+						tick
+						<input
+							type="range"
+							min={0}
+							max={total}
+							value={previewing ? sim.tick : 0}
+							onChange={e => previewExtraction(multiplier, Number(e.target.value))}
+						/>
+						{previewing ? sim.tick : "–"}
+					</Row>
+				</Group>
+
+				{TWEAK_KEYS.map(key => (
+					<TweakGroup key={key} name={key} />
+				))}
+			</Panel>
+		</>
+	);
+}

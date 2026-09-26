@@ -26,10 +26,6 @@ import { fromBase64, type Recording } from "@utils/simRecording";
 const MULTIPLIER_PRESETS = [MIN_MULTIPLIER, CRANE_FROM, HELICOPTER_FROM, CHINOOK_FROM, MAX_MULTIPLIER];
 
 const Trigger = styled(Button)`
-	position: absolute;
-	right: var(--spacing-md);
-	bottom: var(--spacing-md);
-	z-index: 10;
 	padding: 0.6rem 1.2rem;
 	border: 1px solid var(--color-negative);
 	border-radius: var(--border-radius-sm);
