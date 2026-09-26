@@ -324,16 +324,11 @@ export function hookPose(sim: Sim, view: Size, tip: Point): HookPose {
 const FIGHT_SHAKE_PX = 4;
 const JOLT_SHAKE_PX = 12;
 const JOLT_TICKS = 30;
-/** The shake at full strain, while a gear pulls against a fish that won't come. */
-const STRAIN_SHAKE_PX = 7;
 
 export function cameraShake(sim: Sim): Point {
 	let amount = 0;
 	if (sim.phase === "hooked") amount = FIGHT_SHAKE_PX;
 	else if (sim.phase === "announce") amount = JOLT_SHAKE_PX * Math.max(0, 1 - (sim.tick - sim.phaseTick) / JOLT_TICKS);
-	else if (sim.phase === "extract") {
-		amount = STRAIN_SHAKE_PX * extractionAt(gearsFor(sim.multiplier), sim.catchM, sim.tick - sim.phaseTick).strain;
-	}
 	if (amount <= 0) return { x: 0, y: 0 };
 	return { x: Math.sin(sim.tick * 2.1) * amount, y: Math.sin(sim.tick * 3.3 + 1) * amount * 0.6 };
 }
