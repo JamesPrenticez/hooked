@@ -77,3 +77,12 @@ it("shows a badge for each active target and locks the trigger while descending"
 	rerender(<BottomBar descending onCast={() => {}} />);
 	expect(screen.getByRole("button", { name: /select targets/i })).toBeDisabled();
 });
+
+it("opens the chip quick-select popup and picks a value from it", () => {
+	render(<BottomBar descending={false} onCast={() => {}} />);
+
+	fireEvent.click(screen.getByRole("button", { name: /chip/i }));
+	fireEvent.click(screen.getByRole("button", { name: "$5.00" }));
+
+	expect(useBetStore.getState().chip).toBe(500);
+});

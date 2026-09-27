@@ -35,6 +35,7 @@ export function BetSection({ disabled }: BetSectionProps) {
 			format={(cents: number) => formatMoney(cents, currency)}
 			disabled={disabled}
 			onValueChange={setChip}
+			quickSelect
 			fullWidth
 		/>
 	);

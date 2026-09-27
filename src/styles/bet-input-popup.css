@@ -1,0 +1,18 @@
+/*
+ * Caps the BetInput quick-select popup at a few rows before it scrolls,
+ * without forking the vendored component (same approach as never-give-up).
+ *
+ * The popup portals to document.body as a fixed div carrying the inline
+ * `--popup-left` property; its body is a header div then the option grid div.
+ * If StepperPopup's markup changes, this stops matching and the popup just
+ * falls back to its natural (taller) height.
+ */
+
+/* row height (line-height 1.6rem + 1rem top/bottom padding) * rows + gaps (0.6rem) */
+div[style*="--popup-left"] > div:nth-child(2) {
+	max-height: calc(4 * 3.6rem + 3 * 0.6rem);
+}
+
+div[style*="--popup-left"] > div:nth-child(2) > button {
+	line-height: 1.6rem;
+}
