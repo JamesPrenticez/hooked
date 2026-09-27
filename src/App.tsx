@@ -4,7 +4,6 @@ import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Mesh, Sprite, Text, TilingSprite } from "pixi.js";
 import styled from "styled-components";
 
-import { Balance } from "@components/Balance";
 import { BottomBar } from "@components/BottomBar";
 import { DebugPanel } from "@components/DebugPanel";
 import { DepthIndicator } from "@components/DepthIndicator";
@@ -121,7 +120,6 @@ export function App() {
 
 			{phase === "loading" && <LoadingScreen progress={progress} />}
 
-			{phase === "game" && <Balance />}
 			{phase === "game" && underwater && <DepthIndicator depth={depth} />}
 			{phase === "game" && <HookedBanner />}
 			{phase === "game" && <ExtractionMultiplier />}

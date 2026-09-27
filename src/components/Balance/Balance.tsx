@@ -2,21 +2,21 @@ import styled from "styled-components";
 
 import { useAnimatedNumber } from "@hooks/useAnimatedNumber";
 import { useBalanceStore } from "@stores/balanceStore";
+import { breakpoint } from "@utils/breakpoint";
 
 const Container = styled.div`
-	position: absolute;
-	top: var(--spacing-md);
-	right: var(--spacing-md);
+	/* Last in the portrait column, first in the row from landscape up (never-give-up). */
+	order: 1;
 	display: flex;
 	flex-direction: column;
-	align-items: flex-end;
-	gap: 0.2rem;
-	padding: var(--spacing-sm) 1.4rem;
-	border-radius: var(--border-radius-md);
-	background: color-mix(in srgb, var(--color-black) 55%, transparent);
+	gap: var(--spacing-xs);
 	color: var(--color-white);
 	pointer-events: none;
 	user-select: none;
+
+	@media ${breakpoint.landscape} {
+		order: -1;
+	}
 `;
 
 const Label = styled.span`
@@ -42,7 +42,7 @@ const LOCALE = "en-US";
  * reported — and eases the displayed number on every change. Renders
  * nothing until the first balance arrives.
  *
- * HTML overlay: a sibling of <Application>, never a child of it (§38).
+ * Lives inside BottomBar (HTML, never a child of <Application>, §38).
  */
 export function Balance() {
 	const balance = useBalanceStore(s => s.balance);

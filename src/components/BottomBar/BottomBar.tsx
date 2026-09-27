@@ -1,6 +1,7 @@
 import { useState } from "react";
 import styled from "styled-components";
 
+import { Balance } from "@components/Balance";
 import { breakpoint } from "@utils/breakpoint";
 
 import { BetSection } from "./BetSection";
@@ -85,6 +86,7 @@ export function BottomBar({ descending, onCast }: BottomBarProps) {
 	return (
 		<Container>
 			<Bar>
+				<Balance />
 				<BetSection disabled={descending} />
 				<CallToActionSection descending={descending} onCast={onCast} />
 				<TotalSection disabled={descending} />

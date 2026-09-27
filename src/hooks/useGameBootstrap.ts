@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { type Application, UPDATE_PRIORITY } from "pixi.js";
 
+import { initSession } from "@api";
+import { recoverFromServer } from "@components/system/roundRecovery";
 import { MIN_LOADING_MS } from "@constants/config";
 import { useGameStore } from "@stores/gameStore";
 import { loadBootAssets } from "@utils/bootAssets";
@@ -31,6 +33,13 @@ export function useGameBootstrap() {
 		return () => {
 			live = false;
 		};
+	}, []);
+
+	// Session + authoritative balance/round (§30); nothing else ever populates balanceStore.
+	useEffect(() => {
+		initSession()
+			.then(recoverFromServer)
+			.catch(error => console.error("Error starting session:", error));
 	}, []);
 
 	useEffect(() => {
