@@ -5,6 +5,8 @@ import { Balance } from "@components/Balance";
 import { breakpoint } from "@utils/breakpoint";
 
 import { BetSection } from "./BetSection";
+import { BonusModal } from "./BonusModal";
+import { BonusSection } from "./BonusSection";
 import { CallToActionSection } from "./CallToActionSection";
 import { SelectTargetsModal } from "./SelectTargetsModal";
 import { SelectTargetsSection } from "./SelectTargetsSection";
@@ -72,20 +74,23 @@ interface BottomBarProps {
 }
 
 /**
- * Mobile-first bottom UI: chip selector, cast-line control, total wager, and
- * a "Select Targets" button. The depth/species board (`BettingBoard`) used to
- * sit inline here; it now opens in `SelectTargetsModal` instead, mirroring
- * never-give-up's difficulty picker.
+ * Mobile-first bottom UI: chip selector, cast-line control, total wager, a
+ * "Select Targets" button and a "Bonus" button. The depth/species board
+ * (`BettingBoard`) used to sit inline here; it now opens in
+ * `SelectTargetsModal` instead, mirroring never-give-up's difficulty picker.
+ * Bonus opens `BonusModal`, mirroring its bonus-buy button.
  *
  * Cast toggles the client-only descent view (App.tsx) — bets aren't submitted
- * to the server yet, and targets lock while descending.
+ * to the server yet, and targets and bonuses lock while descending.
  */
 export function BottomBar({ descending, onCast }: BottomBarProps) {
 	const [targetsOpen, setTargetsOpen] = useState(false);
+	const [bonusOpen, setBonusOpen] = useState(false);
 
 	return (
 		<Container>
 			<Bar>
+				<BonusSection disabled={descending} onOpen={() => setBonusOpen(true)} />
 				<Balance />
 				<BetSection disabled={descending} />
 				<CallToActionSection descending={descending} onCast={onCast} />
@@ -94,6 +99,7 @@ export function BottomBar({ descending, onCast }: BottomBarProps) {
 			</Bar>
 
 			{targetsOpen && <SelectTargetsModal disabled={descending} onClose={() => setTargetsOpen(false)} />}
+			{bonusOpen && <BonusModal onClose={() => setBonusOpen(false)} />}
 		</Container>
 	);
 }

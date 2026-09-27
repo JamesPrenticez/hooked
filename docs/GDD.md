@@ -113,3 +113,37 @@ export const FISH_GUIDE: FishGuideEntry[] = [
 The game will target a 96% theoretical RTP, meaning that over a very large number of rounds, approximately $96 of every $100 wagered is expected to be returned to players, with the remaining 4% representing the theoretical house edge. Individual rounds and player sessions can vary significantly due to the game's volatility.
 
 The underlying outcome is generated once per round and all active bets are evaluated against that result. A specific fish also belongs to a depth zone, meaning a player can potentially win both a broad depth bet and a specific fish bet when the outcome matches both selections. The probability and payout of each selection will be balanced to maintain the target RTP while allowing players to choose between safer, more frequent catches and high-risk, high-value targets.
+
+## 22 Bonus concepts for evaluation
+
+These are design proposals, not approved game rules. No purchase prices, trigger odds, payout multipliers, feature RTP or maximum wins are committed. Environmental events remain ambient; multiplier events reveal a payout effect; bonus features add a named ruleset, recovery step or multi-cast sequence.
+
+### Re-Cast
+
+Proposed one-round add-on: the first junk catch or escaped fish grants exactly one recovery cast using the original selections, with no additional wager debit. The retry can lose and cannot trigger another retry. A landed fish that misses the wager is not covered in this initial proposal, and the feature card must say so.
+
+The accepted feature round contains both the first attempt and any recovery result. Only the resolved payout is credited once. This is not a refund or a guaranteed win. Price, eligibility and mathematical distribution remain to be determined.
+
+UI: a spare-hook icon and SECOND CAST READY before play. On an eligible loss show JUNK CAUGHT or GOT AWAY, followed by SECOND CAST ACTIVATED. Cross out one spare-hook indicator and show RECOVERY CAST. If the first attempt lands a fish, the one-round feature ends unused; disclose this in the rules. No purchase offer appears after the loss.
+
+### Lucky Bait
+
+Proposed one-round wager variant with a separately defined distribution of multiplier-bearing successful catches. It reuses Golden Current, Ancient Relic, Deep Sea Shrine and Abyssal Event presentation. It does not promise a successful catch, prevent escape or turn junk into a paying fish.
+
+UI: glowing bait icon, LUCKY BAIT ACTIVE, and a feature cost shown before casting. During the round, show only awarded multipliers. Rules must define whether effects combine or replace each other and which payout amount they modify. Do not advertise improved odds or larger average wins until supported by the actual model.
+
+### Feeding Frenzy
+
+Proposed distinct bonus round: a short sequence of five automatic casts with a running feature total. Five is a prototype count, not a final mathematical commitment. Each cast can land a fish, retrieve junk or lose a fish. The feature is not five guaranteed wins.
+
+For a first prototype, keep the accepted target selections fixed throughout and disallow mid-feature wager changes. Outcomes and awards come from the accepted feature record. Choose natural triggering or direct purchase as the initial entry method before production; if both are supported, show their different entry rules explicitly.
+
+UI: a school-of-fish icon, FEEDING FRENZY introduction, CAST 1 OF 5 and FEATURE TOTAL. Use brief sub-results; show one final summary and reconcile all credits exactly once. Wager controls return when the feature completes.
+
+### Monster Hunt
+
+Proposed premium feature focused on one giant-creature encounter and a bespoke extraction. Reuse crane, helicopter and Kraken assets to make a distinct sequence, rather than treating ordinary large fish as bonus triggers.
+
+Define a dedicated outcome table and eligible creature pool. Entry guarantees the feature encounter only; success, escape probability and any minimum award remain unresolved and must be stated in the final rules. Do not label it a guaranteed jackpot.
+
+UI: giant-creature silhouette, a clear feature introduction, preparation and extraction states, and one final result. Equipment changes communicate the spectacle without implying that timing or player input improves the payout.

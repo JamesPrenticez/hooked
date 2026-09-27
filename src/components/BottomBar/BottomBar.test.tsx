@@ -39,6 +39,26 @@ it("opens the select targets modal and closes it again", () => {
 	expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
+it("opens the bonus modal from the Bonus button, closes it again, and returns focus to the button", () => {
+	render(<BottomBar descending={false} onCast={() => {}} />);
+	const trigger = screen.getByRole("button", { name: "Bonus" });
+	expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+	trigger.focus();
+	fireEvent.click(trigger);
+	expect(screen.getByRole("dialog", { name: "Bonus" })).toBeInTheDocument();
+
+	fireEvent.click(screen.getByRole("button", { name: "Close" }));
+	expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+	expect(trigger).toHaveFocus();
+});
+
+it("locks the Bonus button while descending", () => {
+	render(<BottomBar descending onCast={() => {}} />);
+
+	expect(screen.getByRole("button", { name: "Bonus" })).toBeDisabled();
+});
+
 it("a depth bet and a fish bet add up in the total, and Clear empties it", () => {
 	render(<BottomBar descending={false} onCast={() => {}} />);
 	expect(screen.getByText("$0.00")).toBeInTheDocument();
