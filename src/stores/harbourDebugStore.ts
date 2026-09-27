@@ -10,7 +10,7 @@ export interface Tweak {
 	scale: number;
 }
 
-export const TWEAK_KEYS = ["background", "player", "crane", "helicopter", "fish"] as const;
+export const TWEAK_KEYS = ["background", "water", "waterline", "player", "crane", "helicopter", "fish"] as const;
 export type TweakKey = (typeof TWEAK_KEYS)[number];
 
 export const NO_TWEAK: Tweak = { x: 0, y: 0, scale: 1 };
@@ -31,7 +31,15 @@ export const useHarbourDebugStore = create<HarbourDebugStore>()(
 				set(state => ({ tweaks: { ...state.tweaks, [key]: { ...state.tweaks[key], ...patch } } })),
 			reset: () => set({ tweaks: getDefaults() })
 		}),
-		{ name: "deepcatch.harbour-debug", version: 1 }
+		{
+			name: "deepcatch.harbour-debug",
+			version: 1,
+			// Values saved before a part was added lack its key; fill it in rather than crash.
+			merge: (saved, current) => ({
+				...current,
+				tweaks: { ...current.tweaks, ...(saved as Partial<typeof current> | undefined)?.tweaks }
+			})
+		}
 	)
 );
 

@@ -2,10 +2,11 @@ import { useState } from "react";
 import styled from "styled-components";
 
 import { Button } from "@hooked-ui";
+import { useBetStore } from "@stores/betStore";
 import { TWEAK_KEYS, type TweakKey, useHarbourDebugStore } from "@stores/harbourDebugStore";
 import { useHookStore } from "@stores/hookStore";
 import { extractionAt, extractionTicks, gearsFor } from "@utils/simExtraction";
-import { createSim } from "@utils/simStep";
+import { createSim, type Sim } from "@utils/simStep";
 
 const Trigger = styled(Button)`
 	padding: 0.6rem 1.2rem;
@@ -75,8 +76,15 @@ const Buttons = styled.div`
 
 /** Where the catch is taken from when previewing, metres — deep enough that the haul has somewhere to come from. */
 const PREVIEW_CATCH_M = 3000;
-/** The fish it hangs: any of the world's, its species decides only the art. */
-const PREVIEW_FISH = 0;
+/** The species hung when no fish is bet on. */
+const DEFAULT_ART = "tuna";
+
+/** Index into `world` of the first fish bet on, else the first tuna. */
+function previewFish(world: Sim["world"]): number {
+	const bet = Object.keys(useBetStore.getState().bets).find(key => key.startsWith("fish:"));
+	const bound = bet ? world.findIndex(fish => fish.id === bet.slice("fish:".length)) : -1;
+	return bound >= 0 ? bound : world.findIndex(fish => fish.art === DEFAULT_ART);
+}
 
 const STAGE_LABELS = {
 	haul: "Haul",
@@ -110,7 +118,7 @@ function previewExtraction(multiplier: number, tick: number) {
 			phaseTick: 0,
 			catchM: PREVIEW_CATCH_M,
 			depthM: elapsed.depthM,
-			hooked: PREVIEW_FISH,
+			hooked: previewFish(sim.world),
 			hookedTick: 0
 		}
 	});
@@ -119,6 +127,8 @@ function previewExtraction(multiplier: number, tick: number) {
 function TweakGroup({ name }: { name: TweakKey }) {
 	const tweak = useHarbourDebugStore(state => state.tweaks[name]);
 	const setTweak = useHarbourDebugStore(state => state.setTweak);
+	// The water and its line only move up and down.
+	const yOnly = name === "water" || name === "waterline";
 	const sliders = [
 		{ key: "x", min: -1500, max: 1500, step: 1 },
 		{ key: "y", min: -1500, max: 1500, step: 1 },
@@ -128,23 +138,25 @@ function TweakGroup({ name }: { name: TweakKey }) {
 	return (
 		<Group>
 			<Legend>{name}</Legend>
-			{sliders.map(({ key, ...range }) => (
-				<Row key={key}>
-					{key}
-					<input
-						{...range}
-						type="range"
-						value={tweak[key]}
-						onChange={e => setTweak(name, { [key]: Number(e.target.value) })}
-					/>
-					<input
-						{...range}
-						type="number"
-						value={tweak[key]}
-						onChange={e => setTweak(name, { [key]: Number(e.target.value) })}
-					/>
-				</Row>
-			))}
+			{sliders
+				.filter(({ key }) => !yOnly || key === "y")
+				.map(({ key, ...range }) => (
+					<Row key={key}>
+						{key}
+						<input
+							{...range}
+							type="range"
+							value={tweak[key]}
+							onChange={e => setTweak(name, { [key]: Number(e.target.value) })}
+						/>
+						<input
+							{...range}
+							type="number"
+							value={tweak[key]}
+							onChange={e => setTweak(name, { [key]: Number(e.target.value) })}
+						/>
+					</Row>
+				))}
 		</Group>
 	);
 }

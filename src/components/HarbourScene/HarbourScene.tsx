@@ -18,6 +18,7 @@ import { FishingLine } from "@components/DescentScene/FishingLine";
 import { useAnimatedNumber } from "@hooks/useAnimatedNumber";
 import { useDayNightClock } from "@hooks/useDayNightClock";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
+import { useTweak } from "@stores/harbourDebugStore";
 import { useHookStore } from "@stores/hookStore";
 import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
@@ -100,6 +101,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const t = useDayNightClock();
 	const seconds = useElapsedSeconds();
 	const sim = useHookStore(state => state.sim);
+	const waterline = useTweak("waterline");
 	// How the landing has moved the boat, the crane and the camera from how the harbour rests. Each eases to where
 	// the landing puts it, so when the round ends the harbour settles back to rest instead of snapping.
 	const landing = landingScene(sim);
@@ -153,14 +155,16 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const boat = player && boatLayout(view, waterSwell(seconds), scene);
 	// Where the hook hangs, which is no longer where the camera is once a fish is on it: it stays at
 	// the depth it was caught while the camera goes up, then is hauled to the surface and lifted out.
-	const hook = sim && boat ? hookPose(sim, view, boat.tip) : undefined;
+	const posed = sim && boat ? hookPose(sim, view, boat.tip) : undefined;
+	// The debug waterline moves the surface the fish comes out of with it.
+	const hook = posed && { ...posed, surfaceY: posed.surfaceY === undefined ? undefined : posed.surfaceY + waterline.y };
 	const shake = sim ? cameraShake(sim) : { x: 0, y: 0 };
 	// The camera pulls back about a point near the top of the screen, so the crane's jib stays high and the harbour falls away below it.
 	const seam = waterlineY(view);
 	const pivotY = landingPivotY(view);
 	// Over a crane landing the water’s surface drops away down the screen, so the fish comes right out of it.
 	const pull = (1 - scene.zoom) / (1 - ZOOM_OUT);
-	const surface = seam + (landingSurface(view) - seam) * pull;
+	const surface = seam + (landingSurface(view) - seam) * pull + waterline.y;
 
 	return (
 		<pixiContainer x={shake.x} y={shake.y}>
