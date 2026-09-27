@@ -182,8 +182,8 @@ export function BettingBoard({ disabled = false }: BettingBoardProps) {
 	};
 
 	return (
-		<Board aria-label="Choose your bets">
-			<Title>Choose your bets</Title>
+		<Board aria-label="Select targets">
+			<Title>Select Targets</Title>
 			<Depths>
 				{DEPTH_ZONES.filter(zone => zone.id !== "trench").map(zone => tile("depth", zone.id, zone.label, DepthTile))}
 			</Depths>
