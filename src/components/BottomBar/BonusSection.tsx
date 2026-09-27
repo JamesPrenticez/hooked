@@ -23,20 +23,18 @@ const Trigger = styled(BonusButton)`
 		padding: 0.4rem;
 	}
 
+	/* Desktop (never-give-up): 12rem-wide button flanking the bar's left edge, one control-stack tall. */
 	@media ${breakpoint.tablet} {
 		position: absolute;
-		top: 0;
-		left: var(--spacing-sm);
-		transform: translateY(calc(-100% - var(--spacing-sm)));
-		width: 6.8rem;
-		height: 6.8rem;
-		padding: 0.8rem;
-
-		/* The kit's desktop icon is sized for its own 10.4rem button. */
-		span span:first-of-type {
-			width: 4.4rem;
-			height: 4.4rem;
-		}
+		top: calc(-1 * var(--border-thickness));
+		bottom: calc(-1 * var(--border-thickness));
+		left: auto;
+		right: calc(100% + var(--spacing-sm));
+		transform: none;
+		width: auto;
+		aspect-ratio: 1;
+		height: calc(100% + 2 * var(--border-thickness));
+		padding: 0;
 	}
 `;
 

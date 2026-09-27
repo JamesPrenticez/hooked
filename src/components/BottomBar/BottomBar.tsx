@@ -56,8 +56,8 @@ const Bar = styled.div`
 	}
 
 	@media ${breakpoint.tablet} {
-		position: static;
-		width: min(90rem, calc(100vw - 12rem));
+		position: relative;
+		width: min(90rem, calc(100vw - 30rem));
 		flex-direction: row;
 		align-items: center;
 		justify-content: space-between;

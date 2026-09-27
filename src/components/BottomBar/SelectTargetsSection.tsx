@@ -26,11 +26,12 @@ const Trigger = styled(IconButton)`
 
 	@media ${breakpoint.tablet} {
 		position: absolute;
-		top: 0;
-		right: var(--spacing-sm);
-		transform: translateY(calc(-100% - var(--spacing-sm)));
-		width: 6.8rem;
-		height: 6.8rem;
+		top: 50%;
+		right: auto;
+		left: calc(100% + var(--spacing-sm));
+		transform: translateY(-50%);
+		width: calc(var(--size-control) * 1.25);
+		height: calc(var(--size-control) * 1.25);
 	}
 `;
 
