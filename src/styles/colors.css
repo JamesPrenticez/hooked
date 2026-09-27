@@ -15,6 +15,14 @@
 	--color-negative-accent: #ff6f61;
 }
 
+/* Bonus identity colours (glow behind each bonus's art). */
+:root {
+	--color-bonus-recast: #2f8cff;
+	--color-bonus-lucky: #2ecc5a;
+	--color-bonus-frenzy: #ff8a1f;
+	--color-bonus-boss: #a24bff;
+}
+
 /* Depth-zone tile colours on the betting board. */
 :root {
 	--color-depth-shallow: #16a37a;

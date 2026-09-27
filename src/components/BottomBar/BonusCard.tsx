@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
 import type { BonusItem } from "@constants/bonuses";
 import { breakpoint } from "@utils/breakpoint";
@@ -24,11 +24,22 @@ const Title = styled.h3`
 	color: var(--color-primary-accent);
 `;
 
-const Art = styled.img`
+/* Same breathing glow as never-give-up's imageGlow: 10px/55% out to 30px/100%, 3s. */
+const glowPulse = keyframes`
+	0%, 100% {
+		filter: drop-shadow(0 0 1rem color-mix(in srgb, var(--glow-color) 55%, transparent));
+	}
+	50% {
+		filter: drop-shadow(0 0 3rem var(--glow-color));
+	}
+`;
+
+const Art = styled.img<{ $glow: string }>`
 	width: 100%;
 	height: 9rem;
 	object-fit: contain;
-	filter: drop-shadow(0 0 1.2rem color-mix(in srgb, var(--color-primary) 45%, transparent));
+	--glow-color: ${({ $glow }) => $glow};
+	animation: ${glowPulse} 3s ease-in-out infinite;
 
 	/* Landscape phones: short, wide — the art shrinks so the whole modal stays in view. */
 	@media ${breakpoint.landscape} {
@@ -59,7 +70,7 @@ export function BonusCard({ bonus }: BonusCardProps) {
 	return (
 		<Card>
 			<Title>{bonus.title}</Title>
-			<Art src={bonus.image} alt="" decoding="async" />
+			<Art src={bonus.image} $glow={bonus.color} alt="" decoding="async" />
 			<Description>{bonus.description}</Description>
 		</Card>
 	);
