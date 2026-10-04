@@ -1,9 +1,43 @@
 /* Replace font family and sizes here */
-@import url("https://fonts.googleapis.com/css2?family=Sigmar&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Coiny&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Lilita+One&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap");
+@font-face {
+	font-family: "Otomanopee One";
+	src: url("../assets/fonts/otomanopee-one/otomanopee-one.ttf") format("truetype");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Aronui";
+	src: url("../assets/fonts/aronui/aronui-regular.otf") format("opentype");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Aronui";
+	src: url("../assets/fonts/aronui/aronui-bold.otf") format("opentype");
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Aronui";
+	src: url("../assets/fonts/aronui/aronui-italic.otf") format("opentype");
+	font-weight: 400;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Aronui";
+	src: url("../assets/fonts/aronui/aronui-bold-italic.otf") format("opentype");
+	font-weight: 700;
+	font-style: italic;
+	font-display: swap;
+}
 
 :root {
 	--font-size-legal: 1rem;
@@ -28,8 +62,8 @@
 	--font-weight-normal: 400;
 
 	/* Display font — headings, buttons, anything punchy. Swap this one line to test a new font. */
-	--font-display: "Sigmar", sans-serif;
-	--font-display-legal: 100 1.2rem "Sigmar";
+	--font-display: "Otomanopee One", sans-serif;
+	--font-display-legal: 100 1.2rem "Otomanopee One";
 	--font-display-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-display);
 	--font-display-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-display);
 	--font-display-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-display);
@@ -43,7 +77,7 @@
 	--font-display-xxxxxl: var(--font-weight-normal) var(--font-size-xxxxxl)/1 var(--font-display);
 
 	/* Text font — body copy, UI chrome. Swap this one line to test a new font. */
-	--font-text: "League Spartan", sans-serif;
+	--font-text: "Aronui", sans-serif;
 	--font-text-legal: var(--font-weight-normal) var(--font-size-legal)/1 var(--font-text);
 	--font-text-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-text);
 	--font-text-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-text);
@@ -76,7 +110,7 @@ body {
 	font-family: var(--font-text);
 	font-size: 10px;
 	line-height: 100%;
-	/* Sigmar only ships weight 400; without this the browser fake-bolds it for
+	/* Otomanopee One only ships weight 400; without this the browser fake-bolds it for
 	   any 500+ weight (hooked-ui buttons, accordions...) and the glyphs smear. */
 	font-synthesis: none;
 }
