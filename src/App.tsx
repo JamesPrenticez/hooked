@@ -12,7 +12,6 @@ import { HarbourDebug } from "@components/HarbourDebug";
 import { HarbourScene } from "@components/HarbourScene";
 import { HookedBanner } from "@components/HookedBanner";
 import { LoadingScreen } from "@components/LoadingScreen";
-import { PlaceholderScene } from "@components/PlaceholderScene/PlaceholderScene";
 import { SceneManager } from "@components/SceneManager/SceneManager";
 import { StoreSync } from "@components/system/StoreSync";
 import { DEBUG } from "@constants/config";
@@ -37,9 +36,22 @@ const Canvas = styled(Application)`
 	inset: 0;
 `;
 
-/* Anchored to the bottom, not centered: the scene's own centered label
- * (placeholder today, real content from milestone 6 on) must stay visible
- * underneath a HTML overlay, never covered by it. */
+/* Stand-in for the tutorial's real content (milestone 6) — proves the phase
+ * machine without building that art early. Plain HTML, not a Pixi scene:
+ * nothing about it needs the canvas. */
+const TutorialBackdrop = styled.div`
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--color-secondary);
+	color: var(--color-white);
+	font: var(--font-display-lg);
+`;
+
+/* Anchored to the bottom, not centered: the backdrop's own centered label
+ * must stay visible underneath this overlay, never covered by it. */
 const Overlay = styled.div`
 	position: absolute;
 	inset: 0;
@@ -106,7 +118,7 @@ export function App() {
 	// key/type, not by object identity, so that's harmless.
 	const scenes: Record<GamePhase, ReactNode> = {
 		loading: null,
-		tutorial: <PlaceholderScene label="Tutorial" color={0x0f5c5c} />,
+		tutorial: null,
 		game: <HarbourScene depth={depth} />
 	};
 
@@ -134,15 +146,18 @@ export function App() {
 			)}
 
 			{phase === "tutorial" && (
-				<Overlay>
-					<SkipTutorial>
-						<Checkbox value={skipTutorial} onValueChange={setSkipTutorial} aria-label="Skip tutorial next time" />
-						Skip tutorial next time
-					</SkipTutorial>
-					<Button variant="primary" onClick={() => setPhase("game")}>
-						Start Fishing
-					</Button>
-				</Overlay>
+				<>
+					<TutorialBackdrop>Tutorial</TutorialBackdrop>
+					<Overlay>
+						<SkipTutorial>
+							<Checkbox value={skipTutorial} onValueChange={setSkipTutorial} aria-label="Skip tutorial next time" />
+							Skip tutorial next time
+						</SkipTutorial>
+						<Button variant="primary" onClick={() => setPhase("game")}>
+							Start Fishing
+						</Button>
+					</Overlay>
+				</>
 			)}
 
 			{DEBUG && (

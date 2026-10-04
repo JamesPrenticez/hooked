@@ -1,6 +1,10 @@
 import { castProgress, depthToScreenY } from "@components/HarbourScene/framing";
 import { type DepthUnit, type DepthZone, formatDepth } from "@constants/depthZones";
 
+// Hoisted: DescentScene re-renders every frame off the wall clock, and a fresh object here
+// would make pixiText rebuild its TextStyle (measureText/measureFont) every frame forever.
+const LABEL_STYLE = { fill: 0xffffff, fontSize: 13, fontWeight: "bold", letterSpacing: 1 } as const;
+
 interface DepthMarkersProps {
 	view: { width: number; height: number };
 	depth: number;
@@ -31,7 +35,7 @@ export function DepthMarkers({ view, depth, zones, unit }: DepthMarkersProps) {
 							text={`${zone.label.toUpperCase()} · ${formatDepth(zone.fromMeters, unit)}`}
 							x={12}
 							y={y - 16}
-							style={{ fill: 0xffffff, fontSize: 13, fontWeight: "bold", letterSpacing: 1 }}
+							style={LABEL_STYLE}
 						/>
 					</pixiContainer>
 				);
