@@ -1,6 +1,6 @@
 import type { Texture } from "pixi.js";
 
-import { tweakProps, useTweak } from "@stores/harbourDebugStore";
+import { tweakProps, useLayout } from "@stores/harbourDebugStore";
 
 import { computeBackgroundFit, computeWideFit } from "./backgroundFit";
 import type { HarbourView } from "./layers";
@@ -20,7 +20,7 @@ interface BackgroundLayerProps {
  * desktop or mobile export by viewport shape (see `backgroundFit`).
  */
 export function BackgroundLayer({ view, desktopWide, mobileWide, tint }: BackgroundLayerProps) {
-	const tweak = useTweak("background");
+	const tweak = useLayout("background", view);
 	const landscape = view.width >= view.height;
 	const wide = landscape ? desktopWide : mobileWide;
 	if (!wide) return null;

@@ -18,7 +18,7 @@ import { FishingLine } from "@components/DescentScene/FishingLine";
 import { useAnimatedNumber } from "@hooks/useAnimatedNumber";
 import { useDayNightClock } from "@hooks/useDayNightClock";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
-import { useTweak } from "@stores/harbourDebugStore";
+import { layoutTweak, useTweak } from "@stores/harbourDebugStore";
 import { useHookStore } from "@stores/hookStore";
 import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
@@ -101,7 +101,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const t = useDayNightClock();
 	const seconds = useElapsedSeconds();
 	const sim = useHookStore(state => state.sim);
-	const waterline = useTweak("waterline");
+	const waterlineTweak = useTweak("waterline");
 	// How the landing has moved the boat, the crane and the camera from how the harbour rests. Each eases to where
 	// the landing puts it, so when the round ends the harbour settles back to rest instead of snapping.
 	const landing = landingScene(sim);
@@ -150,6 +150,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	if (!isInitialised) return null;
 
 	const view = { width: app.screen.width, height: app.screen.height };
+	const waterline = layoutTweak("waterline", view, waterlineTweak);
 	const { skyTop, skyHorizon, bgTint, windowGlow, celestial } = computeAmbience(t, view);
 	const scroll = cameraScroll(depth, view);
 	const boat = player && boatLayout(view, waterSwell(seconds), scene);
@@ -221,7 +222,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 							lineAlpha={scene.line}
 						/>
 					)}
-					{player && boat && <Fisherman frames={player} boat={boat} tint={bgTint} seconds={seconds} />}
+					{player && boat && <Fisherman frames={player} boat={boat} tint={bgTint} seconds={seconds} view={view} />}
 				</pixiContainer>
 				{/* Above the hook: the hooked fish overlaps it. */}
 				<Creatures view={view} depth={depth} seconds={seconds} hook={hook} onlyHooked />

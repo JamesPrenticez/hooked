@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { playerPose } from "@constants/playerAnimations";
-import { useTweak } from "@stores/harbourDebugStore";
+import { useLayout } from "@stores/harbourDebugStore";
 import { usePlayerStore } from "@stores/playerStore";
 
 import { BOAT_ANCHOR, type BoatLayout } from "./framing";
@@ -16,6 +16,7 @@ interface FishermanProps {
 	tint: number;
 	/** Wall-clock seconds — the animation's clock. */
 	seconds: number;
+	view: { width: number; height: number };
 }
 
 /**
@@ -25,9 +26,9 @@ interface FishermanProps {
  * drawn above the ocean and the background strip. Plays whichever animation `usePlayerStore`
  * cues — idle until something says otherwise.
  */
-export function Fisherman({ frames, boat, tint, seconds }: FishermanProps) {
+export function Fisherman({ frames, boat, tint, seconds, view }: FishermanProps) {
 	const cue = usePlayerStore(state => state.cue);
-	const tweak = useTweak("player");
+	const tweak = useLayout("player", view);
 
 	// A new cue starts its clip from the top. Adjusted during render rather than
 	// in an effect, so the first frame of the new clip isn't the old one.

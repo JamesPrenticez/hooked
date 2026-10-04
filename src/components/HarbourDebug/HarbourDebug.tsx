@@ -3,7 +3,7 @@ import styled from "styled-components";
 
 import { Button } from "@hooked-ui";
 import { useBetStore } from "@stores/betStore";
-import { TWEAK_KEYS, type TweakKey, useHarbourDebugStore } from "@stores/harbourDebugStore";
+import { HARBOUR_LAYOUT, type Tweak, TWEAK_KEYS, type TweakKey, useHarbourDebugStore } from "@stores/harbourDebugStore";
 import { useHookStore } from "@stores/hookStore";
 import { extractionAt, extractionTicks, gearsFor } from "@utils/simExtraction";
 import { createSim, type Sim } from "@utils/simStep";
@@ -124,6 +124,39 @@ function previewExtraction(multiplier: number, tick: number) {
 	});
 }
 
+const round = (n: number) => Math.round(n * 10000) / 10000;
+
+/** `HARBOUR_LAYOUT` plus every current debug tweak, folded into the same px-to-share units `HARBOUR_LAYOUT`
+ *  already uses — ready to paste over that object in `harbourDebugStore.ts` with no further conversion. */
+function bakedLayout(): Record<TweakKey, Tweak> {
+	const view = { width: window.innerWidth, height: window.innerHeight };
+	const { tweaks } = useHarbourDebugStore.getState();
+	return Object.fromEntries(
+		TWEAK_KEYS.map(key => {
+			const base = HARBOUR_LAYOUT[key];
+			const tweak = tweaks[key];
+			return [
+				key,
+				{
+					x: round(base.x + tweak.x / view.width),
+					y: round(base.y + tweak.y / view.height),
+					scale: round(base.scale * tweak.scale)
+				}
+			];
+		})
+	) as Record<TweakKey, Tweak>;
+}
+
+/** Copies `bakedLayout()` to the clipboard as the object literal `HARBOUR_LAYOUT` is declared with. */
+function copyLayout() {
+	const layout = bakedLayout();
+	const body = TWEAK_KEYS.map(key => {
+		const { x, y, scale } = layout[key];
+		return `\t${key}: { x: ${x}, y: ${y}, scale: ${scale} }`;
+	}).join(",\n");
+	navigator.clipboard.writeText(`{\n${body}\n}`);
+}
+
 function TweakGroup({ name }: { name: TweakKey }) {
 	const tweak = useHarbourDebugStore(state => state.tweaks[name]);
 	const setTweak = useHarbourDebugStore(state => state.setTweak);
@@ -184,6 +217,9 @@ export function HarbourDebug() {
 				<Header>
 					<b>Harbour</b>
 					<Buttons>
+						<Button variant="secondary" onClick={copyLayout}>
+							Copy layout
+						</Button>
 						<Button variant="secondary" onClick={reset}>
 							Reset
 						</Button>

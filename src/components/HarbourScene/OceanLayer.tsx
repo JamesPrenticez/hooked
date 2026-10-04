@@ -1,6 +1,6 @@
 import type { Texture } from "pixi.js";
 
-import { useTweak } from "@stores/harbourDebugStore";
+import { useLayout } from "@stores/harbourDebugStore";
 
 import type { Celestial } from "./ambience";
 import { horizonY, waterlineY } from "./framing";
@@ -55,7 +55,7 @@ interface OceanLayerProps {
  * `WaterReflections` adds the moon / building-light shine on top either way.
  */
 export function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow, surface }: OceanLayerProps) {
-	const baseTop = horizonY(view) + useTweak("water").y;
+	const baseTop = horizonY(view) + useLayout("water", view).y;
 	const bottom = surface ?? waterlineY(view);
 	const reflections = (
 		<WaterReflections

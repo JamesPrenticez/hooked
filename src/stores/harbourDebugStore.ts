@@ -17,6 +17,25 @@ export const NO_TWEAK: Tweak = { x: 0, y: 0, scale: 1 };
 
 const getDefaults = () => Object.fromEntries(TWEAK_KEYS.map(key => [key, { ...NO_TWEAK }])) as Record<TweakKey, Tweak>;
 
+/**
+ * Where each harbour part rests, baked in from a HARBOUR panel session — the single source of truth the live
+ * debug tweak above is a temporary nudge on top of. Same `{x, y, scale}` shape as a `Tweak`, but `x`/`y` are a
+ * share of the view (of width / height) rather than screen px, so a baked offset still looks right at any
+ * screen size — a flat px nudge only looks right at the size you dragged it at.
+ *
+ * To update: dial it in with the HARBOUR panel, hit "Copy layout", and paste the result over this object. The
+ * button does the px-to-share conversion for you, so what you paste is already in this object's own units.
+ */
+export const HARBOUR_LAYOUT: Record<TweakKey, Tweak> = {
+	background: { x: 0, y: 0, scale: 1 },
+	water: { x: 0, y: 0, scale: 1 },
+	waterline: { x: 0, y: 0, scale: 1 },
+	player: { x: 0, y: 0, scale: 1 },
+	crane: { x: 0, y: 0, scale: 1 },
+	helicopter: { x: 0, y: 0, scale: 1 },
+	fish: { x: 0, y: 0, scale: 1 }
+};
+
 interface HarbourDebugStore {
 	tweaks: Record<TweakKey, Tweak>;
 	setTweak: (key: TweakKey, patch: Partial<Tweak>) => void;
@@ -45,6 +64,19 @@ export const useHarbourDebugStore = create<HarbourDebugStore>()(
 
 /** The debug nudge for one part of the harbour — never applied outside debug builds, whatever was saved. */
 export const useTweak = (key: TweakKey): Tweak => useHarbourDebugStore(state => (DEBUG ? state.tweaks[key] : NO_TWEAK));
+
+/** `HARBOUR_LAYOUT`'s baked rest offset for `key`, resolved to this view's px and combined with a live debug
+ *  `tweak` — so a panel nudge is always relative to the baked-in rest position, not instead of it. */
+export const layoutTweak = (key: TweakKey, view: { width: number; height: number }, tweak: Tweak): Tweak => {
+	const base = HARBOUR_LAYOUT[key];
+	return { x: base.x * view.width + tweak.x, y: base.y * view.height + tweak.y, scale: base.scale * tweak.scale };
+};
+
+/** `layoutTweak`, pulling its live debug tweak from the store itself — for call sites where `view` is already
+ *  known at the point the debug hook would fire. (Where it isn't — e.g. behind an async-init guard — call
+ *  `useTweak` early as usual and combine with `layoutTweak` once `view` is ready.) */
+export const useLayout = (key: TweakKey, view: { width: number; height: number }): Tweak =>
+	layoutTweak(key, view, useTweak(key));
 
 /** Container props that move and resize a part about `at`, the point it is anchored to. */
 export const tweakProps = ({ x, y, scale }: Tweak, at: { x: number; y: number }) => ({

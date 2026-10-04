@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Graphics, Texture } from "pixi.js";
 
-import { useTweak } from "@stores/harbourDebugStore";
+import { useLayout } from "@stores/harbourDebugStore";
 
 /** The part of a fish still under the surface reads as under it: paler and bluer. */
 const SUBMERGED = { alpha: 0.7, tint: 0x9cc6e6 };
@@ -32,7 +32,7 @@ interface HookedFishProps {
 export function HookedFish({ texture, x, y, rotation, scale, blendMode, mouth, sway, view, seamY }: HookedFishProps) {
 	// A mask has to be a live Graphics in the scene, and only exists after the first commit — so the fish
 	// waits a frame for it rather than flashing whole.
-	const tweak = useTweak("fish");
+	const tweak = useLayout("fish", view);
 	const [above, setAbove] = useState<Graphics | null>(null);
 	const [below, setBelow] = useState<Graphics | null>(null);
 
