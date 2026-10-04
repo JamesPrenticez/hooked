@@ -5,6 +5,7 @@ import { Button } from "@hooked-ui";
 import { useBetStore } from "@stores/betStore";
 import { HARBOUR_LAYOUT, type Tweak, TWEAK_KEYS, type TweakKey, useHarbourDebugStore } from "@stores/harbourDebugStore";
 import { useHookStore } from "@stores/hookStore";
+import { viewBreakpoint } from "@utils/breakpoint";
 import { extractionAt, extractionTicks, gearsFor } from "@utils/simExtraction";
 import { createSim, type Sim } from "@utils/simStep";
 
@@ -126,14 +127,19 @@ function previewExtraction(multiplier: number, tick: number) {
 
 const round = (n: number) => Math.round(n * 10000) / 10000;
 
-/** `HARBOUR_LAYOUT` plus every current debug tweak, folded into the same px-to-share units `HARBOUR_LAYOUT`
- *  already uses — ready to paste over that object in `harbourDebugStore.ts` with no further conversion. */
-function bakedLayout(): Record<TweakKey, Tweak> {
+/** Which breakpoint the window is at right now — same one `layoutTweak` would resolve to for this view, so
+ *  "Copy layout" always bakes into the bucket you're actually looking at. */
+const currentBreakpoint = () => viewBreakpoint({ width: window.innerWidth, height: window.innerHeight });
+
+/** `HARBOUR_LAYOUT` with the current breakpoint's bucket plus every current debug tweak folded in, in the
+ *  same px-to-share units `HARBOUR_LAYOUT` already uses — ready to paste over that object with no further
+ *  conversion. The other two breakpoints pass through unchanged. */
+function bakedLayout(): typeof HARBOUR_LAYOUT {
 	const view = { width: window.innerWidth, height: window.innerHeight };
 	const { tweaks } = useHarbourDebugStore.getState();
-	return Object.fromEntries(
+	const tuned = Object.fromEntries(
 		TWEAK_KEYS.map(key => {
-			const base = HARBOUR_LAYOUT[key];
+			const base = HARBOUR_LAYOUT[currentBreakpoint()][key];
 			const tweak = tweaks[key];
 			return [
 				key,
@@ -145,15 +151,21 @@ function bakedLayout(): Record<TweakKey, Tweak> {
 			];
 		})
 	) as Record<TweakKey, Tweak>;
+	return { ...HARBOUR_LAYOUT, [currentBreakpoint()]: tuned };
 }
 
 /** Copies `bakedLayout()` to the clipboard as the object literal `HARBOUR_LAYOUT` is declared with. */
 function copyLayout() {
 	const layout = bakedLayout();
-	const body = TWEAK_KEYS.map(key => {
-		const { x, y, scale } = layout[key];
-		return `\t${key}: { x: ${x}, y: ${y}, scale: ${scale} }`;
-	}).join(",\n");
+	const body = (Object.keys(layout) as (keyof typeof layout)[])
+		.map(breakpoint => {
+			const row = TWEAK_KEYS.map(key => {
+				const { x, y, scale } = layout[breakpoint][key];
+				return `\t\t${key}: { x: ${x}, y: ${y}, scale: ${scale} }`;
+			}).join(",\n");
+			return `\t${breakpoint}: {\n${row}\n\t}`;
+		})
+		.join(",\n");
 	navigator.clipboard.writeText(`{\n${body}\n}`);
 }
 
@@ -215,7 +227,7 @@ export function HarbourDebug() {
 
 			<Panel open={open}>
 				<Header>
-					<b>Harbour</b>
+					<b>Harbour — {currentBreakpoint()}</b>
 					<Buttons>
 						<Button variant="secondary" onClick={copyLayout}>
 							Copy layout

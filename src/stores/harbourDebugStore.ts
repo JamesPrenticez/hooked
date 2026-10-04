@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { DEBUG } from "@constants/config";
+import { type ViewBreakpoint, viewBreakpoint } from "@utils/breakpoint";
 
 /** A nudge and a resize for one part of the harbour: px offset from where it rests, and a multiple of its size. */
 export interface Tweak {
@@ -23,17 +24,17 @@ const getDefaults = () => Object.fromEntries(TWEAK_KEYS.map(key => [key, { ...NO
  * share of the view (of width / height) rather than screen px, so a baked offset still looks right at any
  * screen size — a flat px nudge only looks right at the size you dragged it at.
  *
- * To update: dial it in with the HARBOUR panel, hit "Copy layout", and paste the result over this object. The
- * button does the px-to-share conversion for you, so what you paste is already in this object's own units.
+ * Desktop, mobile landscape and mobile portrait each get their own values (`viewBreakpoint`) — the three
+ * layouts this project actually tests — since a part's rest position doesn't scale cleanly between them.
+ *
+ * To update: resize to the breakpoint you want, dial it in with the HARBOUR panel, hit "Copy layout", and
+ * paste the result over this object. The button does the px-to-share conversion for you, so what you paste
+ * is already in this object's own units — and already has the other two breakpoints' values folded in.
  */
-export const HARBOUR_LAYOUT: Record<TweakKey, Tweak> = {
-	background: { x: 0, y: 0, scale: 1 },
-	water: { x: 0, y: 0, scale: 1 },
-	waterline: { x: 0, y: 0, scale: 1 },
-	player: { x: 0, y: 0, scale: 1 },
-	crane: { x: 0, y: 0, scale: 1 },
-	helicopter: { x: 0, y: 0, scale: 1 },
-	fish: { x: 0, y: 0, scale: 1 }
+export const HARBOUR_LAYOUT: Record<ViewBreakpoint, Record<TweakKey, Tweak>> = {
+	desktop: getDefaults(),
+	mobileLandscape: getDefaults(),
+	mobilePortrait: getDefaults()
 };
 
 interface HarbourDebugStore {
@@ -65,10 +66,11 @@ export const useHarbourDebugStore = create<HarbourDebugStore>()(
 /** The debug nudge for one part of the harbour — never applied outside debug builds, whatever was saved. */
 export const useTweak = (key: TweakKey): Tweak => useHarbourDebugStore(state => (DEBUG ? state.tweaks[key] : NO_TWEAK));
 
-/** `HARBOUR_LAYOUT`'s baked rest offset for `key`, resolved to this view's px and combined with a live debug
- *  `tweak` — so a panel nudge is always relative to the baked-in rest position, not instead of it. */
+/** `HARBOUR_LAYOUT`'s baked rest offset for `key`, at whichever breakpoint `view` falls into, resolved to this
+ *  view's px and combined with a live debug `tweak` — so a panel nudge is always relative to the baked-in
+ *  rest position, not instead of it. */
 export const layoutTweak = (key: TweakKey, view: { width: number; height: number }, tweak: Tweak): Tweak => {
-	const base = HARBOUR_LAYOUT[key];
+	const base = HARBOUR_LAYOUT[viewBreakpoint(view)][key];
 	return { x: base.x * view.width + tweak.x, y: base.y * view.height + tweak.y, scale: base.scale * tweak.scale };
 };
 
