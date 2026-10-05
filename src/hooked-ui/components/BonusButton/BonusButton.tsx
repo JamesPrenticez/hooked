@@ -1,9 +1,8 @@
 import { type ButtonHTMLAttributes, forwardRef } from "react";
+import { ICONS } from "@icons";
 import styled from "styled-components";
 
 import { breakpoint } from "@utils/breakpoint";
-
-import { LogoIcon } from "../../icons";
 
 const IconWrapper = styled.span`
 	display: flex;
@@ -111,7 +110,7 @@ export const BonusButton = forwardRef<HTMLButtonElement, BonusButtonProps>(funct
 		<Container ref={ref} type="button" aria-label={label} {...props}>
 			<IconGroup>
 				<IconWrapper>
-					{!children && <LogoIcon aria-hidden="true" />}
+					{!children && ICONS.LogoIcon}
 					{children}
 				</IconWrapper>
 				{label && <TextLabel>{label}</TextLabel>}

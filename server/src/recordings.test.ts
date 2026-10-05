@@ -31,7 +31,12 @@ const wire = (worldSeed: number, axes: number[], over: Record<string, unknown> =
 	...over
 });
 
-const rows = () => (getDb().prepare("SELECT COUNT(*) AS n FROM recordings").get() as { n: number }).n;
+const rows = () =>
+	(
+		getDb().prepare("SELECT COUNT(*) AS n FROM recordings").get() as {
+			n: number;
+		}
+	).n;
 
 test("saves what the sim caught, with its summary columns", () => {
 	const { sim, axes } = play(1, () => 0);

@@ -11,7 +11,10 @@ describe("playerPose", () => {
 	const { idle, cast, sad } = PLAYER_ANIMATIONS;
 
 	it("steps a loop through its frames at its fps, then wraps", () => {
-		expect(playerPose("idle", midFrame(idle.fps, 0))).toEqual({ sheet: idle.sheet, frame: idle.frames[0] });
+		expect(playerPose("idle", midFrame(idle.fps, 0))).toEqual({
+			sheet: idle.sheet,
+			frame: idle.frames[0]
+		});
 		expect(playerPose("idle", midFrame(idle.fps, 1)).frame).toBe(idle.frames[1]);
 		expect(playerPose("idle", midFrame(idle.fps, idle.frames.length)).frame).toBe(idle.frames[0]);
 		expect(playerPose("idle", midFrame(idle.fps, idle.frames.length + 1)).frame).toBe(idle.frames[1]);
@@ -28,7 +31,10 @@ describe("playerPose", () => {
 	it("holds the last frame of a one-shot that has nothing after it", () => {
 		expect(sad.loop).toBe(false);
 		expect(sad.next).toBeUndefined();
-		expect(playerPose("sad", 1000)).toEqual({ sheet: sad.sheet, frame: sad.frames.at(-1) });
+		expect(playerPose("sad", 1000)).toEqual({
+			sheet: sad.sheet,
+			frame: sad.frames.at(-1)
+		});
 	});
 
 	it("starts on the first frame rather than reading off the start of the sheet", () => {

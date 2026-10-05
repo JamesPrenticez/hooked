@@ -25,7 +25,12 @@ it("has cuts for every sheet — a row of edges down the 1024px, and per row a s
 it("numbers cells left to right, then top to bottom", () => {
 	const { rows, cols } = SHEET_CUTS.reveal_parts;
 	const rect = krakenFrameRect("reveal_parts", 6, 5, 7);
-	expect(rect).toMatchObject({ x: cols[1][1], y: rows[1], width: cols[1][2] - cols[1][1], height: rows[2] - rows[1] });
+	expect(rect).toMatchObject({
+		x: cols[1][1],
+		y: rows[1],
+		width: cols[1][2] - cols[1][1],
+		height: rows[2] - rows[1]
+	});
 });
 
 it("sets every cut inside the sheet, positioned against the even-grid box it was generated in", () => {

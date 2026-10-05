@@ -7,9 +7,9 @@ import {
 	useRef,
 	useState
 } from "react";
+import { ICONS } from "@icons";
 import styled from "styled-components";
 
-import { ChevronDownIcon, ChevronUpIcon } from "../../icons";
 import { useClickOutside } from "../../utils/useClickOutside";
 import { Stepper } from "../Stepper/Stepper";
 import { StepperPopup } from "../StepperPopup/StepperPopup";
@@ -22,6 +22,14 @@ const Wrapper = styled.div`
 	&[data-full-width] {
 		flex: 1;
 		width: 100%;
+	}
+`;
+
+const Chevron = styled.span`
+	display: inline-flex;
+
+	&[data-up] {
+		transform: rotate(180deg);
 	}
 `;
 
@@ -90,8 +98,24 @@ export const BetInput = forwardRef<HTMLDivElement, BetInputProps>(function BetIn
 	});
 
 	const isVertical = orientation === "vertical";
-	const decLabel = decrementLabel ?? (isVertical ? <ChevronDownIcon aria-label="reduce bet" /> : "−");
-	const incLabel = incrementLabel ?? (isVertical ? <ChevronUpIcon aria-label="reduce bet" /> : "+");
+	const decLabel =
+		decrementLabel ??
+		(isVertical ? (
+			<Chevron role="img" aria-label="reduce bet">
+				{ICONS.ChevronIcon}
+			</Chevron>
+		) : (
+			"−"
+		));
+	const incLabel =
+		incrementLabel ??
+		(isVertical ? (
+			<Chevron role="img" aria-label="increase bet" data-up="">
+				{ICONS.ChevronIcon}
+			</Chevron>
+		) : (
+			"+"
+		));
 
 	const index = increments.indexOf(value);
 	const atMin = index <= 0;

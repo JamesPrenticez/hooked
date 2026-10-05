@@ -19,7 +19,10 @@ const meta = {
 		}
 	},
 	argTypes: {
-		variant: { control: "select", options: ["primary", "secondary", "negative", "flat"] },
+		variant: {
+			control: "select",
+			options: ["primary", "secondary", "negative", "flat"]
+		},
 		disabled: { control: "boolean" },
 		onClick: { table: { disable: true } }
 	},

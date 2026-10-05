@@ -21,9 +21,30 @@ const ocean = HARBOUR_LAYERS.find(layer => layer.id === "ocean");
  * 1024px tile.)
  */
 const LAYERS = [
-	{ alpha: 1, tileScale: 0.5, driftX: 1.5, driftY: 4, swellPhase: 0, swellAmp: 1 },
-	{ alpha: 0.5, tileScale: 0.85, driftX: -2.2, driftY: 2.6, swellPhase: 2.4, swellAmp: 0.6 },
-	{ alpha: 0.35, tileScale: 0.3, driftX: 3.1, driftY: -1.8, swellPhase: 4.1, swellAmp: 0.8 }
+	{
+		alpha: 1,
+		tileScale: 0.5,
+		driftX: 1.5,
+		driftY: 4,
+		swellPhase: 0,
+		swellAmp: 1
+	},
+	{
+		alpha: 0.5,
+		tileScale: 0.85,
+		driftX: -2.2,
+		driftY: 2.6,
+		swellPhase: 2.4,
+		swellAmp: 0.6
+	},
+	{
+		alpha: 0.35,
+		tileScale: 0.3,
+		driftX: 3.1,
+		driftY: -1.8,
+		swellPhase: 4.1,
+		swellAmp: 0.8
+	}
 ];
 
 interface OceanLayerProps {
@@ -84,7 +105,10 @@ export function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow
 							height={bottom - top}
 							tileScale={{ x: layer.tileScale, y: layer.tileScale }}
 							// The tiles stay where they were with the sprite's left edge out past the screen's.
-							tilePosition={{ x: seconds * layer.driftX - left, y: seconds * layer.driftY }}
+							tilePosition={{
+								x: seconds * layer.driftX - left,
+								y: seconds * layer.driftY
+							}}
 							tint={tint}
 							alpha={layer.alpha}
 						/>

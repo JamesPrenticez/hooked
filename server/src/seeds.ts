@@ -52,7 +52,11 @@ function get(playerId: string): SeedState {
 /** Public view — never exposes the live server seed. */
 export function currentSeed(playerId: string) {
 	const s = get(playerId);
-	return { serverSeedHash: s.serverSeedHash, clientSeed: s.clientSeed, nonce: s.nonce };
+	return {
+		serverSeedHash: s.serverSeedHash,
+		clientSeed: s.clientSeed,
+		nonce: s.nonce
+	};
 }
 
 /** Hash of the next server seed — committed now, active after the next rotate. */

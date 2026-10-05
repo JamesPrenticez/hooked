@@ -56,7 +56,11 @@ interface Turn {
 }
 
 /** How long each extra gear takes to come out to the job and get its cable to the hook. */
-const CALL_IN: Record<Exclude<Gear, "rod">, number> = { crane: 2.4, helicopter: 1.8, chinook: 2.4 };
+const CALL_IN: Record<Exclude<Gear, "rod">, number> = {
+	crane: 2.4,
+	helicopter: 1.8,
+	chinook: 2.4
+};
 /** Then it pulls and the fish doesn't budge: the wait for it to give is what builds the suspense. */
 const STRAIN_SECONDS = 1.5;
 /** The strain while a gear is still coming out to the job: the last one is holding a fish that is stuck fast. */
@@ -73,8 +77,20 @@ function scheduleFor(gears: readonly Gear[]): Turn[] {
 	const step = (1 - ROD_SHARE) / (gears.length - 1);
 	return gears.map((gear, i) =>
 		gear === "rod"
-			? { gear, callIn: 0, strain: ROD_STRAIN_SECONDS, lift: 1.2, to: ROD_SHARE }
-			: { gear, callIn: CALL_IN[gear], strain: STRAIN_SECONDS, lift: LIFT_SECONDS * step, to: ROD_SHARE + step * i }
+			? {
+					gear,
+					callIn: 0,
+					strain: ROD_STRAIN_SECONDS,
+					lift: 1.2,
+					to: ROD_SHARE
+				}
+			: {
+					gear,
+					callIn: CALL_IN[gear],
+					strain: STRAIN_SECONDS,
+					lift: LIFT_SECONDS * step,
+					to: ROD_SHARE + step * i
+				}
 	);
 }
 
@@ -113,7 +129,13 @@ export function extractionAt(gears: readonly Gear[], catchM: number, tick: numbe
 	let t = tick / TICK_HZ;
 	if (t < haul) {
 		const left = 1 - t / haul;
-		return { stage: "haul", depthM: catchM * left * left, reveal: 0, arrival, strain: 0 };
+		return {
+			stage: "haul",
+			depthM: catchM * left * left,
+			reveal: 0,
+			arrival,
+			strain: 0
+		};
 	}
 
 	t -= haul;

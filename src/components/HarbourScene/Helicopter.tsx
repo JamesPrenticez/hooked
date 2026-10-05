@@ -32,7 +32,10 @@ export function Helicopter({ view, texture, tint, hook, heavy = false }: Helicop
 	// Its cable pays out from the belly to the hook, and reels back in as it lets go.
 	const reach = heliDrop(called) * (1 - done);
 	const ring = { x: heli.x + tweak.x, y: heli.y + tweak.y };
-	const end = { x: ring.x + (pose.x - ring.x) * reach, y: ring.y + (pose.y - ring.y) * reach };
+	const end = {
+		x: ring.x + (pose.x - ring.x) * reach,
+		y: ring.y + (pose.y - ring.y) * reach
+	};
 
 	return (
 		<>

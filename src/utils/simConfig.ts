@@ -86,7 +86,18 @@ const fish = (
 	fromMeters: number,
 	toMeters: number,
 	count: number
-): SimFish => ({ id, art, cellW, cellH, scale, speed, fromMeters, toMeters, count, mouth: MOUTH });
+): SimFish => ({
+	id,
+	art,
+	cellW,
+	cellH,
+	scale,
+	speed,
+	fromMeters,
+	toMeters,
+	count,
+	mouth: MOUTH
+});
 
 /**
  * Every hookable fish, keyed by roster id (the Kraken is hooked at the bottom, not

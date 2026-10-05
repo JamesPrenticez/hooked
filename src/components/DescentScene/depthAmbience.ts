@@ -48,7 +48,10 @@ const COLOR_STOPS = [
 ];
 
 export function computeDepthAmbience(depth: number, zones: DepthZone[] = DEPTH_ZONES): DepthAmbience {
-	const keyframes: Keyframe[] = zones.map((zone, i) => ({ at: zone.fromMeters, ...COLOR_STOPS[i] }));
+	const keyframes: Keyframe[] = zones.map((zone, i) => ({
+		at: zone.fromMeters,
+		...COLOR_STOPS[i]
+	}));
 
 	let lo = keyframes[0];
 	let hi = keyframes[keyframes.length - 1];

@@ -153,7 +153,10 @@ export function boatLayout(
 		y,
 		scale,
 		restScale,
-		tip: { x: left + ROD_TIP.x * PLAYER_FRAME.width * scale, y: top + ROD_TIP.y * PLAYER_FRAME.height * scale }
+		tip: {
+			x: left + ROD_TIP.x * PLAYER_FRAME.width * scale,
+			y: top + ROD_TIP.y * PLAYER_FRAME.height * scale
+		}
 	};
 }
 

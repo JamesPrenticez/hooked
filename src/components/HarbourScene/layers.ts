@@ -110,7 +110,10 @@ export const HARBOUR_LAYERS: HarbourLayer[] = [
 			g.rect(0, top, w, 3).fill(HORIZON);
 			g.rect(0, h * 0.5, w, bottom - h * 0.5).fill(WATER_DEEP);
 			g.rect(0, h * 0.42, w * 0.5, 2).fill({ color: HORIZON, alpha: 0.3 });
-			g.rect(w * 0.4, h * 0.46, w * 0.4, 2).fill({ color: HORIZON, alpha: 0.25 });
+			g.rect(w * 0.4, h * 0.46, w * 0.4, 2).fill({
+				color: HORIZON,
+				alpha: 0.25
+			});
 		}
 	},
 	{
@@ -133,7 +136,10 @@ export const HARBOUR_LAYERS: HarbourLayer[] = [
 				g.rect(w * x, deckTop + h * 0.12, 10, h * 0.16).fill(PILE);
 			}
 			for (const x of [0.16, 0.34, 0.52, 0.72, 0.86]) {
-				g.rect(w * x, deckTop + 8, 2, h * 0.1).fill({ color: PILE, alpha: 0.5 });
+				g.rect(w * x, deckTop + 8, 2, h * 0.1).fill({
+					color: PILE,
+					alpha: 0.5
+				});
 			}
 		}
 	},
@@ -160,7 +166,10 @@ export const HARBOUR_LAYERS: HarbourLayer[] = [
 			g.rect(w * 0.42, y - 20, 14, 20).fill(0x2c2c30);
 			g.circle(w * 0.42 + 7, y - 20, 9).fill(0x2c2c30);
 			// net drape
-			g.poly([w * 0.5, y, w * 0.6, y, w * 0.55, y - 34]).fill({ color: 0x2f5d5d, alpha: 0.85 });
+			g.poly([w * 0.5, y, w * 0.6, y, w * 0.55, y - 34]).fill({
+				color: 0x2f5d5d,
+				alpha: 0.85
+			});
 			// lamp post + glow
 			g.rect(w * 0.88, y - 92, 6, 92).fill(0x1f1f22);
 			g.circle(w * 0.88 + 3, y - 94, 22).fill({ color: 0xffbf66, alpha: 0.15 });

@@ -126,7 +126,10 @@ export function WaterReflections({
 					const alpha = celestial.intensity * (0.4 + 0.6 * shimmer) * (0.35 + 0.65 * u);
 					if (alpha < MIN_ALPHA) continue;
 
-					g.ellipse(cx + sway, y, horizontalRadius, verticalRadius).fill({ fill: gradient, alpha });
+					g.ellipse(cx + sway, y, horizontalRadius, verticalRadius).fill({
+						fill: gradient,
+						alpha
+					});
 				}
 			}}
 		/>

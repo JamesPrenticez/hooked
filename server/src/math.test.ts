@@ -39,7 +39,11 @@ const pFish = (id: string) => {
 	return pDepth(f.depth) * (f.weight / rosterWeight);
 };
 
-const unitBet = (type: Bet["type"], selection: string): Bet => ({ type, selection, amount: "1.00" });
+const unitBet = (type: Bet["type"], selection: string): Bet => ({
+	type,
+	selection,
+	amount: "1.00"
+});
 const allSelections: Bet[] = [...DEPTHS.map(d => unitBet("depth", d)), ...FISH.map(f => unitBet("fish", f.id))];
 const key = (b: Bet) => `${b.type}:${b.selection}`;
 const pSelection = (b: Bet) => (b.type === "depth" ? pDepth(b.selection as DepthId) : pFish(b.selection));

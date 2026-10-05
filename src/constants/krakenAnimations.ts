@@ -68,7 +68,10 @@ export const KRAKEN_FIGHT_SECONDS = 8;
 const seconds = (id: string) => KRAKEN_ANIMATIONS[id].frames.length / KRAKEN_ANIMATIONS[id].fps;
 
 /** The fight beat playing `elapsed` seconds in, and how far into that beat we are. */
-export function krakenFightBeat(elapsed: number): { id: string; elapsed: number } {
+export function krakenFightBeat(elapsed: number): {
+	id: string;
+	elapsed: number;
+} {
 	let start = 0;
 	for (const id of KRAKEN_FIGHT.slice(0, -1)) {
 		if (elapsed < start + seconds(id)) return { id, elapsed: elapsed - start };

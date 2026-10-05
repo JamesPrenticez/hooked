@@ -52,7 +52,11 @@ if (config.debugControls) {
 
 	// Body: { depth?, fish?, tier? }. Omit a field to leave it rolled; {} clears all.
 	route("POST", "/api/debug/force-outcome", ctx => {
-		const body = (ctx.body ?? {}) as { depth?: unknown; fish?: unknown; tier?: unknown };
+		const body = (ctx.body ?? {}) as {
+			depth?: unknown;
+			fish?: unknown;
+			tier?: unknown;
+		};
 		setForcedOutcome({
 			depth: optEnum(body.depth, DEPTHS, "depth"),
 			fish: optString(body.fish, "fish"),
@@ -63,12 +67,18 @@ if (config.debugControls) {
 
 	// Body: { latencyMs?, errorRate? } — only the provided fields change.
 	route("POST", "/api/debug/simulate", ctx => {
-		const body = (ctx.body ?? {}) as { latencyMs?: unknown; errorRate?: unknown };
+		const body = (ctx.body ?? {}) as {
+			latencyMs?: unknown;
+			errorRate?: unknown;
+		};
 		const errorRate = optNumber(body.errorRate, "errorRate");
 		if (errorRate !== undefined && errorRate > 1) {
 			throw new HttpError(400, "invalid_debug_request", "errorRate must be between 0 and 1");
 		}
-		setSimulation({ latencyMs: optNumber(body.latencyMs, "latencyMs"), errorRate });
+		setSimulation({
+			latencyMs: optNumber(body.latencyMs, "latencyMs"),
+			errorRate
+		});
 		return getDebugState();
 	});
 
@@ -85,7 +95,9 @@ if (config.debugControls) {
 	// Body: { simVersion, worldSeed, multiplier, inputs } — `inputs` the base64 run-length-coded steering.
 	// The server re-simulates the run and stores what that produced; any `result` sent is ignored.
 	route("POST", "/api/debug/recordings", ctx => saveRecording(ctx.body));
-	route("GET", "/api/debug/recordings", () => ({ recordings: listRecordings() }));
+	route("GET", "/api/debug/recordings", () => ({
+		recordings: listRecordings()
+	}));
 	route("GET", "/api/debug/recordings/:id", ctx => getRecording(ctx.params.id));
 	// Re-simulates the stored inputs: does the row still hash and catch what it says?
 	route("POST", "/api/debug/recordings/:id/verify", ctx => verifyRecording(ctx.params.id));

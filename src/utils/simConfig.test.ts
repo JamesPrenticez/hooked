@@ -10,7 +10,11 @@ import { DECEL_FRACTION, MAX_DEPTH_METERS, MIN_DESCENT_METERS_PER_SECOND, PX_PER
 it("matches the live auto-descent numbers", () => {
 	const { zoneSpeeds } = useDebugStore.getState();
 	expect(ZONES.map(({ id, fromMeters, speed }) => ({ id, fromMeters, speed }))).toEqual(
-		DEPTH_ZONES.map(zone => ({ id: zone.id, fromMeters: zone.fromMeters, speed: zoneSpeeds[zone.id] }))
+		DEPTH_ZONES.map(zone => ({
+			id: zone.id,
+			fromMeters: zone.fromMeters,
+			speed: zoneSpeeds[zone.id]
+		}))
 	);
 	expect(MAX_DEPTH_METERS).toBe(LIVE_MAX);
 	expect(PX_PER_METER).toBe(LIVE_PX);

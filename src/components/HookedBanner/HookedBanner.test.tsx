@@ -10,7 +10,11 @@ import { HookedBanner } from "./HookedBanner";
 afterEach(() => act(() => useHookStore.setState({ sim: undefined })));
 
 function setSim(phase: SimPhase, ticksIn = 0) {
-	act(() => useHookStore.setState({ sim: { ...createSim(1), phase, tick: ticksIn, phaseTick: 0 } }));
+	act(() =>
+		useHookStore.setState({
+			sim: { ...createSim(1), phase, tick: ticksIn, phaseTick: 0 }
+		})
+	);
 }
 
 it("says nothing until a fish is hooked", () => {

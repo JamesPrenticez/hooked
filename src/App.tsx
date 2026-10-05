@@ -5,7 +5,7 @@ import { Container, Graphics, Mesh, Sprite, Text, TilingSprite } from "pixi.js";
 import styled from "styled-components";
 
 import { BottomBar } from "@components/BottomBar";
-import { DebugPanel } from "@components/DebugPanel";
+import { DebugModal } from "@components/debug";
 import { DepthIndicator } from "@components/DepthIndicator";
 import { ExtractionMultiplier } from "@components/ExtractionMultiplier";
 import { HarbourDebug } from "@components/HarbourDebug";
@@ -16,10 +16,11 @@ import { SceneManager } from "@components/SceneManager/SceneManager";
 import { StoreSync } from "@components/system/StoreSync";
 import { DEBUG } from "@constants/config";
 import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
-import { Button, Checkbox } from "@hooked-ui";
+import { Button, Checkbox, Overlay } from "@hooked-ui";
 import { useDescentDepth } from "@hooks/useDescentDepth";
 import { useGameBootstrap } from "@hooks/useGameBootstrap";
 import { useHookSim } from "@hooks/useHookSim";
+import { useDebugStore } from "@stores/debugStore";
 import { type GamePhase, useGameStore } from "@stores/gameStore";
 import { useHookStore, useSimHook } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
@@ -48,19 +49,6 @@ const TutorialBackdrop = styled.div`
 	background: var(--color-secondary);
 	color: var(--color-white);
 	font: var(--font-display-lg);
-`;
-
-/* Anchored to the bottom, not centered: the backdrop's own centered label
- * must stay visible underneath this overlay, never covered by it. */
-const Overlay = styled.div`
-	position: absolute;
-	inset: 0;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: flex-end;
-	gap: var(--spacing-md);
-	padding-bottom: var(--spacing-xxxl);
 `;
 
 const DebugDock = styled.div`
@@ -96,6 +84,9 @@ export function App() {
 	const skipTutorial = useGameStore(state => state.skipTutorial);
 	const setSkipTutorial = useGameStore(state => state.setSkipTutorial);
 	const { onInit, progress } = useGameBootstrap();
+
+	const isDebugOpen = useDebugStore(state => state.isDebugOpen);
+	const setIsDebugOpen = useDebugStore(state => state.setIsDebugOpen);
 
 	const [descending, setDescending] = useState(false);
 	const manual = useSimHook();
@@ -161,10 +152,15 @@ export function App() {
 			)}
 
 			{DEBUG && (
-				<DebugDock>
-					<HarbourDebug />
-					<DebugPanel />
-				</DebugDock>
+				<>
+					<DebugDock>
+						<Button title="debug" onClick={() => setIsDebugOpen(true)}>
+							DEBUG
+						</Button>
+						<HarbourDebug />
+					</DebugDock>
+					{isDebugOpen && <DebugModal />}
+				</>
 			)}
 		</Root>
 	);

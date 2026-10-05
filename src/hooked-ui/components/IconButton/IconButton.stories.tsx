@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
 
 import { IconButton } from "./IconButton";
-import { AudioFullIcon, MenuIcon, TurboIcon } from "../../icons";
+import { ICONS } from "../../icons";
 
 const meta = {
 	title: "Components/IconButton",
@@ -27,7 +27,7 @@ const meta = {
 		onClick: { table: { disable: true } }
 	},
 	args: {
-		icon: <AudioFullIcon aria-hidden="true" />,
+		icon: ICONS.AudioIcon,
 		"aria-label": "Mute"
 	}
 } satisfies Meta<typeof IconButton>;
@@ -66,9 +66,9 @@ export const KeyboardFocus: Story = {
 export const Row: Story = {
 	render: args => (
 		<div style={{ display: "flex", gap: "1rem" }}>
-			<IconButton {...args} icon={<AudioFullIcon aria-hidden="true" />} aria-label="Mute" />
-			<IconButton {...args} icon={<TurboIcon aria-hidden="true" />} aria-label="Turbo" active />
-			<IconButton {...args} icon={<MenuIcon aria-hidden="true" />} aria-label="Menu" disabled />
+			<IconButton {...args} icon={ICONS.AudioIcon} aria-label="Mute" />
+			<IconButton {...args} icon={ICONS.AutoPlayIcon} aria-label="Turbo" active />
+			<IconButton {...args} icon={ICONS.HamburgerIcon} aria-label="Menu" disabled />
 		</div>
 	)
 };

@@ -53,7 +53,11 @@ function validateBets(bets: unknown): Bet[] {
 		if (bet.type === "fish" && !FISH_IDS.has(bet.selection as string)) {
 			throw new HttpError(400, "invalid_bet", `Unknown fish selection: ${String(bet.selection)}`);
 		}
-		return { type: bet.type, selection: bet.selection as string, amount: bet.amount as string };
+		return {
+			type: bet.type,
+			selection: bet.selection as string,
+			amount: bet.amount as string
+		};
 	});
 }
 
@@ -76,9 +80,20 @@ route("GET", "/api/game/balance", ctx => {
 route("POST", "/api/game/current", ctx => {
 	const session = requireSession(ctx);
 	const open = getOpenRound(session.playerId);
-	if (!open) return { balance: session.balance, currency: session.currency, active: false };
+	if (!open)
+		return {
+			balance: session.balance,
+			currency: session.currency,
+			active: false
+		};
 	// Outcome/payout withheld here (§30) — client calls GET /api/game/round/{id} to resume.
-	return { balance: session.balance, currency: session.currency, active: true, roundId: open.roundId, bets: open.bets };
+	return {
+		balance: session.balance,
+		currency: session.currency,
+		active: true,
+		roundId: open.roundId,
+		bets: open.bets
+	};
 });
 
 route("POST", "/api/game/play", ctx => {
@@ -141,7 +156,11 @@ route("GET", "/api/game/round/:id", ctx => {
 // outcome to what that round paid out. Forced rounds won't match by design.
 route("POST", "/api/game/verify", ctx => {
 	requireSession(ctx);
-	const body = (ctx.body ?? {}) as { serverSeed?: unknown; clientSeed?: unknown; nonce?: unknown };
+	const body = (ctx.body ?? {}) as {
+		serverSeed?: unknown;
+		clientSeed?: unknown;
+		nonce?: unknown;
+	};
 	if (
 		typeof body.serverSeed !== "string" ||
 		typeof body.clientSeed !== "string" ||

@@ -3,7 +3,12 @@ import { type DepthUnit, type DepthZone, formatDepth } from "@constants/depthZon
 
 // Hoisted: DescentScene re-renders every frame off the wall clock, and a fresh object here
 // would make pixiText rebuild its TextStyle (measureText/measureFont) every frame forever.
-const LABEL_STYLE = { fill: 0xffffff, fontSize: 13, fontWeight: "bold", letterSpacing: 1 } as const;
+const LABEL_STYLE = {
+	fill: 0xffffff,
+	fontSize: 13,
+	fontWeight: "bold",
+	letterSpacing: 1
+} as const;
 
 interface DepthMarkersProps {
 	view: { width: number; height: number };

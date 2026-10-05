@@ -22,7 +22,10 @@ export interface PlayerAnimation {
 export const PLAYER_ANIMATIONS = {} as Record<PlayerAnimationName, PlayerAnimation>;
 for (const sheet of Object.keys(animationData.sheets) as PlayerSheet[]) {
 	for (const [name, animation] of Object.entries(animationData.sheets[sheet].animations)) {
-		PLAYER_ANIMATIONS[name as PlayerAnimationName] = { ...animation, sheet } as PlayerAnimation;
+		PLAYER_ANIMATIONS[name as PlayerAnimationName] = {
+			...animation,
+			sheet
+		} as PlayerAnimation;
 	}
 }
 

@@ -95,7 +95,11 @@ export function FishingLine({
 					if (lineAlpha <= 0) return;
 					g.moveTo(tip.x, tip.y);
 					if (y >= waterY) g.lineTo(x, waterY);
-					g.lineTo(x, y).stroke({ width: 1.5, color: 0xe8e8e8, alpha: 0.8 * lineAlpha });
+					g.lineTo(x, y).stroke({
+						width: 1.5,
+						color: 0xe8e8e8,
+						alpha: 0.8 * lineAlpha
+					});
 				}}
 			/>
 			{hook && (

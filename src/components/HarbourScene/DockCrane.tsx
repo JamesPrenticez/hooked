@@ -49,7 +49,10 @@ export function DockCrane({ view, textures, tint, out, hook }: DockCraneProps) {
 				<pixiContainer
 					x={crane.x}
 					y={crane.y}
-					pivot={{ x: CRANE_ART.foot.x * CRANE_ART.width, y: CRANE_ART.foot.y * CRANE_ART.height }}
+					pivot={{
+						x: CRANE_ART.foot.x * CRANE_ART.width,
+						y: CRANE_ART.foot.y * CRANE_ART.height
+					}}
 					scale={{ x: -crane.scale, y: crane.scale }}
 				>
 					{crane.boom > 0 && (
@@ -59,7 +62,10 @@ export function DockCrane({ view, textures, tint, out, hook }: DockCraneProps) {
 							y={BOOM_ART.segment.y}
 							width={crane.boom}
 							height={BOOM_ART.segment.height * BOOM_ART.segment.scale}
-							tileScale={{ x: BOOM_ART.segment.scale, y: BOOM_ART.segment.scale }}
+							tileScale={{
+								x: BOOM_ART.segment.scale,
+								y: BOOM_ART.segment.scale
+							}}
 							tint={tint}
 						/>
 					)}

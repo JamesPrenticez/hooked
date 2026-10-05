@@ -47,7 +47,13 @@ test("the weighted roll reaches every depth and every fish over enough draws", (
 });
 
 test("common depths outrank rare ones at the first-pass weights", () => {
-	const count: Record<string, number> = { shallow: 0, reef: 0, deep: 0, abyss: 0, jackpot: 0 };
+	const count: Record<string, number> = {
+		shallow: 0,
+		reef: 0,
+		deep: 0,
+		abyss: 0,
+		jackpot: 0
+	};
 	for (let nonce = 0; nonce < 6000; nonce++) count[rollOutcome("ordering", "check", nonce).depth]++;
 	assert.ok(count.shallow > count.reef, `shallow ${count.shallow} !> reef ${count.reef}`);
 	assert.ok(count.reef > count.deep, `reef ${count.reef} !> deep ${count.deep}`);

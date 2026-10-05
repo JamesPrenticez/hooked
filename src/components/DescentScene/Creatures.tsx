@@ -51,10 +51,20 @@ function useFrames() {
 		const row = (s: Species, { row, frameCount }: SheetAnimation) =>
 			Array.from({ length: frameCount }, (_, col) => {
 				const { x, y, width, height } = cellRect(sheets[s.url], s.cols, SHEET_ROWS, row, col);
-				return new Texture({ source: sheets[s.url].source, frame: new Rectangle(x, y, width, height) });
+				return new Texture({
+					source: sheets[s.url].source,
+					frame: new Rectangle(x, y, width, height)
+				});
 			});
 		return new Map<Species, SpeciesFrames>(
-			SPECIES.map(s => [s, { swim: row(s, s.swim), bite: row(s, BITE), struggle: row(s, STRUGGLE) }])
+			SPECIES.map(s => [
+				s,
+				{
+					swim: row(s, s.swim),
+					bite: row(s, BITE),
+					struggle: row(s, STRUGGLE)
+				}
+			])
 		);
 	}, [sheets]);
 }
@@ -104,7 +114,10 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 						x={hook.x - fish.direction * fish.mouth.dy * grow * girth}
 						y={mouthY - fish.mouth.dx * grow}
 						rotation={(-fish.direction * Math.PI) / 2}
-						scale={{ x: species.scale * grow * -fish.direction, y: species.scale * grow * girth }}
+						scale={{
+							x: species.scale * grow * -fish.direction,
+							y: species.scale * grow * girth
+						}}
 						mouth={{ x: hook.x, y: mouthY }}
 						sway={fishSway(sim)}
 						view={view}

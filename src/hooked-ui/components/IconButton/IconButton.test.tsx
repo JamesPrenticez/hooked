@@ -4,18 +4,18 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { IconButton } from "./IconButton";
-import { AudioFullIcon } from "../../icons";
+import { ICONS } from "../../icons";
 
 describe("IconButton", () => {
 	it("is a button named by its aria-label", () => {
-		render(<IconButton icon={<AudioFullIcon aria-hidden="true" />} aria-label="Mute" />);
+		render(<IconButton icon={ICONS.AudioIcon} aria-label="Mute" />);
 
 		expect(screen.getByRole("button", { name: "Mute" })).toBeInTheDocument();
 	});
 
 	it("calls onClick when pressed", async () => {
 		const onClick = vi.fn();
-		render(<IconButton icon={<AudioFullIcon aria-hidden="true" />} aria-label="Mute" onClick={onClick} />);
+		render(<IconButton icon={ICONS.AudioIcon} aria-label="Mute" onClick={onClick} />);
 
 		await userEvent.click(screen.getByRole("button", { name: "Mute" }));
 
@@ -24,7 +24,7 @@ describe("IconButton", () => {
 
 	it("does not fire when disabled", async () => {
 		const onClick = vi.fn();
-		render(<IconButton icon={<AudioFullIcon aria-hidden="true" />} aria-label="Mute" onClick={onClick} disabled />);
+		render(<IconButton icon={ICONS.AudioIcon} aria-label="Mute" onClick={onClick} disabled />);
 
 		await userEvent.click(screen.getByRole("button", { name: "Mute" }));
 
@@ -32,13 +32,13 @@ describe("IconButton", () => {
 	});
 
 	it("has no pressed state by default", () => {
-		render(<IconButton icon={<AudioFullIcon aria-hidden="true" />} aria-label="Mute" />);
+		render(<IconButton icon={ICONS.AudioIcon} aria-label="Mute" />);
 
 		expect(screen.getByRole("button", { name: "Mute" })).not.toHaveAttribute("aria-pressed");
 	});
 
 	it("reports aria-pressed when active", () => {
-		render(<IconButton icon={<AudioFullIcon aria-hidden="true" />} aria-label="Mute" active />);
+		render(<IconButton icon={ICONS.AudioIcon} aria-label="Mute" active />);
 
 		expect(screen.getByRole("button", { name: "Mute" })).toHaveAttribute("aria-pressed", "true");
 	});
@@ -48,7 +48,7 @@ describe("IconButton", () => {
 		const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
 		render(
 			<form onSubmit={onSubmit}>
-				<IconButton icon={<AudioFullIcon aria-hidden="true" />} aria-label="Mute" />
+				<IconButton icon={ICONS.AudioIcon} aria-label="Mute" />
 			</form>
 		);
 
@@ -58,7 +58,7 @@ describe("IconButton", () => {
 	});
 
 	it("merges a caller-supplied className without dropping its own", () => {
-		render(<IconButton icon={<AudioFullIcon aria-hidden="true" />} aria-label="Mute" className="my-layout" />);
+		render(<IconButton icon={ICONS.AudioIcon} aria-label="Mute" className="my-layout" />);
 
 		const button = screen.getByRole("button", { name: "Mute" });
 		expect(button).toHaveClass("my-layout");
@@ -70,9 +70,7 @@ describe("IconButton", () => {
 	// the root element.
 	it("exposes the button via ref and spreads undeclared props onto it", () => {
 		const ref = createRef<HTMLButtonElement>();
-		render(
-			<IconButton icon={<AudioFullIcon aria-hidden="true" />} aria-label="Mute" ref={ref} data-testid="icon-button" />
-		);
+		render(<IconButton icon={ICONS.AudioIcon} aria-label="Mute" ref={ref} data-testid="icon-button" />);
 
 		expect(ref.current).toBe(screen.getByTestId("icon-button"));
 		expect(ref.current).toBe(screen.getByRole("button", { name: "Mute" }));

@@ -26,7 +26,16 @@ const CURRENT = { balance: "990.00", currency: "USD", active: false };
 const detail = (status: "open" | "completed") => ({
 	roundId: "r1",
 	status,
-	bets: [{ type: "depth", selection: "shallow", amount: "10.00", won: false, multiplier: "0.00", payout: "0.00" }],
+	bets: [
+		{
+			type: "depth",
+			selection: "shallow",
+			amount: "10.00",
+			won: false,
+			multiplier: "0.00",
+			payout: "0.00"
+		}
+	],
 	outcome: { depth: "deep", fish: "shark", tier: "epic" },
 	payout: { total: "0.00", wagered: "10.00", net: "-10.00" },
 	seed: { serverSeedHash: "h", clientSeed: "c", nonce: 1 }
@@ -47,7 +56,10 @@ it("resumes an active round from full detail and persists its id", async () => {
 	await recoverFromServer({ ...CURRENT, active: true, roundId: "r1" });
 
 	expect(fetchMock.mock.calls[0][0]).toContain("/api/game/round/r1");
-	expect(useRoundStore.getState().round).toMatchObject({ roundId: "r1", status: "open" });
+	expect(useRoundStore.getState().round).toMatchObject({
+		roundId: "r1",
+		status: "open"
+	});
 	expect(localStorage.getItem("deepcatch.roundId")).toBe("r1");
 });
 
@@ -57,7 +69,10 @@ it("recovers a round that settled while the client was away", async () => {
 
 	await recoverFromServer({ ...CURRENT }); // server no longer reports it as active
 
-	expect(useRoundStore.getState().round).toMatchObject({ roundId: "r1", status: "completed" });
+	expect(useRoundStore.getState().round).toMatchObject({
+		roundId: "r1",
+		status: "completed"
+	});
 });
 
 it("drops a stale in-flight id that no longer resolves", async () => {

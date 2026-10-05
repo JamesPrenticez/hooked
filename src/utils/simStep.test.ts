@@ -60,7 +60,14 @@ it("is deterministic", () => {
 /** A sim that has just hooked its first fish at `catchM`, ready to play the sequence out. */
 function hookedSim(multiplier: number, catchM = 1000) {
 	const sim = createSim(1, multiplier);
-	Object.assign(sim, { phase: "hooked", hooked: 0, hookedTick: sim.tick, depthM: catchM, catchM, cameraM: catchM });
+	Object.assign(sim, {
+		phase: "hooked",
+		hooked: 0,
+		hookedTick: sim.tick,
+		depthM: catchM,
+		catchM,
+		cameraM: catchM
+	});
 	return sim;
 }
 
@@ -102,7 +109,10 @@ it("lets the fish fight the hook for a moment, then shows the splash with the fi
 	expect(runUntil(sim, "announce")).toBe(HOOKED_TICKS);
 	expect(HOOKED_TICKS / TICK_HZ).toBeGreaterThanOrEqual(1);
 	expect(HOOKED_TICKS / TICK_HZ).toBeLessThanOrEqual(2);
-	expect({ depthM: sim.depthM, cameraM: sim.cameraM }).toEqual({ depthM: 1000, cameraM: 1000 });
+	expect({ depthM: sim.depthM, cameraM: sim.cameraM }).toEqual({
+		depthM: 1000,
+		cameraM: 1000
+	});
 	expect(runUntil(sim, "ascend")).toBe(ANNOUNCE_TICKS);
 });
 

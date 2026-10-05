@@ -46,7 +46,11 @@ export const STRUGGLE: SheetAnimation = { row: 3, fps: 12, frameCount: 8 };
  *  is safe. The struggle row thrashes the fish through poses turned right around, which tears a big fish off its hook. */
 export const GASP: SheetAnimation = { row: 2, fps: 6, frameCount: 5 };
 
-const swim = (frameCount: number, fps = 10): SheetAnimation => ({ row: 1, fps, frameCount });
+const swim = (frameCount: number, fps = 10): SheetAnimation => ({
+	row: 1,
+	fps,
+	frameCount
+});
 
 /** Bands follow the zone order in `constants/fish.ts`, except the lanternfish and
  *  whale, which live down in the trench (9,785m+) — capped at 10,825m (the whale, being
@@ -125,7 +129,17 @@ export const SPECIES: Species[] = [
 		toMeters: 3935,
 		count: 4
 	},
-	{ id: "crab", url: crab, cols: 8, swim: swim(8), scale: 0.5, speed: 40, fromMeters: 1640, toMeters: 4045, count: 4 },
+	{
+		id: "crab",
+		url: crab,
+		cols: 8,
+		swim: swim(8),
+		scale: 0.5,
+		speed: 40,
+		fromMeters: 1640,
+		toMeters: 4045,
+		count: 4
+	},
 	// deep
 	{
 		id: "manta",
@@ -139,7 +153,17 @@ export const SPECIES: Species[] = [
 		toMeters: 7000,
 		count: 4
 	},
-	{ id: "tuna", url: tuna, cols: 8, swim: swim(8), scale: 1, speed: 140, fromMeters: 4100, toMeters: 7110, count: 5 },
+	{
+		id: "tuna",
+		url: tuna,
+		cols: 8,
+		swim: swim(8),
+		scale: 1,
+		speed: 140,
+		fromMeters: 4100,
+		toMeters: 7110,
+		count: 5
+	},
 	{
 		id: "puffer",
 		url: puffer,

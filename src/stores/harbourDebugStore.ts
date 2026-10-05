@@ -48,7 +48,12 @@ export const useHarbourDebugStore = create<HarbourDebugStore>()(
 		set => ({
 			tweaks: getDefaults(),
 			setTweak: (key, patch) =>
-				set(state => ({ tweaks: { ...state.tweaks, [key]: { ...state.tweaks[key], ...patch } } })),
+				set(state => ({
+					tweaks: {
+						...state.tweaks,
+						[key]: { ...state.tweaks[key], ...patch }
+					}
+				})),
 			reset: () => set({ tweaks: getDefaults() })
 		}),
 		{
@@ -57,7 +62,10 @@ export const useHarbourDebugStore = create<HarbourDebugStore>()(
 			// Values saved before a part was added lack its key; fill it in rather than crash.
 			merge: (saved, current) => ({
 				...current,
-				tweaks: { ...current.tweaks, ...(saved as Partial<typeof current> | undefined)?.tweaks }
+				tweaks: {
+					...current.tweaks,
+					...(saved as Partial<typeof current> | undefined)?.tweaks
+				}
 			})
 		}
 	)
@@ -71,7 +79,11 @@ export const useTweak = (key: TweakKey): Tweak => useHarbourDebugStore(state => 
  *  rest position, not instead of it. */
 export const layoutTweak = (key: TweakKey, view: { width: number; height: number }, tweak: Tweak): Tweak => {
 	const base = HARBOUR_LAYOUT[viewBreakpoint(view)][key];
-	return { x: base.x * view.width + tweak.x, y: base.y * view.height + tweak.y, scale: base.scale * tweak.scale };
+	return {
+		x: base.x * view.width + tweak.x,
+		y: base.y * view.height + tweak.y,
+		scale: base.scale * tweak.scale
+	};
 };
 
 /** `layoutTweak`, pulling its live debug tweak from the store itself — for call sites where `view` is already

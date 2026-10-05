@@ -73,7 +73,15 @@ export function saveRecording(body: unknown): SavedRecording {
 
 	const inputs = encodeInputs(used);
 	const sha256 = createHash("sha256")
-		.update(canonicalBytes({ simVersion: SIM_VERSION, worldSeed, multiplier, inputs, result }))
+		.update(
+			canonicalBytes({
+				simVersion: SIM_VERSION,
+				worldSeed,
+				multiplier,
+				inputs,
+				result
+			})
+		)
 		.digest("hex");
 
 	const caught = sim.hooked >= 0;
@@ -102,7 +110,14 @@ export function saveRecording(body: unknown): SavedRecording {
 		);
 	const row = db.prepare("SELECT id FROM recordings WHERE sha256 = ?").get(sha256) as { id: number };
 
-	return { id: row.id, sha256, fish: result.fish, depth, ticks: result.ticks, duplicate: changes === 0 };
+	return {
+		id: row.id,
+		sha256,
+		fish: result.fish,
+		depth,
+		ticks: result.ticks,
+		duplicate: changes === 0
+	};
 }
 
 export interface StoredRecording {
@@ -155,7 +170,11 @@ export function listRecordings(): StoredRecording[] {
 /** One recording with its steering (base64), enough for the client to play it again. */
 export function getRecording(id: unknown): StoredRecording & { simVersion: number; inputs: string } {
 	const row = findRow(id);
-	return { ...toStored(row), simVersion: row.sim_version, inputs: toBase64(row.inputs) };
+	return {
+		...toStored(row),
+		simVersion: row.sim_version,
+		inputs: toBase64(row.inputs)
+	};
 }
 
 /** Re-simulates the stored inputs and checks the row still says what the sim now says. */

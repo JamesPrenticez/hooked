@@ -59,7 +59,10 @@ export function CelestialBody({ view, celestial }: CelestialBodyProps) {
 				const glow = 0.4 + 0.6 * celestial.intensity;
 				// radial alpha falloff — stacked hard circles read as a disc,
 				// not a glow. A full bloom filter is the §7.1 lighting pass.
-				g.circle(cx, cy, r * 5).fill({ fill: glowGradient(celestial.color), alpha: glow });
+				g.circle(cx, cy, r * 5).fill({
+					fill: glowGradient(celestial.color),
+					alpha: glow
+				});
 				g.circle(cx, cy, r).fill({ color: celestial.color, alpha: 0.9 });
 			}}
 		/>

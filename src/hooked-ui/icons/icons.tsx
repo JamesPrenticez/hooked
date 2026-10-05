@@ -1,22 +1,55 @@
-import AudioFullIconSvg from "./svg/audio-full.svg?react";
-import AudioMutedIconSvg from "./svg/audio-muted.svg?react";
-import AutoplayIconSvg from "./svg/autoplay.svg?react";
-import ChevronDownIconSvg from "./svg/chevron-down.svg?react";
-import ChevronUpIconSvg from "./svg/chevron-up.svg?react";
-import CopyIconSvg from "./svg/copy.svg?react";
-import LogoIconSvg from "./svg/logo.svg?react";
-import MenuIconSvg from "./svg/menu.svg?react";
-import RotateIconSvg from "./svg/rotate.svg?react";
-import TurboIconSvg from "./svg/turbo.svg?react";
-import type { IconComponent } from "./types";
+import type { ReactElement } from "react";
+import AudioIcon from "@icons/audio.icon.svg?react";
+import AutoPlayIcon from "@icons/auto-play.icon.svg?react";
+import ChevronIcon from "@icons/chevron-down.icon.svg?react";
+import Fairness from "@icons/fairness.icon.svg?react";
+import HamburgerIcon from "@icons/hamburger.icon.svg?react";
+import HistoryIcon from "@icons/history.icon.svg?react";
+import InfoIcon from "@icons/info.icon.svg?react";
+import LogoIcon from "@icons/logo.svg?react";
+import MinusIcon from "@icons/minus.icon.svg?react";
+import MusicIcon from "@icons/music.icon.svg?react";
+import PlusIcon from "@icons/plus.icon.svg?react";
+import ScrollIcon from "@icons/scroll.icon.svg?react";
+import SkipIcon from "@icons/skip.icon.svg?react";
+import SkipFullIcon from "@icons/skip-full.icon.svg?react";
+import SkipHalfIcon from "@icons/skip-half.icon.svg?react";
+import XIcon from "@icons/x.icon.svg?react";
 
-export const AudioFullIcon: IconComponent = AudioFullIconSvg;
-export const AudioMutedIcon: IconComponent = AudioMutedIconSvg;
-export const AutoplayIcon: IconComponent = AutoplayIconSvg;
-export const ChevronDownIcon: IconComponent = ChevronDownIconSvg;
-export const ChevronUpIcon: IconComponent = ChevronUpIconSvg;
-export const CopyIcon: IconComponent = CopyIconSvg;
-export const LogoIcon: IconComponent = LogoIconSvg;
-export const MenuIcon: IconComponent = MenuIconSvg;
-export const RotateIcon: IconComponent = RotateIconSvg;
-export const TurboIcon: IconComponent = TurboIconSvg;
+export enum IconKeys {
+	LogoIcon = "LogoIcon",
+	HamburgerIcon = "HamburgerIcon",
+	XIcon = "XIcon",
+	InfoIcon = "InfoIcon",
+	MusicIcon = "MusicIcon",
+	AudioIcon = "AudioIcon",
+	ScrollIcon = "ScrollIcon",
+	AutoPlayIcon = "AutoPlayIcon",
+	HistoryIcon = "HistoryIcon",
+	Chevron = "ChevronIcon",
+	PlusIcon = "PlusIcon",
+	MinusIcon = "MinusIcon",
+	SkipIcon = "SkipIcon",
+	SkipHalfIcon = "SkipHalfIcon",
+	SkipFullIcon = "SkipFullIcon",
+	Fairness = "Fairness"
+}
+
+export const ICONS: Record<IconKeys, ReactElement> = {
+	LogoIcon: <LogoIcon />,
+	HamburgerIcon: <HamburgerIcon />,
+	XIcon: <XIcon />,
+	InfoIcon: <InfoIcon />,
+	MusicIcon: <MusicIcon />,
+	AudioIcon: <AudioIcon />,
+	ScrollIcon: <ScrollIcon />,
+	AutoPlayIcon: <AutoPlayIcon />,
+	HistoryIcon: <HistoryIcon />,
+	ChevronIcon: <ChevronIcon />,
+	PlusIcon: <PlusIcon />,
+	MinusIcon: <MinusIcon />,
+	SkipIcon: <SkipIcon />,
+	SkipHalfIcon: <SkipHalfIcon />,
+	SkipFullIcon: <SkipFullIcon />,
+	Fairness: <Fairness />
+};

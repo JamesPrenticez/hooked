@@ -64,25 +64,25 @@
 	/* Display font — headings, buttons, anything punchy. Swap this one line to test a new font. */
 	--font-display: "Otomanopee One", sans-serif;
 	--font-display-legal: 100 1.2rem "Otomanopee One";
-	--font-display-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-display);
-	--font-display-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-display);
-	--font-display-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-display);
-	--font-display-sm: var(--font-weight-normal) var(--font-size-sm)/1 var(--font-display);
-	--font-display-md: var(--font-weight-normal) var(--font-size-md)/1 var(--font-display);
-	--font-display-lg: var(--font-weight-normal) var(--font-size-lg)/1 var(--font-display);
-	--font-display-xl: var(--font-weight-normal) var(--font-size-xl)/1 var(--font-display);
-	--font-display-xxl: var(--font-weight-normal) var(--font-size-xxl)/1 var(--font-display);
-	--font-display-xxxl: var(--font-weight-normal) var(--font-size-xxxl)/1 var(--font-display);
-	--font-display-xxxxl: var(--font-weight-normal) var(--font-size-xxxxl)/1 var(--font-display);
-	--font-display-xxxxxl: var(--font-weight-normal) var(--font-size-xxxxxl)/1 var(--font-display);
+	--font-display-xxs: var(--font-weight-normal) var(--font-size-xxs) / 1 var(--font-display);
+	--font-display-xs: var(--font-weight-normal) var(--font-size-xs) / 1 var(--font-display);
+	--font-display-base: var(--font-weight-normal) var(--font-size-base) / 1 var(--font-display);
+	--font-display-sm: var(--font-weight-normal) var(--font-size-sm) / 1 var(--font-display);
+	--font-display-md: var(--font-weight-normal) var(--font-size-md) / 1 var(--font-display);
+	--font-display-lg: var(--font-weight-normal) var(--font-size-lg) / 1 var(--font-display);
+	--font-display-xl: var(--font-weight-normal) var(--font-size-xl) / 1 var(--font-display);
+	--font-display-xxl: var(--font-weight-normal) var(--font-size-xxl) / 1 var(--font-display);
+	--font-display-xxxl: var(--font-weight-normal) var(--font-size-xxxl) / 1 var(--font-display);
+	--font-display-xxxxl: var(--font-weight-normal) var(--font-size-xxxxl) / 1 var(--font-display);
+	--font-display-xxxxxl: var(--font-weight-normal) var(--font-size-xxxxxl) / 1 var(--font-display);
 
 	/* Text font — body copy, UI chrome. Swap this one line to test a new font. */
 	--font-text: "Aronui", sans-serif;
-	--font-text-legal: var(--font-weight-normal) var(--font-size-legal)/1 var(--font-text);
-	--font-text-xxs: var(--font-weight-normal) var(--font-size-xxs)/1 var(--font-text);
-	--font-text-xs: var(--font-weight-normal) var(--font-size-xs)/1 var(--font-text);
-	--font-text-base: var(--font-weight-normal) var(--font-size-base)/1 var(--font-text);
-	--font-text-sm: var(--font-weight-normal) var(--font-size-sm)/1 var(--font-text);
+	--font-text-legal: var(--font-weight-normal) var(--font-size-legal) / 1 var(--font-text);
+	--font-text-xxs: var(--font-weight-normal) var(--font-size-xxs) / 1 var(--font-text);
+	--font-text-xs: var(--font-weight-normal) var(--font-size-xs) / 1 var(--font-text);
+	--font-text-base: var(--font-weight-normal) var(--font-size-base) / 1 var(--font-text);
+	--font-text-sm: var(--font-weight-normal) var(--font-size-sm) / 1 var(--font-text);
 
 	/* Text Bold Narrow Font Styles */
 	/* The width axis isn't part of the `font` shorthand, so every one of these
@@ -91,12 +91,12 @@
 		font: var(--font-text-bold-base);
 		font-variation-settings: var(--font-width-narrow);
 	*/
-	--font-text-bold-xxs: var(--font-weight-semibold) var(--font-size-xxs)/1 var(--font-text);
-	--font-text-bold-xs: var(--font-weight-semibold) var(--font-size-xs)/1 var(--font-text);
-	--font-text-bold-base: var(--font-weight-semibold) var(--font-size-base)/1 var(--font-text);
-	--font-text-bold-sm: var(--font-weight-semibold) var(--font-size-sm)/1 var(--font-text);
-	--font-text-bold-md: var(--font-weight-semibold) var(--font-size-md)/1 var(--font-text);
-	--font-text-bold-lg: var(--font-weight-semibold) var(--font-size-lg)/1 var(--font-text);
+	--font-text-bold-xxs: var(--font-weight-semibold) var(--font-size-xxs) / 1 var(--font-text);
+	--font-text-bold-xs: var(--font-weight-semibold) var(--font-size-xs) / 1 var(--font-text);
+	--font-text-bold-base: var(--font-weight-semibold) var(--font-size-base) / 1 var(--font-text);
+	--font-text-bold-sm: var(--font-weight-semibold) var(--font-size-sm) / 1 var(--font-text);
+	--font-text-bold-md: var(--font-weight-semibold) var(--font-size-md) / 1 var(--font-text);
+	--font-text-bold-lg: var(--font-weight-semibold) var(--font-size-lg) / 1 var(--font-text);
 
 	/* hooked-ui reads these for its own components — point them at ours
 	   instead of the library's Chakra Petch default. */

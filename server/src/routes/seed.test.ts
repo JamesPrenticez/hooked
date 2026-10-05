@@ -57,8 +57,14 @@ async function newSession(): Promise<string> {
 }
 
 const startBody = (bets: unknown[]) => ({ message: { start: { bets } } });
-const completeBody = (roundId: string) => ({ message: { complete: { roundId } } });
-const fishBet = (selection: string, amount: string) => ({ type: "fish", selection, amount });
+const completeBody = (roundId: string) => ({
+	message: { complete: { roundId } }
+});
+const fishBet = (selection: string, amount: string) => ({
+	type: "fish",
+	selection,
+	amount
+});
 
 test("current exposes the hashed server seed, a client seed and nonce 0", async () => {
 	const token = await newSession();
@@ -80,14 +86,30 @@ test("upcoming is a different commitment from the active server seed", async () 
 test("each round consumes the next nonce and records the seed context", async () => {
 	const token = await newSession();
 
-	const r1 = (await call("POST", "/api/game/play", { token, body: startBody([fishBet("shark", "1.00")]) })).json;
-	await call("POST", "/api/game/play", { token, body: completeBody(r1.roundId) });
+	const r1 = (
+		await call("POST", "/api/game/play", {
+			token,
+			body: startBody([fishBet("shark", "1.00")])
+		})
+	).json;
+	await call("POST", "/api/game/play", {
+		token,
+		body: completeBody(r1.roundId)
+	});
 	const detail1 = (await call("GET", `/api/game/round/${r1.roundId}`, { token })).json;
 	assert.equal(detail1.seed.nonce, 0);
 	assert.match(detail1.seed.serverSeedHash, /^[0-9a-f]{64}$/);
 
-	const r2 = (await call("POST", "/api/game/play", { token, body: startBody([fishBet("shark", "1.00")]) })).json;
-	await call("POST", "/api/game/play", { token, body: completeBody(r2.roundId) });
+	const r2 = (
+		await call("POST", "/api/game/play", {
+			token,
+			body: startBody([fishBet("shark", "1.00")])
+		})
+	).json;
+	await call("POST", "/api/game/play", {
+		token,
+		body: completeBody(r2.roundId)
+	});
 	const detail2 = (await call("GET", `/api/game/round/${r2.roundId}`, { token })).json;
 	assert.equal(detail2.seed.nonce, 1);
 	assert.equal(detail2.seed.serverSeedHash, detail1.seed.serverSeedHash);
@@ -105,7 +127,10 @@ test("rotate reveals the old seed (hash matches), pre-commit becomes active, non
 	const current = (await call("POST", "/api/seed/current", { token })).json;
 	const upcoming = (await call("POST", "/api/seed/upcoming", { token })).json;
 
-	const rotated = await call("POST", "/api/seed/rotate", { token, body: { clientSeed: "my-lucky-seed" } });
+	const rotated = await call("POST", "/api/seed/rotate", {
+		token,
+		body: { clientSeed: "my-lucky-seed" }
+	});
 	assert.equal(rotated.status, 200);
 	assert.equal(rotated.json.clientSeed, "my-lucky-seed");
 	assert.equal(rotated.json.nonce, 0);
@@ -119,21 +144,37 @@ test("rotate reveals the old seed (hash matches), pre-commit becomes active, non
 
 test("rotate is blocked while a round is open", async () => {
 	const token = await newSession();
-	const round = (await call("POST", "/api/game/play", { token, body: startBody([fishBet("shark", "1.00")]) })).json;
+	const round = (
+		await call("POST", "/api/game/play", {
+			token,
+			body: startBody([fishBet("shark", "1.00")])
+		})
+	).json;
 
 	const blocked = await call("POST", "/api/seed/rotate", { token });
 	assert.equal(blocked.status, 409);
 	assert.equal(blocked.json.error.code, "round_in_progress");
 
-	await call("POST", "/api/game/play", { token, body: completeBody(round.roundId) });
+	await call("POST", "/api/game/play", {
+		token,
+		body: completeBody(round.roundId)
+	});
 	assert.equal((await call("POST", "/api/seed/rotate", { token })).status, 200);
 });
 
 test("verify re-derives a past round's outcome from its revealed seed triple", async () => {
 	const token = await newSession();
 
-	const round = (await call("POST", "/api/game/play", { token, body: startBody([fishBet("shark", "1.00")]) })).json;
-	await call("POST", "/api/game/play", { token, body: completeBody(round.roundId) });
+	const round = (
+		await call("POST", "/api/game/play", {
+			token,
+			body: startBody([fishBet("shark", "1.00")])
+		})
+	).json;
+	await call("POST", "/api/game/play", {
+		token,
+		body: completeBody(round.roundId)
+	});
 	const detail = (await call("GET", `/api/game/round/${round.roundId}`, { token })).json;
 
 	// Rotate so the server seed for that round becomes public.
@@ -142,7 +183,11 @@ test("verify re-derives a past round's outcome from its revealed seed triple", a
 
 	const verified = await call("POST", "/api/game/verify", {
 		token,
-		body: { serverSeed: revealed.serverSeed, clientSeed: detail.seed.clientSeed, nonce: detail.seed.nonce }
+		body: {
+			serverSeed: revealed.serverSeed,
+			clientSeed: detail.seed.clientSeed,
+			nonce: detail.seed.nonce
+		}
 	});
 	assert.equal(verified.status, 200);
 	assert.equal(verified.json.serverSeedHash, detail.seed.serverSeedHash);

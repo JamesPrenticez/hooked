@@ -94,7 +94,14 @@ describe("hookPose", () => {
 
 	it("hangs the hook straight down from the rod tip until the landing, at the fish's true underwater size", () => {
 		const sim = createSim(1);
-		Object.assign(sim, { phase: "hooked", hooked: 0, depthM: 1000, cameraM: 1000, catchM: 1000, x: 960 });
+		Object.assign(sim, {
+			phase: "hooked",
+			hooked: 0,
+			depthM: 1000,
+			cameraM: 1000,
+			catchM: 1000,
+			x: 960
+		});
 		const pose = hookPose(sim, VIEW, tip);
 		expect(pose.grow).toBe(1);
 		expect(pose.extraction).toBeUndefined();
@@ -102,7 +109,13 @@ describe("hookPose", () => {
 
 	it("keeps the hook in the world while the camera returns, so it sinks off the bottom of the screen", () => {
 		const sim = createSim(1);
-		Object.assign(sim, { phase: "ascend", hooked: 0, depthM: 1000, cameraM: 400, catchM: 1000 });
+		Object.assign(sim, {
+			phase: "ascend",
+			hooked: 0,
+			depthM: 1000,
+			cameraM: 400,
+			catchM: 1000
+		});
 		const before = hookPose(sim, VIEW, tip);
 		sim.cameraM = 0;
 		expect(hookPose(sim, VIEW, tip)).toEqual(before);
@@ -322,7 +335,10 @@ describe("cameraShake", () => {
 		expect(Math.max(...Array.from({ length: 10 }, (_, t) => size(sim("announce", t))))).toBeGreaterThan(
 			Math.max(...Array.from({ length: HOOKED_TICKS }, (_, t) => size(sim("hooked", t))))
 		);
-		expect(cameraShake(sim("announce", ANNOUNCE_TICKS))).toEqual({ x: 0, y: 0 });
+		expect(cameraShake(sim("announce", ANNOUNCE_TICKS))).toEqual({
+			x: 0,
+			y: 0
+		});
 	});
 
 	it("holds the camera still the rest of the time", () => {
@@ -390,7 +406,14 @@ describe("playerCue", () => {
 it("steps the real sim into a pose without throwing at any phase", () => {
 	const sim = createSim(1, 500);
 	const tip = boatLayout(VIEW, 0).tip;
-	Object.assign(sim, { phase: "hooked", hooked: 0, hookedTick: 0, depthM: 800, cameraM: 800, catchM: 800 });
+	Object.assign(sim, {
+		phase: "hooked",
+		hooked: 0,
+		hookedTick: 0,
+		depthM: 800,
+		cameraM: 800,
+		catchM: 800
+	});
 	for (let i = 0; i < 40 * 60 && sim.phase !== "surfaced"; i++) {
 		step(sim, 0);
 		expect(Number.isFinite(hookPose(sim, VIEW, tip).y)).toBe(true);

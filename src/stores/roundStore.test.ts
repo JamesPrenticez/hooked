@@ -6,7 +6,16 @@ import { useRoundStore } from "./roundStore";
 const OPEN: RoundSnapshot = {
 	roundId: "r1",
 	status: "open",
-	bets: [{ type: "depth", selection: "shallow", amount: "1.00", won: false, multiplier: "0.00", payout: "0.00" }],
+	bets: [
+		{
+			type: "depth",
+			selection: "shallow",
+			amount: "1.00",
+			won: false,
+			multiplier: "0.00",
+			payout: "0.00"
+		}
+	],
 	outcome: { depth: "deep", fish: "shark", tier: "epic" },
 	payout: { total: "0.00", wagered: "1.00", net: "-1.00" }
 };

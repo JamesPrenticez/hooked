@@ -43,7 +43,11 @@ export function spawnWorld(worldSeed: number): WorldFish[] {
 				phase: random() * 10,
 				width,
 				height,
-				mouth: { dx: f.mouth.x * width, dy: f.mouth.y * height, r: f.mouth.r * width }
+				mouth: {
+					dx: f.mouth.x * width,
+					dy: f.mouth.y * height,
+					r: f.mouth.r * width
+				}
 			};
 		})
 	);

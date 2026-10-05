@@ -80,7 +80,10 @@ export function krakenFightPose(view: Size, elapsed: number, zones: DepthZone[] 
 	const frame = krakenFrame(beat.id, beat.elapsed);
 	const scale = FIGHT_ZOOM * krakenFitScale(view, krakenBox(fightSheet.columns, fightSheet.rows));
 	const grip = krakenGrip(fightSheet.id, fightSheet.columns, fightSheet.rows, frame);
-	const rest = { x: view.width / 2, y: krakenAnchorY(view, zones) + FIGHT_RISE * scale };
+	const rest = {
+		x: view.width / 2,
+		y: krakenAnchorY(view, zones) + FIGHT_RISE * scale
+	};
 
 	return {
 		frame,

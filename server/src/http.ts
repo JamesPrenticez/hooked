@@ -40,7 +40,11 @@ interface Route {
 const routes: Route[] = [];
 
 export function route(method: string, pattern: string, handler: Handler) {
-	routes.push({ method, segments: pattern.split("/").filter(Boolean), handler });
+	routes.push({
+		method,
+		segments: pattern.split("/").filter(Boolean),
+		handler
+	});
 }
 
 function match(route: Route, method: string, path: string): Record<string, string> | null {
@@ -114,7 +118,12 @@ export async function handle(req: IncomingMessage, res: ServerResponse) {
 		}
 
 		const body = method === "GET" || method === "HEAD" ? {} : await readJson(req);
-		const result = await matched.handler({ req, res, body, params: matched.params });
+		const result = await matched.handler({
+			req,
+			res,
+			body,
+			params: matched.params
+		});
 		// A handler that wrote to `res` itself (e.g. the docs pages) owns the response.
 		if (!res.writableEnded) send(res, 200, result);
 		if (config.logRequests) console.log(`${method} ${path} ${res.statusCode} ${Date.now() - start}ms`);

@@ -1,16 +1,6 @@
 import { type DetailsHTMLAttributes, forwardRef, type ReactNode } from "react";
+import { ICONS } from "@icons";
 import styled from "styled-components";
-
-import { ChevronDownIcon } from "../../icons";
-
-const Chevron = styled(ChevronDownIcon)`
-	flex-shrink: 0;
-	transition: transform 0.15s;
-
-	@media (prefers-reduced-motion: reduce) {
-		transition: none;
-	}
-`;
 
 const Summary = styled.summary`
 	align-items: center;
@@ -29,6 +19,16 @@ const Summary = styled.summary`
 		outline: 2px solid var(--hooked-color-primary);
 		outline-offset: 2px;
 	}
+
+	svg {
+		display: inline-flex;
+		flex-shrink: 0;
+		transition: transform 0.15s;
+
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
+		}
+	}
 `;
 
 const Content = styled.div`
@@ -45,7 +45,7 @@ const Details = styled.details`
 		color: var(--hooked-color-body);
 	}
 
-	&[open] ${Chevron} {
+	&[open] summary svg {
 		transform: rotate(180deg);
 	}
 `;
@@ -68,7 +68,7 @@ export const Accordion = forwardRef<HTMLDetailsElement, AccordionProps>(function
 		<Details ref={ref} data-theme={theme === "light" ? undefined : theme} {...props}>
 			<Summary>
 				{title}
-				<Chevron width="1.4rem" aria-hidden="true" focusable="false" />
+				{ICONS.ChevronIcon}
 			</Summary>
 			<Content>{children}</Content>
 		</Details>

@@ -32,7 +32,9 @@
 			"@stores/*": ["./src/stores/*"],
 			"@utils/*": ["./src/utils/*"],
 			"@type/*": ["./src/types/*"],
-			"@hooked-ui": ["./src/hooked-ui/index.ts"]
+			"@hooked-ui": ["./src/hooked-ui/index.ts"],
+			"@icons": ["./src/hooked-ui/icons/index.ts"],
+			"@icons/*": ["./src/hooked-ui/icons/*"]
 		}
 	},
 	"include": ["src"]

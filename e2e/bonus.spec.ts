@@ -19,7 +19,9 @@ test("the Bonus button opens a card for each bonus, all of it on screen, and Clo
 
 	// Nothing is cut off or left to scroll to, on any of the viewports.
 	for (const card of await dialog.getByRole("listitem").all()) await expect(card).toBeInViewport({ ratio: 1 });
-	await expect(dialog.getByRole("button", { name: "Close" })).toBeInViewport({ ratio: 1 });
+	await expect(dialog.getByRole("button", { name: "Close" })).toBeInViewport({
+		ratio: 1
+	});
 
 	await dialog.getByRole("button", { name: "Close" }).click();
 	await expect(dialog).not.toBeVisible();

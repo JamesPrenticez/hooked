@@ -15,7 +15,10 @@ route("POST", "/api/session", async () => {
 
 	const launch = await fetch(`http://127.0.0.1:${config.port}/operator/launch`, {
 		method: "POST",
-		headers: { "content-type": "application/json", ...signHeaders(launchBody) },
+		headers: {
+			"content-type": "application/json",
+			...signHeaders(launchBody)
+		},
 		body: launchBody
 	});
 	if (!launch.ok) {

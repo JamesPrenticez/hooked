@@ -5,7 +5,10 @@ import { FIRST_KRAKEN_ANIMATION } from "@constants/krakenAnimations";
 import { useKrakenStore } from "./krakenStore";
 
 beforeEach(() => {
-	useKrakenStore.setState({ forceTrench: false, cue: { animation: FIRST_KRAKEN_ANIMATION, id: 0 } });
+	useKrakenStore.setState({
+		forceTrench: false,
+		cue: { animation: FIRST_KRAKEN_ANIMATION, id: 0 }
+	});
 });
 
 it("starts on the encounter's first beat, with the trench not forced", () => {

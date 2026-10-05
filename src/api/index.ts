@@ -151,7 +151,9 @@ export function adoptSessionTokenFromUrl(): boolean {
  * policy exists to schedule against; nothing calls this yet.
  */
 export async function refreshSession(): Promise<SessionResponse> {
-	const session = await request<SessionResponse>("/api/session/refresh", { method: "POST" });
+	const session = await request<SessionResponse>("/api/session/refresh", {
+		method: "POST"
+	});
 	setToken(session.sessionToken);
 	return session;
 }
@@ -212,7 +214,9 @@ export function getSeed(): Promise<SeedResponse> {
 
 /** Hash of the next server seed — verifiable after the following rotate. */
 export function getUpcomingSeed(): Promise<UpcomingSeedResponse> {
-	return request<UpcomingSeedResponse>("/api/seed/upcoming", { method: "POST" });
+	return request<UpcomingSeedResponse>("/api/seed/upcoming", {
+		method: "POST"
+	});
 }
 
 /** Reveal the current server seed and switch to the pre-committed next one.
@@ -236,7 +240,10 @@ export function verifyOutcome(seed: {
 	clientSeed: string;
 	nonce: number;
 }): Promise<VerifyResponse> {
-	return request<VerifyResponse>("/api/game/verify", { method: "POST", body: JSON.stringify(seed) });
+	return request<VerifyResponse>("/api/game/verify", {
+		method: "POST",
+		body: JSON.stringify(seed)
+	});
 }
 
 // --- Dev controls (§16/§17). No-op unless VITE_DEBUG=true; the routes don't
@@ -277,7 +284,12 @@ export function saveRecording({
 	multiplier,
 	inputs
 }: Recording): Promise<SavedRecordingResponse> {
-	const body: SaveRecordingRequest = { simVersion, worldSeed, multiplier, inputs: toBase64(inputs) };
+	const body: SaveRecordingRequest = {
+		simVersion,
+		worldSeed,
+		multiplier,
+		inputs: toBase64(inputs)
+	};
 	return debugRequest<SavedRecordingResponse>("/api/debug/recordings", body);
 }
 

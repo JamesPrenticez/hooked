@@ -104,7 +104,11 @@ function enter(sim: Sim, phase: SimPhase): void {
 
 function surface(sim: Sim): void {
 	sim.phase = "surfaced";
-	sim.result = { fish: sim.world[sim.hooked]?.id ?? "kraken", depthM: sim.depthM, ticks: sim.tick };
+	sim.result = {
+		fish: sim.world[sim.hooked]?.id ?? "kraken",
+		depthM: sim.depthM,
+		ticks: sim.tick
+	};
 }
 
 /** Advances `sim` one tick in place. `axis` is the steering input, −1 / 0 / +1. */

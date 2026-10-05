@@ -30,7 +30,8 @@ export default defineConfig(({ mode }) => {
 				"@type": path.resolve(import.meta.dirname, "./src/types"),
 				// Vendored component library (formerly @animo-gaming/ui), addressed
 				// like the npm package it replaced.
-				"@hooked-ui": path.resolve(import.meta.dirname, "./src/hooked-ui/index.ts")
+				"@hooked-ui": path.resolve(import.meta.dirname, "./src/hooked-ui/index.ts"),
+				"@icons": path.resolve(import.meta.dirname, "./src/hooked-ui/icons")
 			}
 		},
 		test: {

@@ -5,7 +5,7 @@ import { getRecording, listRecordings, saveRecording, verifyRecording } from "@a
 import { MAX_DEPTH_METERS, metersToFeet } from "@constants/depthZones";
 import { KRAKEN_SHEETS } from "@constants/krakenAnimations";
 import { PLAYER_ANIMATION_NAMES, PLAYER_ANIMATIONS } from "@constants/playerAnimations";
-import { Accordion, Button } from "@hooked-ui";
+import { Accordion, Button, Overlay } from "@hooked-ui";
 import { useDebugStore } from "@stores/debugStore";
 import { type HookMode, TIME_SCALES, useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
@@ -25,23 +25,9 @@ import { fromBase64, type Recording } from "@utils/simRecording";
 /** The multipliers worth jumping straight to: a plain reel-in, a crane catch and a helicopter catch. */
 const MULTIPLIER_PRESETS = [MIN_MULTIPLIER, CRANE_FROM, HELICOPTER_FROM, CHINOOK_FROM, MAX_MULTIPLIER];
 
-const Trigger = styled(Button)`
-	padding: 0.6rem 1.2rem;
-	border: 1px solid var(--color-negative);
-	border-radius: var(--border-radius-sm);
-	background: color-mix(in srgb, var(--color-negative) 20%, transparent);
-	color: var(--color-white);
-	font: var(--font-display-xs);
-	letter-spacing: 0.08em;
-	cursor: pointer;
-`;
-
-/* Docked to the top-left, not centred, with a light backdrop — a centred panel
-   sits right over the boat, so the Player animations couldn't be watched while
-   picking them. */
 const Modal = styled.dialog`
 	width: min(90vw, 42rem);
-	margin: var(--spacing-md) auto var(--spacing-md) var(--spacing-md);
+	margin: auto;
 	padding: 2rem;
 	border: none;
 	border-radius: 1.2rem;
@@ -129,19 +115,10 @@ const AnimationButton = styled(Button)`
 	text-transform: capitalize;
 `;
 
-/**
- * Dev-only DEBUG button (bottom-right, every phase) opening a modal of
- * debug categories: "Environment" (day/night time of day, freeze toggle),
- * "Hook" (per-tier depth range + descent speed, display unit), "Player"
- * (play any of the fisherman's animations) and "Kraken" (park the hook at the
- * trench, play any of the boss's sheet animations). More categories land here
- * as they're built.
- *
- * A native `<dialog>` gets backdrop click-to-close and Escape for free.
- */
-export function DebugPanel() {
+export const DebugModal = () => {
 	const dialogRef = useRef<HTMLDialogElement>(null);
-	const [open, setOpen] = useState(false);
+	const isDebugOpen = useDebugStore(state => state.isDebugOpen);
+	const setIsDebugOpen = useDebugStore(state => state.setIsDebugOpen);
 	const frozen = useDebugStore(state => state.frozen);
 	const setFrozen = useDebugStore(state => state.setFrozen);
 	const timeOfDay = useDebugStore(state => state.timeOfDay);
@@ -189,24 +166,20 @@ export function DebugPanel() {
 	}
 
 	useEffect(() => {
-		if (open) dialogRef.current?.showModal();
+		if (isDebugOpen) dialogRef.current?.showModal();
 		else dialogRef.current?.close();
-	}, [open]);
+	}, [isDebugOpen]);
 
 	return (
-		<>
-			<Trigger type="button" onClick={() => setOpen(true)}>
-				DEBUG
-			</Trigger>
-
-			<Modal ref={dialogRef} onClose={() => setOpen(false)}>
+		<Overlay>
+			<Modal ref={dialogRef} onClose={() => setIsDebugOpen(false)}>
 				<Header>
 					<Title>Debug</Title>
 					<Actions>
 						<Button variant="secondary" onClick={resetDefaults}>
 							Reset defaults
 						</Button>
-						<Button variant="secondary" onClick={() => setOpen(false)}>
+						<Button variant="secondary" onClick={() => setIsDebugOpen(false)}>
 							Close
 						</Button>
 					</Actions>
@@ -406,9 +379,9 @@ export function DebugPanel() {
 					</Fields>
 				</Accordion>
 			</Modal>
-		</>
+		</Overlay>
 	);
-}
+};
 
 /** The recording library: play a stored run through the sim, or ask the server to re-verify it. */
 function RecordingsList() {

@@ -17,7 +17,10 @@ export interface BackgroundFit {
 
 /** The pixel grid the landmarks, `DOCK_LINE` and `WIDE_FIT` are measured in — the size of the retired
  *  `bg-desktop` / `bg-mobile` exports, kept as a coordinate frame now that only the wide art is drawn. */
-const FRAME = { desktop: { width: 2560, height: 1441 }, mobile: { width: 941, height: 1670 } };
+const FRAME = {
+	desktop: { width: 2560, height: 1441 },
+	mobile: { width: 941, height: 1670 }
+};
 
 /** Where the docks' waterline sits in each export, as a fraction of the art's
  *  height — the bottom edge of the pier that spans the middle of the frame.
@@ -45,7 +48,12 @@ export function computeBackgroundFit(screen: Size): BackgroundFit {
 	const drop = landscape ? screen.height * DESKTOP_DROP : 0;
 	const top = screen.height * HORIZON_Y + drop - dockLine * texture.height * scale;
 
-	return { texture, scale, x: screen.width / 2, y: top + (texture.height * scale) / 2 };
+	return {
+		texture,
+		scale,
+		x: screen.width / 2,
+		y: top + (texture.height * scale) / 2
+	};
 }
 
 /**

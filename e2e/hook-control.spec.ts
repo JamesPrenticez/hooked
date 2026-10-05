@@ -12,7 +12,9 @@ async function castManualOnPausedClock(page: Page, { multiplier = 1, speed = 1 }
 	await page.clock.install();
 	await page.goto("/");
 	// Six software-rendered pages boot at once, so the loading screen can take a while.
-	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible({ timeout: 60_000 });
+	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible({
+		timeout: 60_000
+	});
 
 	await page.getByRole("button", { name: "DEBUG" }).click();
 	const control = page.locator("details").filter({ hasText: "Mode" });
@@ -101,8 +103,14 @@ test("HOOKED! splashes once the fish has fought the hook, and only the camera th
 for (const { multiplier, gear } of [
 	{ multiplier: 1, gear: ["extract:rod"] },
 	{ multiplier: 30, gear: ["extract:rod", "extract:crane"] },
-	{ multiplier: 100, gear: ["extract:rod", "extract:crane", "extract:helicopter"] },
-	{ multiplier: 500, gear: ["extract:rod", "extract:crane", "extract:helicopter", "extract:chinook"] }
+	{
+		multiplier: 100,
+		gear: ["extract:rod", "extract:crane", "extract:helicopter"]
+	},
+	{
+		multiplier: 500,
+		gear: ["extract:rod", "extract:crane", "extract:helicopter", "extract:chinook"]
+	}
 ]) {
 	test(`a ${multiplier}× catch is landed by ${gear.map(g => g.replace("extract:", "")).join(", then ")}`, async ({
 		page

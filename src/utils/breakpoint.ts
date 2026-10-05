@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 // Mobile-first: unprefixed styles target the smallest viewport (a narrow
 // phone) and `breakpoint.*` queries progressively add/override as space
 // becomes available.
@@ -12,11 +14,49 @@ const BREAKPOINT_PX = {
 // base styles.
 const MIN_ROOMY_HEIGHT = 601;
 
+const TABLET = `(min-width: ${BREAKPOINT_PX.tablet}px) and (min-height: ${MIN_ROOMY_HEIGHT}px)`;
+const DESKTOP = `(min-width: ${BREAKPOINT_PX.desktop}px) and (min-height: ${MIN_ROOMY_HEIGHT}px)`;
+
 export const breakpoint = {
-	tablet: `(min-width: ${BREAKPOINT_PX.tablet}px) and (min-height: ${MIN_ROOMY_HEIGHT}px)`,
-	desktop: `(min-width: ${BREAKPOINT_PX.desktop}px) and (min-height: ${MIN_ROOMY_HEIGHT}px)`,
+	tablet: TABLET,
+	desktop: DESKTOP,
 	landscape: `(orientation: landscape)`,
-	portrait: `(orientation: portrait)`
+	portrait: `(orientation: portrait)`,
+	// Tablet portrait keeps the phone-portrait layout.
+	tabletLandscape: `${TABLET} and (orientation: landscape)`,
+	// Tablet portrait picks up the desktop design.
+	landscapeOrTablet: `(orientation: landscape), ${TABLET}`,
+	desktopOrTabletPortrait: `${DESKTOP}, ${TABLET} and (orientation: portrait)`
+};
+
+// JS-side "is this viewport cramped" check: a plain boolean, not a CSS cascade, so it stays max-width/height based.
+const MOBILE_MAX_WIDTH = `(max-width: ${BREAKPOINT_PX.tablet}px)`;
+const SHORT_HEIGHT = `(max-height: ${MIN_ROOMY_HEIGHT - 1}px)`;
+
+export const isPortrait = () => window.matchMedia(breakpoint.portrait).matches;
+
+export const isLandscape = () => window.matchMedia(breakpoint.landscape).matches;
+
+export type isMobileType = undefined | { landscape: boolean; portrait: boolean };
+
+const getMobileState = (): isMobileType => {
+	if (!window.matchMedia(`${MOBILE_MAX_WIDTH}, ${SHORT_HEIGHT}`).matches) return undefined;
+	return { landscape: isLandscape(), portrait: isPortrait() };
+};
+
+export const useIsMobile = (): isMobileType => {
+	const [state, setState] = useState<isMobileType>(getMobileState);
+
+	useEffect(() => {
+		const queries = [MOBILE_MAX_WIDTH, SHORT_HEIGHT, breakpoint.portrait].map(q => window.matchMedia(q));
+		const update = () => setState(getMobileState());
+		for (const q of queries) q.addEventListener("change", update);
+		return () => {
+			for (const q of queries) q.removeEventListener("change", update);
+		};
+	}, []);
+
+	return state;
 };
 
 /** The three layouts this project tests (ANIMO.md, `playwright.config.ts`'s projects). */

@@ -43,7 +43,12 @@ const jsonRes = (status: number, body: unknown) => ({
 
 it("createSession stores the token and later calls send it as a bearer header", async () => {
 	fetchMock.mockResolvedValueOnce(
-		jsonRes(200, { sessionToken: "tok-1", playerId: "p1", currency: "USD", balance: "1000.00" })
+		jsonRes(200, {
+			sessionToken: "tok-1",
+			playerId: "p1",
+			currency: "USD",
+			balance: "1000.00"
+		})
 	);
 	const session = await createSession();
 	expect(session.sessionToken).toBe("tok-1");
@@ -72,7 +77,12 @@ it("a network failure normalizes to an ApiError without firing session-expired",
 
 it("refreshSession rotates the stored token", async () => {
 	fetchMock.mockResolvedValueOnce(
-		jsonRes(200, { sessionToken: "tok-2", playerId: "p1", currency: "USD", balance: "1000.00" })
+		jsonRes(200, {
+			sessionToken: "tok-2",
+			playerId: "p1",
+			currency: "USD",
+			balance: "1000.00"
+		})
 	);
 	const refreshed = await refreshSession();
 	expect(refreshed.sessionToken).toBe("tok-2");
@@ -113,7 +123,9 @@ it("startRound wraps bets in the start envelope and resolves to the result", asy
 	expect(await startRound(bets)).toEqual(result);
 	const [url, init] = fetchMock.mock.calls[0];
 	expect(url).toContain("/api/game/play");
-	expect(JSON.parse(init.body as string)).toEqual({ message: { start: { bets } } });
+	expect(JSON.parse(init.body as string)).toEqual({
+		message: { start: { bets } }
+	});
 });
 
 it("completeRound wraps the roundId in the complete envelope", async () => {
@@ -128,7 +140,9 @@ it("completeRound wraps the roundId in the complete envelope", async () => {
 
 	expect(await completeRound("r1")).toEqual(result);
 	const [, init] = fetchMock.mock.calls[0];
-	expect(JSON.parse(init.body as string)).toEqual({ message: { complete: { roundId: "r1" } } });
+	expect(JSON.parse(init.body as string)).toEqual({
+		message: { complete: { roundId: "r1" } }
+	});
 });
 
 it("a second play call is rejected while the first is still in flight (§4.4)", async () => {
@@ -136,12 +150,20 @@ it("a second play call is rejected while the first is still in flight (§4.4)", 
 	fetchMock.mockImplementationOnce(() => new Promise(r => (release = r)));
 
 	const first = startRound([{ type: "depth", selection: "shallow", amount: "5.00" }]);
-	await expect(completeRound("r1")).rejects.toMatchObject({ code: "request_in_flight" });
+	await expect(completeRound("r1")).rejects.toMatchObject({
+		code: "request_in_flight"
+	});
 
 	release(
 		jsonRes(200, {
 			roundId: "r1",
-			message: { roundId: "r1", outcome: {}, bets: [], payout: {}, metadata: { balance: "0" } }
+			message: {
+				roundId: "r1",
+				outcome: {},
+				bets: [],
+				payout: {},
+				metadata: { balance: "0" }
+			}
 		})
 	);
 	await first;
@@ -181,7 +203,12 @@ const current = (body: Partial<Record<string, unknown>> = {}) =>
 
 it("createSession persists the token to localStorage; a 401 clears it", async () => {
 	fetchMock.mockResolvedValueOnce(
-		jsonRes(200, { sessionToken: "tok-1", playerId: "p1", currency: "USD", balance: "1000.00" })
+		jsonRes(200, {
+			sessionToken: "tok-1",
+			playerId: "p1",
+			currency: "USD",
+			balance: "1000.00"
+		})
 	);
 	await createSession();
 	expect(localStorage.getItem("deepcatch.sessionToken")).toBe("tok-1");
@@ -220,7 +247,12 @@ it("initSession mints a fresh session when the persisted token is expired", asyn
 	fetchMock
 		.mockResolvedValueOnce(jsonRes(401, { error: { code: "invalid_session", message: "expired" } }))
 		.mockResolvedValueOnce(
-			jsonRes(200, { sessionToken: "fresh-tok", playerId: "p2", currency: "USD", balance: "1000.00" })
+			jsonRes(200, {
+				sessionToken: "fresh-tok",
+				playerId: "p2",
+				currency: "USD",
+				balance: "1000.00"
+			})
 		)
 		.mockResolvedValueOnce(current());
 
@@ -234,7 +266,12 @@ it("initSession mints a fresh session when the persisted token is expired", asyn
 it("initSession mints a fresh session when nothing is stored", async () => {
 	fetchMock
 		.mockResolvedValueOnce(
-			jsonRes(200, { sessionToken: "new-tok", playerId: "p3", currency: "USD", balance: "1000.00" })
+			jsonRes(200, {
+				sessionToken: "new-tok",
+				playerId: "p3",
+				currency: "USD",
+				balance: "1000.00"
+			})
 		)
 		.mockResolvedValueOnce(current());
 
@@ -254,7 +291,14 @@ it("initSession propagates a non-401 failure while validating a restored token",
 
 it("saveRecording posts the run's world, multiplier and base64 inputs — and not its result", async () => {
 	fetchMock.mockResolvedValueOnce(
-		jsonRes(200, { id: 3, sha256: "ab", fish: "sardine", depth: "shallow", ticks: 9, duplicate: false })
+		jsonRes(200, {
+			id: 3,
+			sha256: "ab",
+			fish: "sardine",
+			depth: "shallow",
+			ticks: 9,
+			duplicate: false
+		})
 	);
 	const inputs = encodeInputs([0, 0, 1, 1, -1]);
 

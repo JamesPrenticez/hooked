@@ -32,7 +32,10 @@ export const useBetStore = create<BetStore>((set, get) => ({
 	toggle: (type, selection) => {
 		const { bets, chip } = get();
 		const key = betKey(type, selection);
-		if (key in bets) set({ bets: Object.fromEntries(Object.entries(bets).filter(([k]) => k !== key)) });
+		if (key in bets)
+			set({
+				bets: Object.fromEntries(Object.entries(bets).filter(([k]) => k !== key))
+			});
 		else set({ bets: { ...bets, [key]: chip } });
 	},
 	clear: () => set({ bets: {} })

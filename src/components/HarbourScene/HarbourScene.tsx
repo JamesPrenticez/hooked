@@ -142,7 +142,12 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	}, []);
 
 	const player = useMemo(
-		() => textures && buildPlayerFrames({ basic: textures[basicSheetUrl], extended: textures[extendedSheetUrl] }),
+		() =>
+			textures &&
+			buildPlayerFrames({
+				basic: textures[basicSheetUrl],
+				extended: textures[extendedSheetUrl]
+			}),
 		[textures]
 	);
 
@@ -158,7 +163,10 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	// the depth it was caught while the camera goes up, then is hauled to the surface and lifted out.
 	const posed = sim && boat ? hookPose(sim, view, boat.tip) : undefined;
 	// The debug waterline moves the surface the fish comes out of with it.
-	const hook = posed && { ...posed, surfaceY: posed.surfaceY === undefined ? undefined : posed.surfaceY + waterline.y };
+	const hook = posed && {
+		...posed,
+		surfaceY: posed.surfaceY === undefined ? undefined : posed.surfaceY + waterline.y
+	};
 	const shake = sim ? cameraShake(sim) : { x: 0, y: 0 };
 	// The camera pulls back about a point near the top of the screen, so the crane's jib stays high and the harbour falls away below it.
 	const seam = waterlineY(view);

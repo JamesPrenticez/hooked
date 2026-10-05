@@ -4,6 +4,7 @@ import { type Application, UPDATE_PRIORITY } from "pixi.js";
 import { initSession } from "@api";
 import { recoverFromServer } from "@components/system/roundRecovery";
 import { MIN_LOADING_MS } from "@constants/config";
+import { pixiAppRef } from "@hooks/use-canvas-freeze";
 import { useGameStore } from "@stores/gameStore";
 import { loadBootAssets } from "@utils/bootAssets";
 
@@ -47,6 +48,7 @@ export function useGameBootstrap() {
 	}, [assetsLoaded, frameRendered, minElapsed, setPhase]);
 
 	const onInit = useCallback((app: Application) => {
+		pixiAppRef.current = app;
 		// UTILITY runs after the TickerPlugin's render (registered at LOW), so
 		// this only fires once that first frame has actually been drawn.
 		app.ticker.addOnce(() => setFrameRendered(true), undefined, UPDATE_PRIORITY.UTILITY);

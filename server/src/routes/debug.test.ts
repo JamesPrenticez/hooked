@@ -68,13 +68,21 @@ test("force-outcome pins depth/fish/tier on the next round, and {} clears it", a
 		body: { depth: "jackpot", fish: "kraken", tier: "jackpot" }
 	});
 	assert.equal(forced.status, 200);
-	assert.deepEqual(forced.json.forcedOutcome, { depth: "jackpot", fish: "kraken", tier: "jackpot" });
+	assert.deepEqual(forced.json.forcedOutcome, {
+		depth: "jackpot",
+		fish: "kraken",
+		tier: "jackpot"
+	});
 
 	const start = await call("POST", "/api/game/play", {
 		token,
 		body: startBody([{ type: "fish", selection: "kraken", amount: "1.00" }])
 	});
-	assert.deepEqual(start.json.message.outcome, { depth: "jackpot", fish: "kraken", tier: "jackpot" });
+	assert.deepEqual(start.json.message.outcome, {
+		depth: "jackpot",
+		fish: "kraken",
+		tier: "jackpot"
+	});
 	assert.equal(start.json.message.bets[0].won, true);
 
 	const cleared = await call("POST", "/api/debug/force-outcome", { body: {} });
@@ -91,17 +99,24 @@ test("force-outcome can pin a single field and leave the rest rolled", async () 
 			body: startBody([{ type: "depth", selection: "abyss", amount: "1.00" }])
 		});
 		assert.equal(start.json.message.outcome.depth, "abyss");
-		await call("POST", "/api/game/play", { token, body: { message: { complete: { roundId: start.json.roundId } } } });
+		await call("POST", "/api/game/play", {
+			token,
+			body: { message: { complete: { roundId: start.json.roundId } } }
+		});
 	}
 	await call("POST", "/api/debug/force-outcome", { body: {} });
 });
 
 test("force-outcome rejects unknown depth/tier", async () => {
-	const bad = await call("POST", "/api/debug/force-outcome", { body: { depth: "moon" } });
+	const bad = await call("POST", "/api/debug/force-outcome", {
+		body: { depth: "moon" }
+	});
 	assert.equal(bad.status, 400);
 	assert.equal(bad.json.error.code, "invalid_debug_request");
 
-	const badTier = await call("POST", "/api/debug/force-outcome", { body: { tier: "mythic" } });
+	const badTier = await call("POST", "/api/debug/force-outcome", {
+		body: { tier: "mythic" }
+	});
 	assert.equal(badTier.status, 400);
 });
 
@@ -116,10 +131,14 @@ test("reset-balance restores the starting balance, or a supplied one", async () 
 	await call("POST", "/api/debug/reset-balance");
 	assert.equal((await call("GET", "/api/game/balance", { token })).json.balance, "1000.00");
 
-	await call("POST", "/api/debug/reset-balance", { body: { balance: "250.00" } });
+	await call("POST", "/api/debug/reset-balance", {
+		body: { balance: "250.00" }
+	});
 	assert.equal((await call("GET", "/api/game/balance", { token })).json.balance, "250.00");
 
-	const bad = await call("POST", "/api/debug/reset-balance", { body: { balance: "-5" } });
+	const bad = await call("POST", "/api/debug/reset-balance", {
+		body: { balance: "-5" }
+	});
 	assert.equal(bad.status, 400);
 
 	await call("POST", "/api/debug/reset-balance");
@@ -127,7 +146,9 @@ test("reset-balance restores the starting balance, or a supplied one", async () 
 
 test("simulate injects latency, then can be turned back off", async () => {
 	const token = await newSession();
-	const armed = await call("POST", "/api/debug/simulate", { body: { latencyMs: 120 } });
+	const armed = await call("POST", "/api/debug/simulate", {
+		body: { latencyMs: 120 }
+	});
 	assert.equal(armed.json.simulation.latencyMs, 120);
 
 	const t0 = Date.now();
@@ -149,12 +170,16 @@ test("simulate errorRate 1 fails other routes but not the debug routes themselve
 	assert.equal(failed.json.error.code, "simulated_error");
 
 	// The escape hatch: /api/debug/* is exempt, so this still works.
-	const off = await call("POST", "/api/debug/simulate", { body: { errorRate: 0 } });
+	const off = await call("POST", "/api/debug/simulate", {
+		body: { errorRate: 0 }
+	});
 	assert.equal(off.status, 200);
 
 	assert.equal((await call("GET", "/api/game/balance", { token })).status, 200);
 
-	const bad = await call("POST", "/api/debug/simulate", { body: { errorRate: 2 } });
+	const bad = await call("POST", "/api/debug/simulate", {
+		body: { errorRate: 2 }
+	});
 	assert.equal(bad.status, 400);
 });
 
@@ -178,11 +203,18 @@ function sandboxRun() {
 		axes.push(0);
 		step(sim, 0);
 	}
-	return { simVersion: SIM_VERSION, worldSeed: 1, multiplier: 1, inputs: toBase64(encodeInputs(axes)) };
+	return {
+		simVersion: SIM_VERSION,
+		worldSeed: 1,
+		multiplier: 1,
+		inputs: toBase64(encodeInputs(axes))
+	};
 }
 
 test("recordings saves a sandbox run after re-simulating it, and says so when it is already stored", async () => {
-	const first = await call("POST", "/api/debug/recordings", { body: sandboxRun() });
+	const first = await call("POST", "/api/debug/recordings", {
+		body: sandboxRun()
+	});
 	assert.equal(first.status, 200);
 	assert.equal(first.json.fish, "sardine");
 	assert.equal(first.json.depth, "shallow");
@@ -196,7 +228,9 @@ test("recordings saves a sandbox run after re-simulating it, and says so when it
 });
 
 test("recordings rejects a run from another sim version, and one that isn't a whole run", async () => {
-	const stale = await call("POST", "/api/debug/recordings", { body: { ...sandboxRun(), simVersion: SIM_VERSION + 1 } });
+	const stale = await call("POST", "/api/debug/recordings", {
+		body: { ...sandboxRun(), simVersion: SIM_VERSION + 1 }
+	});
 	assert.equal(stale.status, 409);
 	assert.equal(stale.json.error.code, "sim_version_mismatch");
 
@@ -212,7 +246,10 @@ test("recordings rejects a run from another sim version, and one that isn't a wh
 test("a browser on another origin can reach the API: the preflight is answered and responses allow it", async () => {
 	const preflight = await fetch(`${base}/api/debug/recordings`, {
 		method: "OPTIONS",
-		headers: { origin: "http://localhost:4200", "access-control-request-method": "POST" }
+		headers: {
+			origin: "http://localhost:4200",
+			"access-control-request-method": "POST"
+		}
 	});
 	assert.equal(preflight.status, 204);
 	assert.equal(preflight.headers.get("access-control-allow-origin"), "*");

@@ -13,7 +13,16 @@ afterEach(() => act(() => useHookStore.setState({ sim: undefined })));
 
 function land(multiplier: number, tick: number, phase: "extract" | "descend" = "extract") {
 	act(() =>
-		useHookStore.setState({ sim: { ...createSim(1), phase, multiplier, catchM: CATCH_M, phaseTick: 0, tick } })
+		useHookStore.setState({
+			sim: {
+				...createSim(1),
+				phase,
+				multiplier,
+				catchM: CATCH_M,
+				phaseTick: 0,
+				tick
+			}
+		})
 	);
 }
 

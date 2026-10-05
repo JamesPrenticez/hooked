@@ -38,7 +38,10 @@ export function BackgroundLayer({ view, desktopWide, mobileWide, tint }: Backgro
 						texture={wide}
 						x={wideFit.x + side * width + (side === 0 ? 0 : width)}
 						y={wideFit.y}
-						scale={{ x: side === 0 ? wideFit.scale.x : -wideFit.scale.x, y: wideFit.scale.y }}
+						scale={{
+							x: side === 0 ? wideFit.scale.x : -wideFit.scale.x,
+							y: wideFit.scale.y
+						}}
 						tint={tint}
 					/>
 				);

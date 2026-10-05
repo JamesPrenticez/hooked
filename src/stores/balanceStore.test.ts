@@ -13,7 +13,10 @@ it("starts empty — nothing to show until the server provides a balance", () =>
 
 it("setBalance stores the server figure and its currency together", () => {
 	useBalanceStore.getState().setBalance("1000.00", "USD");
-	expect(useBalanceStore.getState()).toMatchObject({ balance: "1000.00", currency: "USD" });
+	expect(useBalanceStore.getState()).toMatchObject({
+		balance: "1000.00",
+		currency: "USD"
+	});
 });
 
 it("setBalance replaces the previous figure — it never accumulates a delta", () => {

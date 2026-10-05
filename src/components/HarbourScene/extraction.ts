@@ -177,7 +177,12 @@ export const craneCatchLength = (multiplier: number, artLength: number, view: Si
 
 /** `helicopter.png`: the art's size, the width of its solid part (rotor tip to rotor tip), and where the winch cable
  *  leaves its belly. */
-export const HELI_ART = { width: 1536, height: 1024, solid: 1474, ring: { x: 735 / 1536, y: 800 / 1024 } };
+export const HELI_ART = {
+	width: 1536,
+	height: 1024,
+	solid: 1474,
+	ring: { x: 735 / 1536, y: 800 / 1024 }
+};
 const HELI_WIDTH = 0.24;
 const HELI_MAX_WIDTH = 0.5;
 /** It idles in the sky this much smaller — further off — than it works. */
@@ -199,7 +204,10 @@ export interface HeliLayout extends Point {
 function helipad(view: Size): Point {
 	if (view.width < view.height) return { x: HELI_IDLE.x * view.width, y: HELI_IDLE.y * view.height };
 	const scale = view.width / HELIPAD.artWidth;
-	return { x: HELIPAD.x * scale, y: horizonY(view) + (HELIPAD.y - HELIPAD.dockLine) * scale };
+	return {
+		x: HELIPAD.x * scale,
+		y: horizonY(view) + (HELIPAD.y - HELIPAD.dockLine) * scale
+	};
 }
 
 /** Where the helicopter's winch ring is: idling in the sky until called, then flying over the hook and hovering there —
@@ -216,7 +224,10 @@ export function heliLayout(
 	const fly = between(arrival, 0, 0.6) * (1 - release);
 	const pad = helipad(view);
 	const idle = heavy ? { x: view.width * 1.15, y: pad.y } : pad;
-	const hover = { x: hook.x, y: (hook.finalY ?? hook.y) - HELI_CABLE * view.height };
+	const hover = {
+		x: hook.x,
+		y: (hook.finalY ?? hook.y) - HELI_CABLE * view.height
+	};
 
 	return {
 		x: idle.x + (hover.x - idle.x) * fly,
@@ -260,7 +271,13 @@ export interface LandingScene extends BoatStance {
 	line: number;
 }
 
-const AT_REST: LandingScene = { station: 0, retire: 0, crane: 0, zoom: 1, line: 1 };
+const AT_REST: LandingScene = {
+	station: 0,
+	retire: 0,
+	crane: 0,
+	zoom: 1,
+	line: 1
+};
 
 /**
  * The boat pulls back to keep its rod tip over the hook while the fish is brought up, and — when it is too heavy for
@@ -330,7 +347,10 @@ export function cameraShake(sim: Sim): Point {
 	if (sim.phase === "hooked") amount = FIGHT_SHAKE_PX;
 	else if (sim.phase === "announce") amount = JOLT_SHAKE_PX * Math.max(0, 1 - (sim.tick - sim.phaseTick) / JOLT_TICKS);
 	if (amount <= 0) return { x: 0, y: 0 };
-	return { x: Math.sin(sim.tick * 2.1) * amount, y: Math.sin(sim.tick * 3.3 + 1) * amount * 0.6 };
+	return {
+		x: Math.sin(sim.tick * 2.1) * amount,
+		y: Math.sin(sim.tick * 3.3 + 1) * amount * 0.6
+	};
 }
 
 /** The hooked fish sways from its mouth: a slow hang, and a hard pull while it fights. Radians. */

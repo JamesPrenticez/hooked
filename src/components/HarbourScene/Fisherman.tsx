@@ -44,7 +44,10 @@ export function Fisherman({ frames, boat, tint, seconds, view }: FishermanProps)
 			anchor={BOAT_ANCHOR}
 			x={boat.x + tweak.x}
 			y={boat.y + tweak.y}
-			scale={{ x: boat.scale * tweak.scale, y: boat.scale * tweak.scale * stretchY }}
+			scale={{
+				x: boat.scale * tweak.scale,
+				y: boat.scale * tweak.scale * stretchY
+			}}
 			tint={tint}
 		/>
 	);

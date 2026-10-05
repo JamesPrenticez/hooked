@@ -19,6 +19,10 @@ const DEFAULT_ZONE_SPEEDS: Record<ZoneId, number> = {
 // Categories grow here as more get debug controls — environment and hook
 // (depth zones/speed) are the first two.
 interface DebugStore {
+	/** Whether the DEBUG modal is open — session-only, not persisted or reset. */
+	isDebugOpen: boolean;
+	setIsDebugOpen: (isDebugOpen: boolean) => void;
+
 	/** Manual time-of-day (`[0, 1)`), used in place of the live clock while frozen. */
 	timeOfDay: number;
 	/** Stops `useDayNightClock` from advancing — the range slider drives `timeOfDay` instead. */
@@ -54,6 +58,8 @@ export const useDebugStore = create<DebugStore>()(
 	persist(
 		set => ({
 			...getDefaults(),
+			isDebugOpen: false,
+			setIsDebugOpen: isDebugOpen => set({ isDebugOpen }),
 			setTimeOfDay: t => set({ timeOfDay: t }),
 			setFrozen: frozen => set({ frozen }),
 			setDepthUnit: unit => set({ depthUnit: unit }),
@@ -64,8 +70,15 @@ export const useDebugStore = create<DebugStore>()(
 					depthZones: state.depthZones.map(zone => (zone.id === id ? { ...zone, fromMeters: meters } : zone))
 				})),
 			setZoneSpeed: (id, metersPerSecond) =>
-				set(state => ({ zoneSpeeds: { ...state.zoneSpeeds, [id]: metersPerSecond } }))
+				set(state => ({
+					zoneSpeeds: { ...state.zoneSpeeds, [id]: metersPerSecond }
+				}))
 		}),
-		{ name: "deepcatch.debug", version: 3, migrate: getDefaults }
+		{
+			name: "deepcatch.debug",
+			version: 3,
+			migrate: getDefaults,
+			partialize: ({ isDebugOpen: _isDebugOpen, ...persisted }) => persisted
+		}
 	)
 );

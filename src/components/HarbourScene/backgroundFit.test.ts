@@ -48,14 +48,20 @@ describe("computeBackgroundFit", () => {
 describe("textureToScreen", () => {
 	it("maps the texture centre to the fit's anchor point", () => {
 		const fit = computeBackgroundFit({ width: 1080, height: 1920 });
-		const centre = textureToScreen(fit, { x: MOBILE.width / 2, y: MOBILE.height / 2 });
+		const centre = textureToScreen(fit, {
+			x: MOBILE.width / 2,
+			y: MOBILE.height / 2
+		});
 		expect(centre.x).toBeCloseTo(fit.x);
 		expect(centre.y).toBeCloseTo(fit.y);
 	});
 
 	it("scales an offset from the texture centre by the fit scale", () => {
 		const fit = computeBackgroundFit({ width: 1920, height: 1080 });
-		const point = textureToScreen(fit, { x: DESKTOP.width / 2 + 100, y: DESKTOP.height / 2 });
+		const point = textureToScreen(fit, {
+			x: DESKTOP.width / 2 + 100,
+			y: DESKTOP.height / 2
+		});
 		expect(point.x).toBeCloseTo(fit.x + 100 * fit.scale);
 		expect(point.y).toBeCloseTo(fit.y);
 	});

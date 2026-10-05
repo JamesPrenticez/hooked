@@ -125,7 +125,12 @@ export function resolveBet(bet: Bet, outcome: FishingOutcome): BetResult {
 	const won = bet.type === "depth" ? bet.selection === outcome.depth : bet.selection === outcome.fish;
 	const multiplier = multiplierFor(bet);
 	const payoutCents = won ? Math.round(toCents(bet.amount) * multiplier) : 0;
-	return { ...bet, won, multiplier: fromCents(Math.round(multiplier * 100)), payout: fromCents(payoutCents) };
+	return {
+		...bet,
+		won,
+		multiplier: fromCents(Math.round(multiplier * 100)),
+		payout: fromCents(payoutCents)
+	};
 }
 
 export function hasOpenRound(playerId: string): boolean {
@@ -155,8 +160,16 @@ export function openRound(playerId: string, bets: Bet[]): Round {
 		bets,
 		outcome,
 		betResults,
-		payout: { total: fromCents(total), wagered: fromCents(wagered), net: fromCents(total - wagered) },
-		seed: { serverSeedHash: seed.serverSeedHash, clientSeed: seed.clientSeed, nonce: seed.nonce },
+		payout: {
+			total: fromCents(total),
+			wagered: fromCents(wagered),
+			net: fromCents(total - wagered)
+		},
+		seed: {
+			serverSeedHash: seed.serverSeedHash,
+			clientSeed: seed.clientSeed,
+			nonce: seed.nonce
+		},
 		createdAt: Date.now()
 	};
 	byId.set(round.roundId, round);

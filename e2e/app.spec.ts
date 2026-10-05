@@ -107,7 +107,9 @@ test("a cast that reaches the bottom of the trench fights the Kraken, then reels
 	await expect(page.getByText("11,400m", { exact: true })).toBeVisible();
 
 	// Then the long reel back up.
-	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible({ timeout: 45_000 });
+	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible({
+		timeout: 45_000
+	});
 	await expect(page.getByText("11,400m", { exact: true })).not.toBeVisible();
 
 	await expect(page.locator("canvas")).toBeVisible();

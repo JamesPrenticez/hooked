@@ -52,7 +52,10 @@ describe("frameGeometry", () => {
 });
 
 describe("buildPlayerFrames", () => {
-	const frames = buildPlayerFrames({ basic: Texture.WHITE, extended: Texture.WHITE });
+	const frames = buildPlayerFrames({
+		basic: Texture.WHITE,
+		extended: Texture.WHITE
+	});
 
 	it("makes a texture for every cell, each reporting the shared box", () => {
 		expect(frames.basic.textures).toHaveLength(24);
