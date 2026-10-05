@@ -30,9 +30,12 @@
 			"@constants/*": ["./src/constants/*"],
 			"@hooks/*": ["./src/hooks/*"],
 			"@stores/*": ["./src/stores/*"],
+			"@styles/*": ["./src/styles/*"],
 			"@utils/*": ["./src/utils/*"],
 			"@type/*": ["./src/types/*"],
 			"@hooked-ui": ["./src/hooked-ui/index.ts"],
+			"@hooked-ui/*": ["./src/hooked-ui/*"],
+			"@hooked-utils/*": ["./src/hooked-ui/utils/*"],
 			"@icons": ["./src/hooked-ui/icons/index.ts"],
 			"@icons/*": ["./src/hooked-ui/icons/*"]
 		}

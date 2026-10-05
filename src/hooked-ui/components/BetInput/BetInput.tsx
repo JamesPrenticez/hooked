@@ -7,10 +7,10 @@ import {
 	useRef,
 	useState
 } from "react";
+import { useClickOutside } from "@hooked-utils/use-click-outside";
 import { ICONS } from "@icons";
 import styled from "styled-components";
 
-import { useClickOutside } from "../../utils/useClickOutside";
 import { Stepper } from "../Stepper/Stepper";
 import { StepperPopup } from "../StepperPopup/StepperPopup";
 

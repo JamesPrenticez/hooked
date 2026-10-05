@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 
 import { getRecording, listRecordings, saveRecording, verifyRecording } from "@api";
@@ -6,6 +6,7 @@ import { MAX_DEPTH_METERS, metersToFeet } from "@constants/depthZones";
 import { KRAKEN_SHEETS } from "@constants/krakenAnimations";
 import { PLAYER_ANIMATION_NAMES, PLAYER_ANIMATIONS } from "@constants/playerAnimations";
 import { Accordion, Button, Overlay } from "@hooked-ui";
+import { Modal } from "@hooked-ui/modal";
 import { useDebugStore } from "@stores/debugStore";
 import { type HookMode, TIME_SCALES, useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
@@ -25,19 +26,19 @@ import { fromBase64, type Recording } from "@utils/simRecording";
 /** The multipliers worth jumping straight to: a plain reel-in, a crane catch and a helicopter catch. */
 const MULTIPLIER_PRESETS = [MIN_MULTIPLIER, CRANE_FROM, HELICOPTER_FROM, CHINOOK_FROM, MAX_MULTIPLIER];
 
-const Modal = styled.dialog`
-	width: min(90vw, 42rem);
-	margin: auto;
-	padding: 2rem;
-	border: none;
-	border-radius: 1.2rem;
-	background: var(--color-black);
-	color: var(--color-white);
+// const Modal = styled.dialog`
+// 	width: min(90vw, 42rem);
+// 	margin: auto;
+// 	padding: 2rem;
+// 	border: none;
+// 	border-radius: 1.2rem;
+// 	background: var(--color-black);
+// 	color: var(--color-white);
 
-	&::backdrop {
-		background: color-mix(in srgb, var(--color-black) 20%, transparent);
-	}
-`;
+// 	&::backdrop {
+// 		background: color-mix(in srgb, var(--color-black) 20%, transparent);
+// 	}
+// `;
 
 const Header = styled.div`
 	display: flex;
@@ -116,7 +117,6 @@ const AnimationButton = styled(Button)`
 `;
 
 export const DebugModal = () => {
-	const dialogRef = useRef<HTMLDialogElement>(null);
 	const isDebugOpen = useDebugStore(state => state.isDebugOpen);
 	const setIsDebugOpen = useDebugStore(state => state.setIsDebugOpen);
 	const frozen = useDebugStore(state => state.frozen);
@@ -165,14 +165,11 @@ export const DebugModal = () => {
 		setSaved({ of: recording, text });
 	}
 
-	useEffect(() => {
-		if (isDebugOpen) dialogRef.current?.showModal();
-		else dialogRef.current?.close();
-	}, [isDebugOpen]);
+	if (!isDebugOpen) return null;
 
 	return (
-		<Overlay>
-			<Modal ref={dialogRef} onClose={() => setIsDebugOpen(false)}>
+		<Overlay onClick={() => setIsDebugOpen(false)}>
+			<Modal>
 				<Header>
 					<Title>Debug</Title>
 					<Actions>

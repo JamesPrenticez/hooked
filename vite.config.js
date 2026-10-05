@@ -24,13 +24,15 @@ export default defineConfig(({ mode }) => {
 				"@constants": path.resolve(import.meta.dirname, "./src/constants"),
 				"@hooks": path.resolve(import.meta.dirname, "./src/hooks"),
 				"@stores": path.resolve(import.meta.dirname, "./src/stores"),
+				"@styles": path.resolve(import.meta.dirname, "./src/styles"),
 				"@utils": path.resolve(import.meta.dirname, "./src/utils"),
 				// "types/" is aliased as "@type" (singular) — tsc special-cases
 				// "@types/*" specifiers as DefinitelyTyped packages (TS6137).
 				"@type": path.resolve(import.meta.dirname, "./src/types"),
 				// Vendored component library (formerly @animo-gaming/ui), addressed
 				// like the npm package it replaced.
-				"@hooked-ui": path.resolve(import.meta.dirname, "./src/hooked-ui/index.ts"),
+				"@hooked-ui": path.resolve(import.meta.dirname, "./src/hooked-ui"),
+				"@hooked-utils": path.resolve(import.meta.dirname, "./src/hooked-ui/utils"),
 				"@icons": path.resolve(import.meta.dirname, "./src/hooked-ui/icons")
 			}
 		},
