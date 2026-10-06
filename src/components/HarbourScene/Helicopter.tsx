@@ -8,8 +8,6 @@ interface HelicopterProps {
 	view: { width: number; height: number };
 	/** `helicopter.png`; `undefined` until it loads. */
 	texture?: Texture;
-	/** Day / night multiply tint from `computeAmbience`. */
-	tint: number;
 	/** The hook, while a fish is being landed — the helicopter flies in over it and winches the fish up. */
 	hook?: HookPose;
 	/** The Chinook: the same helicopter, bigger, that takes the fish from the helicopter. */
@@ -17,7 +15,7 @@ interface HelicopterProps {
 }
 
 /** The helicopter, parked still on the skyline's helipad until a catch calls it in. Faces left, as the art is drawn. */
-export function Helicopter({ view, texture, tint, hook, heavy = false }: HelicopterProps) {
+export function Helicopter({ view, texture, hook, heavy = false }: HelicopterProps) {
 	const tweak = useLayout("helicopter", view);
 	if (!texture) return null;
 
@@ -40,7 +38,7 @@ export function Helicopter({ view, texture, tint, hook, heavy = false }: Helicop
 	return (
 		<>
 			<pixiContainer x={ring.x} y={ring.y} scale={heli.scale * tweak.scale}>
-				<pixiSprite texture={texture} anchor={HELI_ART.ring} tint={tint} />
+				<pixiSprite texture={texture} anchor={HELI_ART.ring} />
 			</pixiContainer>
 			{reach > 0 && (
 				<pixiGraphics

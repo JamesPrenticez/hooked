@@ -1,11 +1,11 @@
 import { Assets, type Texture } from "pixi.js";
 
+import bgDesktopUrl from "@assets/background/bg-desktop.png";
+import bgMobileUrl from "@assets/background/bg-mobile.png";
 import boomSegmentUrl from "@assets/dock-crane/boom-segment.png";
 import boomTipUrl from "@assets/dock-crane/boom-tip.png";
 import towerUrl from "@assets/dock-crane/tower.png";
 import helicopterUrl from "@assets/helicopter/helicopter.png";
-import bgDesktopWideUrl from "@assets/layers/hub/background/bg-desktop-wide.png";
-import bgMobileWideUrl from "@assets/layers/hub/background/bg-mobile-wide.png";
 import seamUrl from "@assets/layers/hub/water/seam.png";
 import causticsUrl from "@assets/layers/hub/water/underwater-caustics.webp";
 import shaftsUrl from "@assets/layers/hub/water/underwater-shafts.webp";
@@ -25,8 +25,8 @@ export const mipmapped = (src: string) => ({
 
 /** Everything the game scenes draw from the first frame, so nothing pops in after the loading screen. */
 const BOOT_ASSETS = [
-	bgDesktopWideUrl,
-	bgMobileWideUrl,
+	bgDesktopUrl,
+	bgMobileUrl,
 	mipmapped(waterTileUrl),
 	mipmapped(seamUrl),
 	basicSheetUrl,

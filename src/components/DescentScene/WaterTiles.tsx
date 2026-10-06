@@ -64,8 +64,6 @@ interface WaterTilesProps {
 	/** `cameraScroll` for the current depth. */
 	scroll: number;
 	ambience: DepthAmbience;
-	/** Day / night multiply tint from the harbour's `computeAmbience`. */
-	tint: number;
 	/** Wall-clock seconds (`useElapsedSeconds`), driving the drift. */
 	seconds: number;
 }
@@ -73,7 +71,7 @@ interface WaterTilesProps {
 /** The underwater's surface detail — caustics near the top, light shafts and
  *  drifting particles all the way down — drawn additively over `WaterLayer`.
  *  Nothing renders until the two tiles load. */
-export function WaterTiles({ view, y, scroll, ambience, tint, seconds }: WaterTilesProps) {
+export function WaterTiles({ view, y, scroll, ambience, seconds }: WaterTilesProps) {
 	const [textures, setTextures] = useState(() => cachedTextures([causticsUrl, shaftsUrl]));
 
 	useEffect(() => {
@@ -112,7 +110,6 @@ export function WaterTiles({ view, y, scroll, ambience, tint, seconds }: WaterTi
 						alpha={alpha}
 						// Too faint to see this deep, so skip the full-screen pass.
 						visible={alpha > 0.01}
-						tint={tint}
 					/>
 				);
 			})}

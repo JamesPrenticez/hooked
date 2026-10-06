@@ -87,9 +87,6 @@ interface WaterLayerProps {
 	bottom: number;
 	/** `0`..`1` dark overlay strength — light falloff with depth. */
 	darkness: number;
-	/** Day / night multiply tint from the harbour's `computeAmbience`, so the
-	 *  water under the boat matches the light above it. */
-	tint: number;
 }
 
 /** The underwater backdrop: a vertical gradient that darkens with depth. It's
@@ -99,8 +96,8 @@ interface WaterLayerProps {
  *  `top`/`bottom` colours cost a few uniform writes per frame instead of the
  *  canvas fill + texture upload a rebuilt `FillGradient` needs
  *  (docs/PERFORMANCE.md). */
-export function WaterLayer({ view, y, top, bottom, darkness, tint }: WaterLayerProps) {
+export function WaterLayer({ view, y, top, bottom, darkness }: WaterLayerProps) {
 	useLayoutEffect(() => setWater(top, bottom, darkness), [top, bottom, darkness]);
 
-	return <pixiMesh geometry={quad} shader={shader} y={y} tint={tint} scale={{ x: view.width, y: view.height }} />;
+	return <pixiMesh geometry={quad} shader={shader} y={y} scale={{ x: view.width, y: view.height }} />;
 }

@@ -8,8 +8,6 @@ interface DockCraneProps {
 	view: { width: number; height: number };
 	/** The crane's three pieces (`tower.png`, `boom-segment.png`, `boom-tip.png`); `undefined` until they load. */
 	textures?: { tower?: Texture; segment?: Texture; tip?: Texture };
-	/** Day / night multiply tint from `computeAmbience`. */
-	tint: number;
 	/** How far the crane has come out from its pier onto the job (`landingScene`), 0..1. */
 	out: number;
 	/** The hook, while a fish is being landed — the crane's cable pays out to it once the crane is called in. */
@@ -21,7 +19,7 @@ interface DockCraneProps {
  * until a catch is too heavy for the rod. Then it stays put on its pier, growing while its boom runs out until the
  * tip is over the hook at the middle of the screen; its hoist cable pays out from the tip to the hook and lifts the fish.
  */
-export function DockCrane({ view, textures, tint, out, hook }: DockCraneProps) {
+export function DockCrane({ view, textures, out, hook }: DockCraneProps) {
 	const tweak = useLayout("crane", view);
 	if (!textures?.tower || !textures.segment || !textures.tip) return null;
 
@@ -66,7 +64,6 @@ export function DockCrane({ view, textures, tint, out, hook }: DockCraneProps) {
 								x: BOOM_ART.segment.scale,
 								y: BOOM_ART.segment.scale
 							}}
-							tint={tint}
 						/>
 					)}
 					<pixiSprite
@@ -74,9 +71,8 @@ export function DockCrane({ view, textures, tint, out, hook }: DockCraneProps) {
 						x={CRANE_ART.mount.x + crane.boom - BOOM_ART.tip.overlap}
 						y={BOOM_ART.tip.y}
 						scale={{ x: BOOM_ART.tip.scale, y: BOOM_ART.tip.scale }}
-						tint={tint}
 					/>
-					<pixiSprite texture={textures.tower} tint={tint} />
+					<pixiSprite texture={textures.tower} />
 				</pixiContainer>
 			</pixiContainer>
 			{reach > 0 && (

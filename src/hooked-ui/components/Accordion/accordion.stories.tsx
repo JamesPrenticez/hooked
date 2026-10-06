@@ -37,8 +37,8 @@ export const Dark: Story = {
 export const Group: Story = {
 	render: args => (
 		<div>
-			<Accordion {...args} title="Environment" open>
-				Time of day and freeze controls.
+			<Accordion {...args} title="Display" open>
+				Unit controls.
 			</Accordion>
 			<Accordion {...args} title="Hook">
 				Depth zones and speeds.

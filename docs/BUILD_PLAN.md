@@ -608,7 +608,6 @@ casting will need a rod tip per frame.
 - [ ] Crane movement
 - [ ] Birds
 - [x] Water movement
-- [x] Day/Night Cycle
 - [ ] Jack pot sign
 
 ### Acceptance Criteria

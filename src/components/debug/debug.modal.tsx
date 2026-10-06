@@ -119,10 +119,6 @@ const AnimationButton = styled(Button)`
 export const DebugModal = () => {
 	const isDebugOpen = useDebugStore(state => state.isDebugOpen);
 	const setIsDebugOpen = useDebugStore(state => state.setIsDebugOpen);
-	const frozen = useDebugStore(state => state.frozen);
-	const setFrozen = useDebugStore(state => state.setFrozen);
-	const timeOfDay = useDebugStore(state => state.timeOfDay);
-	const setTimeOfDay = useDebugStore(state => state.setTimeOfDay);
 
 	const depthUnit = useDebugStore(state => state.depthUnit);
 	const setDepthUnit = useDebugStore(state => state.setDepthUnit);
@@ -181,27 +177,6 @@ export const DebugModal = () => {
 						</Button>
 					</Actions>
 				</Header>
-
-				<Accordion title="Environment" theme="dark" open>
-					<Fields>
-						<Field>
-							Time of day
-							<input
-								type="range"
-								min={0}
-								max={1}
-								step={0.01}
-								value={timeOfDay}
-								onChange={e => setTimeOfDay(Number(e.target.value))}
-							/>
-						</Field>
-
-						<CheckField>
-							<input type="checkbox" checked={frozen} onChange={e => setFrozen(e.target.checked)} />
-							Freeze cycle (stop looping)
-						</CheckField>
-					</Fields>
-				</Accordion>
 
 				<Accordion title="Hook" theme="dark">
 					<Fields>

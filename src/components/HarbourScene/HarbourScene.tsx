@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useApplication } from "@pixi/react";
 import { Assets } from "pixi.js";
 
+import bgDesktopUrl from "@assets/background/bg-desktop.png";
+import bgMobileUrl from "@assets/background/bg-mobile.png";
 import boomSegmentUrl from "@assets/dock-crane/boom-segment.png";
 import boomTipUrl from "@assets/dock-crane/boom-tip.png";
 import towerUrl from "@assets/dock-crane/tower.png";
 import helicopterUrl from "@assets/helicopter/helicopter.png";
-import bgDesktopWideUrl from "@assets/layers/hub/background/bg-desktop-wide.png";
-import bgMobileWideUrl from "@assets/layers/hub/background/bg-mobile-wide.png";
 import seamUrl from "@assets/layers/hub/water/seam.png";
 import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
 import basicSheetUrl from "@assets/player/player-idle-cast-reel.png";
@@ -16,15 +16,12 @@ import { DescentScene } from "@components/DescentScene";
 import { Creatures } from "@components/DescentScene/Creatures";
 import { FishingLine } from "@components/DescentScene/FishingLine";
 import { useAnimatedNumber } from "@hooks/useAnimatedNumber";
-import { useDayNightClock } from "@hooks/useDayNightClock";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
 import { layoutTweak, useTweak } from "@stores/harbourDebugStore";
 import { useHookStore } from "@stores/hookStore";
 import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
-import { computeAmbience } from "./ambience";
 import { BackgroundLayer } from "./BackgroundLayer";
-import { CelestialBody } from "./CelestialBody";
 import { DockCrane } from "./DockCrane";
 import {
 	cameraShake,
@@ -41,7 +38,6 @@ import { Helicopter } from "./Helicopter";
 import { OceanLayer } from "./OceanLayer";
 import { buildPlayerFrames } from "./playerFrames";
 import { SeamWaves } from "./SeamWaves";
-import { SkyLayer } from "./SkyLayer";
 import { waterSwell } from "./waterSwell";
 
 /**
@@ -56,11 +52,9 @@ import { waterSwell } from "./waterSwell";
  * the whole screen. Ascending plays it in reverse, so the return is seamless
  * too.
  *
- * Real art lands one layer at a time. The background strip (`bg-desktop-wide` /
- * `bg-mobile-wide`, picked by viewport shape — see `backgroundFit`) is in and
- * carries the buildings and docks. The sky, sun / moon and overall light level
- * are code, cycled through a day / night loop by `useDayNightClock` +
- * `computeAmbience` — the strip is painted at midday and tinted from there.
+ * Real art lands one layer at a time. The static background (`bg-desktop` /
+ * `bg-mobile`, picked by viewport shape — see `backgroundFit`) is in and
+ * carries the sky, buildings and docks.
  * `OceanLayer` fills the strip's transparent lower zone with a scrolling water
  * tile once it loads (falling back to the flat `ocean` placeholder from
  * `layers.ts` until then); the other placeholders stay in `layers.ts` as the
@@ -83,8 +77,8 @@ interface HarbourSceneProps {
 }
 
 const HARBOUR_URLS = [
-	bgDesktopWideUrl,
-	bgMobileWideUrl,
+	bgDesktopUrl,
+	bgMobileUrl,
 	waterTileUrl,
 	seamUrl,
 	basicSheetUrl,
@@ -98,7 +92,6 @@ const HARBOUR_URLS = [
 export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const { app, isInitialised } = useApplication();
 	const [textures, setTextures] = useState(() => cachedTextures(HARBOUR_URLS));
-	const t = useDayNightClock();
 	const seconds = useElapsedSeconds();
 	const sim = useHookStore(state => state.sim);
 	const waterlineTweak = useTweak("waterline");
@@ -122,8 +115,8 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 		// mipmaps. The player sheets are drawn larger than their 256px frames, so
 		// they don't.
 		Assets.load([
-			bgDesktopWideUrl,
-			bgMobileWideUrl,
+			bgDesktopUrl,
+			bgMobileUrl,
 			mipmapped(waterTileUrl),
 			mipmapped(seamUrl),
 			basicSheetUrl,
@@ -156,7 +149,6 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 
 	const view = { width: app.screen.width, height: app.screen.height };
 	const waterline = layoutTweak("waterline", view, waterlineTweak);
-	const { skyTop, skyHorizon, bgTint, windowGlow, celestial } = computeAmbience(t, view);
 	const scroll = cameraScroll(depth, view);
 	const boat = player && boatLayout(view, waterSwell(seconds), scene);
 	// Where the hook hangs, which is no longer where the camera is once a fish is on it: it stays at
@@ -177,30 +169,15 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 
 	return (
 		<pixiContainer x={shake.x} y={shake.y}>
-			<DescentScene depth={depth} tint={bgTint} seconds={seconds} surfaceY={pivotY + (surface - pivotY) * scene.zoom} />
+			<DescentScene depth={depth} seconds={seconds} surfaceY={pivotY + (surface - pivotY) * scene.zoom} />
 			<pixiContainer x={(view.width / 2) * (1 - scene.zoom)} y={pivotY * (1 - scene.zoom)} scale={scene.zoom}>
 				{/* The harbour layers have nothing to draw once the camera has scrolled them
 				    off-screen, but the fishing line and hook follow the hook down. */}
 				<pixiContainer y={-scroll}>
 					<pixiContainer visible={scroll < seam}>
-						<SkyLayer view={view} skyTop={skyTop} skyHorizon={skyHorizon} />
-						<OceanLayer
-							view={view}
-							surface={surface}
-							tint={bgTint}
-							texture={textures?.[waterTileUrl]}
-							seconds={seconds}
-							celestial={celestial}
-							windowGlow={windowGlow}
-						/>
-						<CelestialBody view={view} celestial={celestial} />
-						<BackgroundLayer
-							view={view}
-							desktopWide={textures?.[bgDesktopWideUrl]}
-							mobileWide={textures?.[bgMobileWideUrl]}
-							tint={bgTint}
-						/>
-						<SeamWaves surface={surface} view={view} tint={bgTint} texture={textures?.[seamUrl]} seconds={seconds} />
+						<OceanLayer view={view} surface={surface} texture={textures?.[waterTileUrl]} seconds={seconds} />
+						<BackgroundLayer view={view} desktop={textures?.[bgDesktopUrl]} mobile={textures?.[bgMobileUrl]} />
+						<SeamWaves surface={surface} view={view} texture={textures?.[seamUrl]} seconds={seconds} />
 						{/* Part of the harbour, just chilling until a catch is too heavy for the rod — and then out in front of it. */}
 						<DockCrane
 							view={view}
@@ -209,13 +186,12 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 								segment: textures?.[boomSegmentUrl],
 								tip: textures?.[boomTipUrl]
 							}}
-							tint={bgTint}
 							out={scene.crane}
 							hook={hook}
 						/>
 						{/* Called in over the crane for a heavier catch, and the Chinook over it for a heavier one still. */}
-						<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} hook={hook} />
-						<Helicopter view={view} texture={textures?.[helicopterUrl]} tint={bgTint} hook={hook} heavy />
+						<Helicopter view={view} texture={textures?.[helicopterUrl]} hook={hook} />
+						<Helicopter view={view} texture={textures?.[helicopterUrl]} hook={hook} heavy />
 					</pixiContainer>
 					{boat && (
 						<FishingLine
@@ -230,7 +206,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 							lineAlpha={scene.line}
 						/>
 					)}
-					{player && boat && <Fisherman frames={player} boat={boat} tint={bgTint} seconds={seconds} view={view} />}
+					{player && boat && <Fisherman frames={player} boat={boat} seconds={seconds} view={view} />}
 				</pixiContainer>
 				{/* Above the hook: the hooked fish overlaps it. */}
 				<Creatures view={view} depth={depth} seconds={seconds} hook={hook} onlyHooked />

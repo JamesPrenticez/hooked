@@ -19,8 +19,6 @@ const PASSES = [
 
 interface SeamWavesProps {
 	view: HarbourView;
-	/** Day / night multiply tint from `computeAmbience`. */
-	tint: number;
 	/** Horizontally tileable wave strip on black (`seam.png`); nothing renders
 	 *  until it loads. */
 	texture?: Texture;
@@ -33,7 +31,7 @@ interface SeamWavesProps {
 /** Hides the join between the harbour water and the underwater: a row of small
  *  wave crests centred on the waterline, drawn additively so the strip's black
  *  vanishes and only the foam and teal body show over both. */
-export function SeamWaves({ view, tint, texture, seconds, surface }: SeamWavesProps) {
+export function SeamWaves({ view, texture, seconds, surface }: SeamWavesProps) {
 	if (!texture) return null;
 	const waterline = surface ?? waterlineY(view);
 	const left = -view.width * OVERSCAN;
@@ -55,7 +53,6 @@ export function SeamWaves({ view, tint, texture, seconds, surface }: SeamWavesPr
 						tilePosition={{ x: seconds * pass.drift - left, y: 0 }}
 						blendMode="add"
 						alpha={pass.alpha}
-						tint={tint}
 					/>
 				);
 			})}

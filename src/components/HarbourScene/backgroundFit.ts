@@ -15,23 +15,22 @@ export interface BackgroundFit {
 	y: number;
 }
 
-/** The pixel grid the landmarks, `DOCK_LINE` and `WIDE_FIT` are measured in — the size of the retired
- *  `bg-desktop` / `bg-mobile` exports, kept as a coordinate frame now that only the wide art is drawn. */
+/** The pixel size of the `bg-desktop` / `bg-mobile` exports — the grid `DOCK_LINE` and the landmarks are measured in. */
 const FRAME = {
-	desktop: { width: 2560, height: 1441 },
-	mobile: { width: 941, height: 1670 }
+	desktop: { width: 1774, height: 887 },
+	mobile: { width: 941, height: 1672 }
 };
 
 /** Where the docks' waterline sits in each export, as a fraction of the art's
  *  height — the bottom edge of the pier that spans the middle of the frame.
  *  Measured off the current art; retune if it's re-exported. */
-const DOCK_LINE = { desktop: 0.438, mobile: 0.411 };
+const DOCK_LINE = { desktop: 0.617, mobile: 0.644 };
 
 /**
  * Picks the frame for the current viewport and places it so the docks'
  * waterline sits on the horizon (`HORIZON_Y`, the top third of the screen) —
  * sky, city and docks above it, the harbour water below. Two art shapes
- * (docs/ASSETS.md — portrait-first, wide desktop also supported):
+ * (docs/ASSETS.md — portrait-first, desktop also supported):
  *
  * - **landscape** (`w >= h`): the desktop frame.
  * - **portrait** (`w < h`): the 9:16 mobile frame.
@@ -67,24 +66,5 @@ export function textureToScreen(fit: BackgroundFit, point: { x: number; y: numbe
 	return {
 		x: fit.x + (point.x - fit.texture.width / 2) * fit.scale,
 		y: fit.y + (point.y - fit.texture.height / 2) * fit.scale
-	};
-}
-
-/** Where each wide export sits in the frame: a wide pixel (u, v) is the frame pixel (ax·u + bx, ay·v + by).
- *  Measured by matching against the old standard exports; retune if the wide art is re-exported. The wide art
- *  runs on past the frame's edges for when the camera pulls out (`ZOOM_OUT`). */
-const WIDE_FIT = {
-	desktop: { ax: 1.96, bx: -751.3, ay: 2.07, by: -251.4 },
-	mobile: { ax: 1.91, bx: -1149, ay: 1.91, by: -172.8 }
-};
-
-/** Where to draw the wide export (top-left anchored) so it lines up with the frame placed by `fit`. */
-export function computeWideFit(fit: BackgroundFit, landscape: boolean) {
-	const { ax, bx, ay, by } = WIDE_FIT[landscape ? "desktop" : "mobile"];
-	const { texture, scale } = fit;
-	return {
-		x: fit.x + (bx - texture.width / 2) * scale,
-		y: fit.y + (by - texture.height / 2) * scale,
-		scale: { x: ax * scale, y: ay * scale }
 	};
 }

@@ -18,8 +18,6 @@ interface DescentSceneProps {
 	/** Metres below the boat — owned by App so the HTML depth readout can
 	 *  share the same number (`useDescentDepth`). */
 	depth: number;
-	/** Day / night multiply tint from `computeAmbience`. */
-	tint: number;
 	/** Wall-clock seconds — HarbourScene's clock, so the Kraken and the hook the
 	 *  fishing line draws stay in step. */
 	seconds: number;
@@ -38,7 +36,7 @@ interface DescentSceneProps {
  * harbour. No catch mechanic, target outcome or server round yet: this is the
  * visual descent loop only.
  */
-export function DescentScene({ depth, tint, seconds, surfaceY }: DescentSceneProps) {
+export function DescentScene({ depth, seconds, surfaceY }: DescentSceneProps) {
 	const { app, isInitialised } = useApplication();
 	const depthZones = useDebugStore(state => state.depthZones);
 	const depthUnit = useDebugStore(state => state.depthUnit);
@@ -65,9 +63,8 @@ export function DescentScene({ depth, tint, seconds, surfaceY }: DescentScenePro
 				top={ambience.waterTop}
 				bottom={ambience.waterBottom}
 				darkness={ambience.darkness}
-				tint={tint}
 			/>
-			<WaterTiles view={view} y={waterY} scroll={scroll} ambience={ambience} tint={tint} seconds={seconds} />
+			<WaterTiles view={view} y={waterY} scroll={scroll} ambience={ambience} seconds={seconds} />
 			<DepthMarkers view={view} depth={depth} zones={depthZones} unit={depthUnit} />
 			<Creatures view={view} depth={depth} seconds={seconds} />
 			<HitboxOverlay view={view} depth={depth} />

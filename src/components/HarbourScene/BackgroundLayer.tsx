@@ -2,50 +2,42 @@ import type { Texture } from "pixi.js";
 
 import { tweakProps, useLayout } from "@stores/harbourDebugStore";
 
-import { computeBackgroundFit, computeWideFit } from "./backgroundFit";
+import { computeBackgroundFit } from "./backgroundFit";
 import type { HarbourView } from "./layers";
 
 interface BackgroundLayerProps {
 	view: HarbourView;
-	/** `bg-desktop-wide` / `bg-mobile-wide`; `undefined` until the load resolves. */
-	desktopWide?: Texture;
-	mobileWide?: Texture;
-	/** Day / night multiply tint from `computeAmbience`. */
-	tint: number;
+	/** `bg-desktop` / `bg-mobile`; `undefined` until the load resolves. */
+	desktop?: Texture;
+	mobile?: Texture;
 }
 
 /**
- * The harbour background strip — real art carrying the buildings, dock and
- * cranes, painted at midday and tinted for the time of day. Picks the
- * desktop or mobile export by viewport shape (see `backgroundFit`).
+ * The harbour background — real art carrying the sky, buildings and docks.
+ * Picks the desktop or mobile export by viewport shape (see `backgroundFit`).
  */
-export function BackgroundLayer({ view, desktopWide, mobileWide, tint }: BackgroundLayerProps) {
+export function BackgroundLayer({ view, desktop, mobile }: BackgroundLayerProps) {
 	const tweak = useLayout("background", view);
 	const landscape = view.width >= view.height;
-	const wide = landscape ? desktopWide : mobileWide;
-	if (!wide) return null;
-	const bg = computeBackgroundFit(view);
-	const wideFit = computeWideFit(bg, landscape);
+	const texture = landscape ? desktop : mobile;
+	if (!texture) return null;
+	const fit = computeBackgroundFit(view);
+	const width = texture.width * fit.scale;
+	const left = fit.x - width / 2;
+	const top = fit.y - (texture.height * fit.scale) / 2;
 
-	// Mirrored copies carry the wide art on past its own ends, so the harbour never just stops.
+	// Mirrored copies carry the art on past its own ends, so the harbour never just stops.
 	return (
 		<pixiContainer {...tweakProps(tweak, { x: view.width / 2, y: view.height / 2 })}>
-			{[-1, 0, 1].map(side => {
-				const width = wide.width * wideFit.scale.x;
-				return (
-					<pixiSprite
-						key={side}
-						texture={wide}
-						x={wideFit.x + side * width + (side === 0 ? 0 : width)}
-						y={wideFit.y}
-						scale={{
-							x: side === 0 ? wideFit.scale.x : -wideFit.scale.x,
-							y: wideFit.scale.y
-						}}
-						tint={tint}
-					/>
-				);
-			})}
+			{[-1, 0, 1].map(side => (
+				<pixiSprite
+					key={side}
+					texture={texture}
+					x={left + side * width + (side === 0 ? 0 : width)}
+					y={top}
+					scale={{ x: side === 0 ? fit.scale : -fit.scale, y: fit.scale }}
+				/>
+			))}
 		</pixiContainer>
 	);
 }

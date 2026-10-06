@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { computeBackgroundFit, computeWideFit, textureToScreen } from "./backgroundFit";
+import { computeBackgroundFit, textureToScreen } from "./backgroundFit";
 import { horizonY } from "./framing";
 
-const DESKTOP = { width: 2560, height: 1441 };
-const MOBILE = { width: 941, height: 1670 };
+const DESKTOP = { width: 1774, height: 887 };
+const MOBILE = { width: 941, height: 1672 };
 
 /** Screen y of the docks' waterline for a fit — the line the strip is placed by. */
 function dockLineY(fit: ReturnType<typeof computeBackgroundFit>, fraction: number) {
@@ -12,18 +12,18 @@ function dockLineY(fit: ReturnType<typeof computeBackgroundFit>, fraction: numbe
 }
 
 describe("computeBackgroundFit", () => {
-	it("draws the wide desktop export fit to viewport width in landscape", () => {
+	it("draws the desktop export fit to viewport width in landscape", () => {
 		const fit = computeBackgroundFit({ width: 1920, height: 1080 });
 
 		expect(fit.texture).toEqual(DESKTOP);
-		expect(fit.scale).toBeCloseTo(1920 / 2560);
+		expect(fit.scale).toBeCloseTo(1920 / 1774);
 		expect(fit.x).toBeCloseTo(960);
 	});
 
 	it("drops the docks' waterline below the top-third horizon in landscape", () => {
 		const fit = computeBackgroundFit({ width: 1920, height: 1080 });
 
-		expect(dockLineY(fit, 0.438)).toBeCloseTo(horizonY({ width: 1920, height: 1080 }));
+		expect(dockLineY(fit, 0.617)).toBeCloseTo(horizonY({ width: 1920, height: 1080 }));
 	});
 
 	it("draws the portrait composition fit to viewport width in portrait", () => {
@@ -37,7 +37,7 @@ describe("computeBackgroundFit", () => {
 	it("puts the docks' waterline on the top-third horizon in portrait", () => {
 		const fit = computeBackgroundFit({ width: 390, height: 844 });
 
-		expect(dockLineY(fit, 0.411)).toBeCloseTo(844 / 3);
+		expect(dockLineY(fit, 0.644)).toBeCloseTo(844 / 3);
 	});
 
 	it("treats an exact square as landscape", () => {
@@ -64,21 +64,5 @@ describe("textureToScreen", () => {
 		});
 		expect(point.x).toBeCloseTo(fit.x + 100 * fit.scale);
 		expect(point.y).toBeCloseTo(fit.y);
-	});
-});
-
-describe("computeWideFit", () => {
-	it("draws the wide art further back than the standard one, its middle over the standard art", () => {
-		for (const view of [
-			{ width: 1920, height: 1080 },
-			{ width: 390, height: 844 }
-		]) {
-			const landscape = view.width >= view.height;
-			const fit = computeBackgroundFit(view);
-			const wide = computeWideFit(fit, landscape);
-			// Each wide pixel is less than a standard one, and the art starts left of the standard art's edge.
-			expect(wide.scale.x).toBeGreaterThan(0);
-			expect(wide.x).toBeLessThan(fit.x - (fit.texture.width / 2) * fit.scale);
-		}
 	});
 });

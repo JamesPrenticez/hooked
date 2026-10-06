@@ -1,11 +1,20 @@
-import { mix } from "@components/HarbourScene/ambience";
 import { DEPTH_ZONES, type DepthZone, zoneForDepth } from "@constants/depthZones";
+
+/** Linear blend of two `0xRRGGBB` colours in RGB space. */
+function mix(a: number, b: number, u: number): number {
+	const ar = (a >> 16) & 0xff;
+	const ag = (a >> 8) & 0xff;
+	const ab = a & 0xff;
+	const r = Math.round(ar + (((b >> 16) & 0xff) - ar) * u);
+	const g = Math.round(ag + (((b >> 8) & 0xff) - ag) * u);
+	const bl = Math.round(ab + ((b & 0xff) - ab) * u);
+	return (r << 16) | (g << 8) | bl;
+}
 
 /**
  * Depth-driven ambience for the underwater environment — the water gradient
- * darkens and the top/bottom hues cool as the hook sinks, same keyframe +
- * blend technique as the harbour's day/night `computeAmbience`, but indexed
- * by metres instead of time of day (no wraparound: the jackpot layer holds).
+ * darkens and the top/bottom hues cool as the hook sinks, blended between
+ * keyframes indexed by metres (no wraparound: the jackpot layer holds).
  */
 export interface DepthAmbience {
 	waterTop: number;

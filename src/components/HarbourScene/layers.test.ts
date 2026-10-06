@@ -21,21 +21,12 @@ function fakeGraphics(): Graphics {
 }
 
 it("registers the §7.1 environment layers back-to-front", () => {
-	expect(HARBOUR_LAYERS.map(l => l.id)).toEqual([
-		"sky",
-		"buildings",
-		"ocean",
-		"boats",
-		"dock",
-		"cranes",
-		"props",
-		"lighting"
-	]);
+	expect(HARBOUR_LAYERS.map(l => l.id)).toEqual(["buildings", "ocean", "boats", "dock", "cranes", "props"]);
 });
 
 it("covers every §7.1 checklist item", () => {
 	const covered = HARBOUR_LAYERS.map(l => l.covers).join(" ");
-	for (const item of ["Harbour", "Dock", "Ocean", "Buildings", "Cranes", "Boats", "Props", "Lighting"]) {
+	for (const item of ["Harbour", "Dock", "Ocean", "Buildings", "Cranes", "Boats", "Props"]) {
 		expect(covered).toContain(item);
 	}
 });

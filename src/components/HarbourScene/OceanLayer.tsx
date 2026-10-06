@@ -2,10 +2,8 @@ import type { Texture } from "pixi.js";
 
 import { useLayout } from "@stores/harbourDebugStore";
 
-import type { Celestial } from "./ambience";
 import { horizonY, waterlineY } from "./framing";
 import { HARBOUR_LAYERS, type HarbourView, OVERSCAN } from "./layers";
-import { WaterReflections } from "./WaterReflections";
 import { waterSwell } from "./waterSwell";
 
 const ocean = HARBOUR_LAYERS.find(layer => layer.id === "ocean");
@@ -49,19 +47,11 @@ const LAYERS = [
 
 interface OceanLayerProps {
 	view: HarbourView;
-	/** Day / night multiply tint from `computeAmbience`. */
-	tint: number;
 	/** Seamless water tile (docs/ASSETS.md); `undefined` until it loads, or
 	 *  forever if it's never supplied — the flat placeholder still renders. */
 	texture?: Texture;
 	/** Wall-clock seconds (`useElapsedSeconds`), driving the scroll. */
 	seconds: number;
-	/** Position, colour and glow strength from `computeAmbience` — the moon /
-	 *  sun glint's source. */
-	celestial: Celestial;
-	/** `0`..`1` overlay strength from `computeAmbience` — the waterline's
-	 *  lit-building glow. */
-	windowGlow: number;
 	/** World y of the water’s surface, where the underwater begins: the waterline at rest, dropping away as a landing pulls the camera back. */
 	surface?: number;
 }
@@ -73,21 +63,10 @@ interface OceanLayerProps {
  * copies so the surface doesn't read as one rigid sheet — see its comment.
  * Until the texture loads, the flat placeholder from `layers.ts` fills the
  * same band.
- * `WaterReflections` adds the moon / building-light shine on top either way.
  */
-export function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow, surface }: OceanLayerProps) {
+export function OceanLayer({ view, texture, seconds, surface }: OceanLayerProps) {
 	const baseTop = horizonY(view) + useLayout("water", view).y;
 	const bottom = surface ?? waterlineY(view);
-	const reflections = (
-		<WaterReflections
-			view={view}
-			celestial={celestial}
-			windowGlow={windowGlow}
-			waterTop={baseTop}
-			waterBottom={bottom}
-			seconds={seconds}
-		/>
-	);
 
 	if (texture) {
 		const left = -view.width * OVERSCAN;
@@ -109,12 +88,10 @@ export function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow
 								x: seconds * layer.driftX - left,
 								y: seconds * layer.driftY
 							}}
-							tint={tint}
 							alpha={layer.alpha}
 						/>
 					);
 				})}
-				{reflections}
 			</pixiContainer>
 		);
 	}
@@ -122,8 +99,7 @@ export function OceanLayer({ view, tint, texture, seconds, celestial, windowGlow
 	if (!ocean) return null;
 	return (
 		<pixiContainer>
-			<pixiGraphics tint={tint} draw={g => ocean.draw(g.clear(), view)} />
-			{reflections}
+			<pixiGraphics draw={g => ocean.draw(g.clear(), view)} />
 		</pixiContainer>
 	);
 }

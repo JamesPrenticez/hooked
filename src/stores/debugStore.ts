@@ -16,19 +16,11 @@ const DEFAULT_ZONE_SPEEDS: Record<ZoneId, number> = {
 };
 
 // Dev-only overrides surfaced by the DEBUG panel (bottom-right, all phases).
-// Categories grow here as more get debug controls — environment and hook
-// (depth zones/speed) are the first two.
+// Categories grow here as more get debug controls.
 interface DebugStore {
 	/** Whether the DEBUG modal is open — session-only, not persisted or reset. */
 	isDebugOpen: boolean;
 	setIsDebugOpen: (isDebugOpen: boolean) => void;
-
-	/** Manual time-of-day (`[0, 1)`), used in place of the live clock while frozen. */
-	timeOfDay: number;
-	/** Stops `useDayNightClock` from advancing — the range slider drives `timeOfDay` instead. */
-	frozen: boolean;
-	setTimeOfDay: (t: number) => void;
-	setFrozen: (frozen: boolean) => void;
 
 	/** Unit the depth HUD/markers render in — doesn't affect the underlying metres. */
 	depthUnit: DepthUnit;
@@ -47,8 +39,6 @@ interface DebugStore {
 }
 
 const getDefaults = () => ({
-	timeOfDay: 0.5,
-	frozen: true,
 	depthUnit: "m" as DepthUnit,
 	depthZones: DEPTH_ZONES.map(zone => ({ ...zone })),
 	zoneSpeeds: { ...DEFAULT_ZONE_SPEEDS }
@@ -60,8 +50,6 @@ export const useDebugStore = create<DebugStore>()(
 			...getDefaults(),
 			isDebugOpen: false,
 			setIsDebugOpen: isDebugOpen => set({ isDebugOpen }),
-			setTimeOfDay: t => set({ timeOfDay: t }),
-			setFrozen: frozen => set({ frozen }),
 			setDepthUnit: unit => set({ depthUnit: unit }),
 			resetDefaults: () => set(getDefaults()),
 
@@ -76,7 +64,7 @@ export const useDebugStore = create<DebugStore>()(
 		}),
 		{
 			name: "deepcatch.debug",
-			version: 3,
+			version: 4,
 			migrate: getDefaults,
 			partialize: ({ isDebugOpen: _isDebugOpen, ...persisted }) => persisted
 		}

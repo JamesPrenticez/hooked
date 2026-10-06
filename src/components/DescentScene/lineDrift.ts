@@ -1,7 +1,7 @@
 import { CAST_METERS, SIM_WIDTH } from "@utils/simConfig";
 
 // Three sine waves at non-integer-ratio frequencies — same trick as
-// `waterSwell`/`windowFlicker` — sum to a sweep that crosses the screen without
+// `waterSwell` — sum to a sweep that crosses the screen without
 // visibly repeating, instead of a real random walk. Amplitudes sum to 1, so the
 // result always stays inside [-1, 1].
 const WAVES = [

@@ -12,8 +12,6 @@ interface FishermanProps {
 	frames: PlayerFrames;
 	/** Where and how big to draw it — `boatLayout`, already bobbing. */
 	boat: BoatLayout;
-	/** Day / night multiply tint from `computeAmbience`. */
-	tint: number;
 	/** Wall-clock seconds — the animation's clock. */
 	seconds: number;
 	view: { width: number; height: number };
@@ -26,7 +24,7 @@ interface FishermanProps {
  * drawn above the ocean and the background strip. Plays whichever animation `usePlayerStore`
  * cues — idle until something says otherwise.
  */
-export function Fisherman({ frames, boat, tint, seconds, view }: FishermanProps) {
+export function Fisherman({ frames, boat, seconds, view }: FishermanProps) {
 	const cue = usePlayerStore(state => state.cue);
 	const tweak = useLayout("player", view);
 
@@ -48,7 +46,6 @@ export function Fisherman({ frames, boat, tint, seconds, view }: FishermanProps)
 				x: boat.scale * tweak.scale,
 				y: boat.scale * tweak.scale * stretchY
 			}}
-			tint={tint}
 		/>
 	);
 }

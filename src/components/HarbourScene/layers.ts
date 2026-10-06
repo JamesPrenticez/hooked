@@ -25,9 +25,6 @@ export interface HarbourLayer {
 
 // Dusk palette — warm sky over cool water, brand yellow (--color-primary) on
 // the working steel. Hex numbers because Pixi takes colours, not CSS vars.
-const SKY_TOP = 0x1a2740;
-const SKY_MID = 0x35507a;
-const SKY_GLOW = 0xc9743c;
 const CITY = 0x222c44;
 const WATER = 0x123a52;
 const WATER_DEEP = 0x0d2b3d;
@@ -65,16 +62,6 @@ function drawCrane(g: Graphics, x: number, baseY: number, height: number) {
 
 // Back to front. The array order IS the z-order (layers.test.ts locks it).
 export const HARBOUR_LAYERS: HarbourLayer[] = [
-	{
-		id: "sky",
-		covers: "Lighting (backdrop)",
-		draw: (g, { width: w, height: h }) => {
-			const horizon = h * HORIZON_Y;
-			g.rect(0, 0, w, horizon * 0.4).fill(SKY_TOP);
-			g.rect(0, horizon * 0.4, w, horizon * 0.35).fill(SKY_MID);
-			g.rect(0, horizon * 0.75, w, horizon * 0.25).fill(SKY_GLOW);
-		}
-	},
 	{
 		id: "buildings",
 		covers: "Buildings",
@@ -170,21 +157,6 @@ export const HARBOUR_LAYERS: HarbourLayer[] = [
 				color: 0x2f5d5d,
 				alpha: 0.85
 			});
-			// lamp post + glow
-			g.rect(w * 0.88, y - 92, 6, 92).fill(0x1f1f22);
-			g.circle(w * 0.88 + 3, y - 94, 22).fill({ color: 0xffbf66, alpha: 0.15 });
-			g.circle(w * 0.88 + 3, y - 94, 10).fill(0xffd98a);
-		}
-	},
-	{
-		id: "lighting",
-		covers: "Lighting (grade)",
-		draw: (g, { width: w, height: h }) => {
-			g.rect(0, 0, w, h).fill({ color: 0xff9d4d, alpha: 0.06 });
-			g.rect(0, 0, w, h * 0.14).fill({ color: 0x0a1120, alpha: 0.35 });
-			g.rect(0, h * 0.86, w, h * 0.14).fill({ color: 0x0a1120, alpha: 0.4 });
-			g.rect(0, 0, w * 0.06, h).fill({ color: 0x0a1120, alpha: 0.3 });
-			g.rect(w * 0.94, 0, w * 0.06, h).fill({ color: 0x0a1120, alpha: 0.3 });
 		}
 	}
 ];
