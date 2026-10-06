@@ -154,7 +154,8 @@ function bakedLayout(): typeof HARBOUR_LAYOUT {
 	return { ...HARBOUR_LAYOUT, [currentBreakpoint()]: tuned };
 }
 
-/** Copies `bakedLayout()` to the clipboard as the object literal `HARBOUR_LAYOUT` is declared with. */
+/** Copies `bakedLayout()` to the clipboard as the full `HARBOUR_LAYOUT` declaration, `;` included, so it
+ *  pastes over the existing statement cleanly. */
 function copyLayout() {
 	const layout = bakedLayout();
 	const body = (Object.keys(layout) as (keyof typeof layout)[])
@@ -166,7 +167,7 @@ function copyLayout() {
 			return `\t${breakpoint}: {\n${row}\n\t}`;
 		})
 		.join(",\n");
-	navigator.clipboard.writeText(`{\n${body}\n}`);
+	navigator.clipboard.writeText(`${body}`);
 }
 
 function TweakGroup({ name }: { name: TweakKey }) {
