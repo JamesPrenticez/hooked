@@ -1,2 +1,2 @@
-export type { IncrementSelectorProps } from "./IncrementSelector";
-export { IncrementSelector } from "./IncrementSelector";
+export type { IncrementSelectorProps } from "./increment-selector";
+export { IncrementSelector } from "./increment-selector";

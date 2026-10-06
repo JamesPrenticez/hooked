@@ -5,6 +5,7 @@ export { BetInput, type BetInputProps } from "./components/BetInput";
 export { BonusButton, type BonusButtonProps } from "./components/BonusButton";
 export { Button, type ButtonProps } from "./components/Button";
 export { Checkbox, type CheckboxProps } from "./components/Checkbox";
+export { CloseButton } from "./components/CloseButton";
 export { IconButton, type IconButtonProps } from "./components/IconButton";
 export { IncrementSelector, type IncrementSelectorProps } from "./components/IncrementSelector";
 export { Input, type InputProps } from "./components/Input";

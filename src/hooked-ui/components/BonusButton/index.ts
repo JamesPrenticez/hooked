@@ -1,1 +1,1 @@
-export { BonusButton, type BonusButtonProps } from "./BonusButton";
+export { BonusButton, type BonusButtonProps } from "./bonus-button";

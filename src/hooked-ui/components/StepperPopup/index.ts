@@ -1,2 +1,2 @@
-export type { StepperPopupProps } from "./StepperPopup";
-export { StepperPopup } from "./StepperPopup";
+export type { StepperPopupProps } from "./stepper-popup";
+export { StepperPopup } from "./stepper-popup";

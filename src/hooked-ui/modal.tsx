@@ -4,7 +4,7 @@ import { ICONS } from "@icons";
 import { svgBorderStyles } from "@styles/svgBorder";
 import styled, { css } from "styled-components";
 
-import { Button } from "@hooked-ui";
+import { Button, CloseButton } from "@hooked-ui";
 import { breakpoint } from "@utils/breakpoint";
 
 const Container = styled.div<{
@@ -14,6 +14,35 @@ const Container = styled.div<{
 }>`
 	position: relative;
 	box-sizing: border-box;
+	border-radius: var(--border-radius);
+
+	width: 100%;
+	height: min(90dvh, 60dvh);
+	padding: 0.4rem 0.2rem;
+	display: flex;
+	flex-direction: column;
+	border-radius: var(--border-radius-md);
+
+	header {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		flex-shrink: 0;
+		&.withClose {
+			justify-content: space-between;
+		}
+
+		height: var(--size-control);
+
+		& .title {
+			color: var(--color-primary);
+		}
+
+		& .close-button {
+			margin-left: auto;
+		}
+	}
+
 	&:after {
 		content: "";
 		width: calc(100% + 1rem);
@@ -35,6 +64,7 @@ const Container = styled.div<{
 					background: rgba(8, 8, 8, 0.1);
 					backdrop-filter: blur(0.1rem);
 				`}
+
 	${({ $glowColor }) =>
 		$glowColor &&
 		css`
@@ -42,31 +72,6 @@ const Container = styled.div<{
 				0 0 8px color-mix(in srgb, ${$glowColor} 55%, transparent),
 				0 0 16px color-mix(in srgb, ${$glowColor} 35%, transparent);
 		`}
-  border-radius: var(--border-radius);
-
-	height: 100%;
-	width: 100%;
-	min-height: 30dvh;
-	padding: 0.4rem 0.2rem;
-	display: flex;
-	flex-direction: column;
-	border-radius: var(--border-radius-md);
-
-	& .header {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		flex-shrink: 0;
-		&.withClose {
-			justify-content: space-between;
-		}
-
-		height: var(--size-control);
-
-		& .title {
-			font: var(--font-zalando-semibold-sm);
-		}
-	}
 
 	@media ${breakpoint.landscape} {
 		padding: ${viewportMobileDV(8, "height", "landscape")} ${viewportMobileDV(8, "width", "landscape")};
@@ -77,7 +82,7 @@ const Container = styled.div<{
 	}
 
 	@media ${breakpoint.tablet} {
-		height: auto;
+		/* height: auto; */
 		width: 42rem;
 
 		& .header {
@@ -118,7 +123,6 @@ const CallToAction = styled.div`
 
 type ModalProps = ComponentPropsWithoutRef<"div"> & {
 	title?: string;
-	withCloseButton?: boolean;
 	withBackConfirmButtons?: boolean;
 	svgBorder?: boolean;
 	borderColor?: string;
@@ -129,7 +133,6 @@ type ModalProps = ComponentPropsWithoutRef<"div"> & {
 
 export const Modal = ({
 	title,
-	withCloseButton,
 	withBackConfirmButtons,
 	svgBorder,
 	borderColor,
@@ -147,16 +150,15 @@ export const Modal = ({
 			{...rest}
 			onClick={(e: React.MouseEvent) => e.stopPropagation()}
 		>
-			{title && (
-				<div className={`header ${withCloseButton && "withClose"}`}>
-					<h2 className="title">{title}</h2>
-					{withCloseButton && (
-						<Button className="close-button" onClick={onCloseClick}>
-							{ICONS.XIcon}
-						</Button>
-					)}
-				</div>
-			)}
+			<header>
+				{title && <h2 className="title">{title}</h2>}
+
+				{onCloseClick && (
+					<CloseButton className="close-button" aria-label="Close" onClick={onCloseClick}>
+						{ICONS.XIcon}
+					</CloseButton>
+				)}
+			</header>
 
 			{children}
 
