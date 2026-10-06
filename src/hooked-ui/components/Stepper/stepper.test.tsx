@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { Stepper } from "./stepper";
+import { Stepper } from "./Stepper";
 
 const requiredProps = {
 	orientation: "horizontal" as const,

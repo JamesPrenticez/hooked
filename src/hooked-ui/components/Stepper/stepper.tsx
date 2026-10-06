@@ -169,80 +169,78 @@ export interface StepperProps extends HTMLAttributes<HTMLDivElement> {
 	fullWidth?: boolean;
 }
 
-export const Stepper = forwardRef<HTMLDivElement, StepperProps>(
-	(
-		{
-			orientation,
-			label,
-			value,
-			format,
-			disabled,
-			atMin,
-			atMax,
-			decLabel,
-			incLabel,
-			clickable,
-			onIncrement,
-			onDecrement,
-			onValueClick,
-			fullWidth,
-			...props
-		},
-		ref
-	) => {
-		const valueContent = (
-			<>
-				{label && <Label>{label}</Label>}
-				<Value>{format(value)}</Value>
-			</>
-		);
+export const Stepper = forwardRef<HTMLDivElement, StepperProps>(function Stepper(
+	{
+		orientation,
+		label,
+		value,
+		format,
+		disabled,
+		atMin,
+		atMax,
+		decLabel,
+		incLabel,
+		clickable,
+		onIncrement,
+		onDecrement,
+		onValueClick,
+		fullWidth,
+		...props
+	},
+	ref
+) {
+	const valueContent = (
+		<>
+			{label && <Label>{label}</Label>}
+			<Value>{format(value)}</Value>
+		</>
+	);
 
-		const valueBlock = clickable ? (
-			<ValueBlock
-				as="button"
-				type="button"
-				data-orientation={orientation}
-				data-clickable=""
-				disabled={disabled}
-				onClick={onValueClick}
-			>
-				{valueContent}
-			</ValueBlock>
-		) : (
-			<ValueBlock data-orientation={orientation}>{valueContent}</ValueBlock>
-		);
+	const valueBlock = clickable ? (
+		<ValueBlock
+			as="button"
+			type="button"
+			data-orientation={orientation}
+			data-clickable=""
+			disabled={disabled}
+			onClick={onValueClick}
+		>
+			{valueContent}
+		</ValueBlock>
+	) : (
+		<ValueBlock data-orientation={orientation}>{valueContent}</ValueBlock>
+	);
 
-		const decrementButton = (
-			<StepButton type="button" data-orientation={orientation} disabled={disabled || atMin} onClick={onDecrement}>
-				{decLabel}
-			</StepButton>
-		);
+	const decrementButton = (
+		<StepButton type="button" data-orientation={orientation} disabled={disabled || atMin} onClick={onDecrement}>
+			{decLabel}
+		</StepButton>
+	);
 
-		const incrementButton = (
-			<StepButton type="button" data-orientation={orientation} disabled={disabled || atMax} onClick={onIncrement}>
-				{incLabel}
-			</StepButton>
-		);
+	const incrementButton = (
+		<StepButton type="button" data-orientation={orientation} disabled={disabled || atMax} onClick={onIncrement}>
+			{incLabel}
+		</StepButton>
+	);
 
-		return (
-			<Container ref={ref} data-full-width={fullWidth ? "" : undefined} data-orientation={orientation} {...props}>
-				{orientation === "vertical" ? (
-					<>
-						{valueBlock}
-						<ButtonGroup data-orientation="vertical">
-							{incrementButton}
-							<Divider />
-							{decrementButton}
-						</ButtonGroup>
-					</>
-				) : (
-					<>
-						{decrementButton}
-						{valueBlock}
+	return (
+		<Container ref={ref} data-full-width={fullWidth ? "" : undefined} data-orientation={orientation} {...props}>
+			{orientation === "vertical" ? (
+				<>
+					{valueBlock}
+					<ButtonGroup data-orientation="vertical">
 						{incrementButton}
-					</>
-				)}
-			</Container>
-		);
-	}
-);
+						<Divider />
+						{decrementButton}
+					</ButtonGroup>
+				</>
+			) : (
+				<>
+					{decrementButton}
+					{valueBlock}
+					{incrementButton}
+				</>
+			)}
+		</Container>
+	);
+});

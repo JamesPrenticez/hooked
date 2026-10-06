@@ -1,7 +1,7 @@
 import { type ComponentProps, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Stepper } from "./stepper";
+import { Stepper } from "./Stepper";
 
 const meta = {
 	title: "Components/Stepper",

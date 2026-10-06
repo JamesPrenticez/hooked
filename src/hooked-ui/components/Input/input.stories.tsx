@@ -1,7 +1,7 @@
 import { type ComponentProps, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Input } from "./input";
+import { Input } from "./Input";
 import { MenuIcon } from "../../icons";
 
 const meta = {

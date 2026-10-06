@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
 
-import { Accordion } from "./accordion";
+import { Accordion } from "./Accordion";
 
 const meta = {
 	title: "Components/Accordion",

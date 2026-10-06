@@ -89,23 +89,24 @@ export interface CheckboxProps extends Omit<
 	"aria-label"?: string;
 }
 
-export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
-	({ value, onValueChange, theme = "light", ...props }, ref) => {
-		return (
-			<Container data-theme={theme === "light" ? undefined : theme}>
-				<Input
-					ref={ref}
-					{...props}
-					type="checkbox"
-					checked={value}
-					onChange={event => onValueChange(event.target.checked)}
-				/>
-				<Box>
-					<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-						<polyline points="4,13 9,18 20,6" strokeLinecap="round" strokeLinejoin="round" />
-					</svg>
-				</Box>
-			</Container>
-		);
-	}
-);
+export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
+	{ value, onValueChange, theme = "light", ...props },
+	ref
+) {
+	return (
+		<Container data-theme={theme === "light" ? undefined : theme}>
+			<Input
+				ref={ref}
+				{...props}
+				type="checkbox"
+				checked={value}
+				onChange={event => onValueChange(event.target.checked)}
+			/>
+			<Box>
+				<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+					<polyline points="4,13 9,18 20,6" strokeLinecap="round" strokeLinejoin="round" />
+				</svg>
+			</Box>
+		</Container>
+	);
+});

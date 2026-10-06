@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { Button } from "./button";
+import { Button } from "./Button";
 
 describe("Button", () => {
 	it("is a button named by its text content", () => {

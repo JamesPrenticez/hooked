@@ -103,26 +103,27 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "
 	className?: string;
 } & IconProps;
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
-	({ label, value, onValueChange, icon, iconLabel, onIconClick, className, disabled, id, ...props }, ref) => {
-		const generatedId = useId();
-		const inputId = id ?? generatedId;
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+	{ label, value, onValueChange, icon, iconLabel, onIconClick, className, disabled, id, ...props },
+	ref
+) {
+	const generatedId = useId();
+	const inputId = id ?? generatedId;
 
-		return (
-			<Wrapper className={className} data-disabled={disabled ? "" : undefined}>
-				<Label htmlFor={inputId}>{label}</Label>
-				<Field>
-					<StyledInput
-						ref={ref}
-						id={inputId}
-						disabled={disabled}
-						value={value}
-						onChange={event => onValueChange(event.target.value)}
-						{...props}
-					/>
-					{icon && <FieldIconButton icon={icon} aria-label={iconLabel} disabled={disabled} onClick={onIconClick} />}
-				</Field>
-			</Wrapper>
-		);
-	}
-);
+	return (
+		<Wrapper className={className} data-disabled={disabled ? "" : undefined}>
+			<Label htmlFor={inputId}>{label}</Label>
+			<Field>
+				<StyledInput
+					ref={ref}
+					id={inputId}
+					disabled={disabled}
+					value={value}
+					onChange={event => onValueChange(event.target.value)}
+					{...props}
+				/>
+				{icon && <FieldIconButton icon={icon} aria-label={iconLabel} disabled={disabled} onClick={onIconClick} />}
+			</Field>
+		</Wrapper>
+	);
+});

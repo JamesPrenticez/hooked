@@ -61,6 +61,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	variant?: "primary" | "secondary" | "negative" | "flat";
 }
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({ variant = "primary", ...props }, ref) => {
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+	{ variant = "primary", ...props },
+	ref
+) {
 	return <StyledButton ref={ref} type="button" data-variant={variant === "primary" ? undefined : variant} {...props} />;
 });

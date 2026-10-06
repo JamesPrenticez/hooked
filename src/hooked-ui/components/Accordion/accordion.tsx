@@ -60,16 +60,17 @@ export interface AccordionProps extends Omit<DetailsHTMLAttributes<HTMLDetailsEl
  * `open` to start expanded. Sections are independent, so any number can be
  * open at once.
  */
-export const Accordion = forwardRef<HTMLDetailsElement, AccordionProps>(
-	({ title, theme = "light", children, ...props }, ref) => {
-		return (
-			<Details ref={ref} data-theme={theme === "light" ? undefined : theme} {...props}>
-				<Summary>
-					{title}
-					{ICONS.ChevronIcon}
-				</Summary>
-				<Content>{children}</Content>
-			</Details>
-		);
-	}
-);
+export const Accordion = forwardRef<HTMLDetailsElement, AccordionProps>(function Accordion(
+	{ title, theme = "light", children, ...props },
+	ref
+) {
+	return (
+		<Details ref={ref} data-theme={theme === "light" ? undefined : theme} {...props}>
+			<Summary>
+				{title}
+				{ICONS.ChevronIcon}
+			</Summary>
+			<Content>{children}</Content>
+		</Details>
+	);
+});

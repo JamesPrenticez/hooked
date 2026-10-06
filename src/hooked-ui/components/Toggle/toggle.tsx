@@ -64,7 +64,10 @@ export interface ToggleProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
 	"aria-label"?: string;
 }
 
-export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(({ value, onValueChange, onClick, ...props }, ref) => {
+export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(function Toggle(
+	{ value, onValueChange, onClick, ...props },
+	ref
+) {
 	return (
 		<Track
 			ref={ref}
