@@ -1,4 +1,4 @@
-import { depthToScreenY } from "@components/HarbourScene/framing";
+import { depthToScreenY } from "@components/harbour-scene/framing";
 import { DEPTH_ZONES, type DepthZone, JACKPOT_DEPTH_METERS, KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import {
 	KRAKEN_ANIMATIONS,

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useApplication } from "@pixi/react";
 
-import { cameraScroll, waterlineY } from "@components/HarbourScene/framing";
+import { cameraScroll, waterlineY } from "@components/harbour-scene/framing";
 import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import { useDebugStore } from "@stores/debugStore";
 

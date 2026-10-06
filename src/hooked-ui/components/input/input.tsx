@@ -1,7 +1,7 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode, useId } from "react";
 import styled from "styled-components";
 
-import { IconButton } from "../IconButton/icon-button";
+import { IconButton } from "../icon-button/icon-button";
 
 const Wrapper = styled.div`
 	display: flex;

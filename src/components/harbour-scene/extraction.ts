@@ -1,4 +1,4 @@
-import { simHookX } from "@components/DescentScene/lineDrift";
+import { simHookX } from "@components/descent-scene/lineDrift";
 import type { PlayerAnimationName } from "@constants/playerAnimations";
 import { HOOK_TIP_DY, TICK_HZ } from "@utils/simConfig";
 import {

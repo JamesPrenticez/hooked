@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
-import { BettingBoard } from "@components/BettingBoard";
+import { BettingBoard } from "@components/betting-board";
 import { Button, Overlay } from "@hooked-ui";
 import { Modal } from "@hooked-ui/modal";
 

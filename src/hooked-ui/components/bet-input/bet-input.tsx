@@ -11,8 +11,8 @@ import { useClickOutside } from "@hooked-utils/use-click-outside";
 import { ICONS } from "@icons";
 import styled from "styled-components";
 
-import { Stepper } from "../Stepper/stepper";
-import { StepperPopup } from "../StepperPopup/stepper-popup";
+import { Stepper } from "../stepper/stepper";
+import { StepperPopup } from "../stepper-popup/stepper-popup";
 
 const Wrapper = styled.div`
 	position: relative;

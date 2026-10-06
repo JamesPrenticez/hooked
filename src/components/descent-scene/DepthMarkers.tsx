@@ -1,4 +1,4 @@
-import { castProgress, depthToScreenY } from "@components/HarbourScene/framing";
+import { castProgress, depthToScreenY } from "@components/harbour-scene/framing";
 import { type DepthUnit, type DepthZone, formatDepth } from "@constants/depthZones";
 
 // Hoisted: DescentScene re-renders every frame off the wall clock, and a fresh object here

@@ -13,8 +13,8 @@ import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
 import hookUrl from "@assets/player/hook.png";
 import basicSheetUrl from "@assets/player/player-idle-cast-reel.png";
 import extendedSheetUrl from "@assets/player/player-succes-fail.png";
-import { SPECIES } from "@components/DescentScene/creatureSpecies";
-import { SHEET_URLS } from "@components/DescentScene/krakenSheets";
+import { SPECIES } from "@components/descent-scene/creatureSpecies";
+import { SHEET_URLS } from "@components/descent-scene/krakenSheets";
 import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT } from "@constants/krakenAnimations";
 
 /** Textures drawn well under their source size get mipmaps so fine detail doesn't shimmer. */

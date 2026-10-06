@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 
-import { SPECIES } from "@components/DescentScene/creatureSpecies";
+import { SPECIES } from "@components/descent-scene/creatureSpecies";
 import { FISH } from "@constants/fish";
 
 import { CAST_METERS, HOOK_TIP_DY, PX_PER_METER, SIM_FISH, SIM_WIDTH, TICK_HZ } from "./simConfig";

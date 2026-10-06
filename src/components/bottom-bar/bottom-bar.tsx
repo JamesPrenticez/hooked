@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styled from "styled-components";
 
-import { Balance } from "@components/Balance";
+import { Balance } from "@components/balance";
 import { breakpoint } from "@utils/breakpoint";
 
 import { BetSection } from "./bet-section";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { hookWorldY, waterlineY } from "@components/HarbourScene/framing";
+import { hookWorldY, waterlineY } from "@components/harbour-scene/framing";
 
 import { hookX, lineDrift } from "./lineDrift";
 

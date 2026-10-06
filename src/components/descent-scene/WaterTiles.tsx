@@ -3,7 +3,7 @@ import { Assets } from "pixi.js";
 
 import causticsUrl from "@assets/layers/hub/water/underwater-caustics.webp";
 import shaftsUrl from "@assets/layers/hub/water/underwater-shafts.webp";
-import { waterlineY } from "@components/HarbourScene/framing";
+import { waterlineY } from "@components/harbour-scene/framing";
 import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
 import type { DepthAmbience } from "./depthAmbience";

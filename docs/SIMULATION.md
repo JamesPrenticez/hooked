@@ -7,7 +7,7 @@ _Debug-gated hook control → recorded runs in SQLite → a provably-fair replay
 Today the descent is decoration. The server already decides every round
 (`rollOutcome` in `server/src/rounds.ts`: HMAC seed → depth → fish), but on the
 client the hook sweeps on three summed sine waves of wall-clock time
-(`src/components/DescentScene/lineDrift.ts`), the fish loop across the screen on
+(`src/components/descent-scene/lineDrift.ts`), the fish loop across the screen on
 the same clock (`Creatures.tsx`), and nothing is ever caught — `useDescentDepth`
 runs down, holds for the Kraken at the bottom, and reels back up.
 

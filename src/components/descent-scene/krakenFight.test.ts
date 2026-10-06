@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { depthToScreenY } from "@components/HarbourScene/framing";
+import { depthToScreenY } from "@components/harbour-scene/framing";
 import { DEPTH_ZONES, KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT, KRAKEN_FIGHT_SECONDS, KRAKEN_SHEETS } from "@constants/krakenAnimations";
 

@@ -1,4 +1,4 @@
-import { depthToScreenY } from "@components/HarbourScene/framing";
+import { depthToScreenY } from "@components/harbour-scene/framing";
 import { useHookStore } from "@stores/hookStore";
 import { HOOK_R, HOOK_TIP_DY, SIM_WIDTH } from "@utils/simConfig";
 import { mouthAt } from "@utils/simWorld";

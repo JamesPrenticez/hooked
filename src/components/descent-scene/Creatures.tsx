@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Assets, Rectangle, Texture } from "pixi.js";
 
-import { fishSway, type HookPose, MOUTH_DY } from "@components/HarbourScene/extraction";
-import { cameraScroll, depthToScreenY } from "@components/HarbourScene/framing";
+import { fishSway, type HookPose, MOUTH_DY } from "@components/harbour-scene/extraction";
+import { cameraScroll, depthToScreenY } from "@components/harbour-scene/framing";
 import { useHookStore } from "@stores/hookStore";
 import { cachedTextures } from "@utils/bootAssets";
 import { SIM_WIDTH, TICK_HZ } from "@utils/simConfig";
