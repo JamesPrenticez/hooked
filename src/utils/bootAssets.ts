@@ -13,8 +13,8 @@ import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
 import hookUrl from "@assets/player/hook.png";
 import basicSheetUrl from "@assets/player/player-idle-cast-reel.png";
 import extendedSheetUrl from "@assets/player/player-succes-fail.png";
-import { SPECIES } from "@components/descent-scene/creatureSpecies";
 import { SHEET_URLS } from "@components/descent-scene/krakenSheets";
+import { SHEETS } from "@constants/fish";
 import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT } from "@constants/krakenAnimations";
 
 /** Textures drawn well under their source size get mipmaps so fine detail doesn't shimmer. */
@@ -39,7 +39,7 @@ const BOOT_ASSETS = [
 	mipmapped(boomSegmentUrl),
 	mipmapped(boomTipUrl),
 	mipmapped(helicopterUrl),
-	...SPECIES.map(s => s.url),
+	...SHEETS.map(s => s.url),
 	SHEET_URLS[KRAKEN_ANIMATIONS[KRAKEN_FIGHT[0]].sheet]
 ];
 

@@ -77,14 +77,14 @@ const Buttons = styled.div`
 
 /** Where the catch is taken from when previewing, metres — deep enough that the haul has somewhere to come from. */
 const PREVIEW_CATCH_M = 3000;
-/** The species hung when no fish is bet on. */
-const DEFAULT_ART = "tuna";
+/** The fish hung when none is bet on. */
+const DEFAULT_FISH = "bluefin-tuna";
 
 /** Index into `world` of the first fish bet on, else the first tuna. */
 function previewFish(world: Sim["world"]): number {
 	const bet = Object.keys(useBetStore.getState().bets).find(key => key.startsWith("fish:"));
 	const bound = bet ? world.findIndex(fish => fish.id === bet.slice("fish:".length)) : -1;
-	return bound >= 0 ? bound : world.findIndex(fish => fish.art === DEFAULT_ART);
+	return bound >= 0 ? bound : world.findIndex(fish => fish.id === DEFAULT_FISH);
 }
 
 const STAGE_LABELS = {

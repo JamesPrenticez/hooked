@@ -66,7 +66,7 @@ Provably fair → 7. Real rounds → 8. Phase 0 is groundwork.
 ### 3.1 Ground rules for `src/utils/sim*.ts`
 
 - **Pure and isomorphic.** No `pixi.js`, React, DOM or asset imports.
-  (`creatureSpecies.ts` imports PNGs, so the sim can't import it.)
+  (`constants/fish.ts` names its sheets with `new URL(..., import.meta.url)` — a plain string under Node — so the sim can read it.)
 - **Imports are `./sibling.ts` only, with the explicit extension.** Node can't
   resolve the `@utils`-style aliases and ESLint bans `../` inside `src/`. This is
   why the whole core is one flat directory with a `sim` prefix.
@@ -82,7 +82,7 @@ Provably fair → 7. Real rounds → 8. Phase 0 is groundwork.
 
 | File              | Holds                                                                                                            |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `simConfig.ts`    | `SIM_VERSION`, `TICK_HZ` (60), `SIM_WIDTH` (1920), hook + phase constants, frozen depth/speed table, `SIM_FISH`  |
+| `simConfig.ts`    | `SIM_VERSION`, `TICK_HZ` (60), `SIM_WIDTH` (1920), hook + phase constants, frozen depth/speed table              |
 | `simRandom.ts`    | mulberry32, lifted out of `creatureSpecies.ts` (which imports it back — no behaviour change)                     |
 | `simWorld.ts`     | `spawnWorld(worldSeed)`, `fishX(fish, tick)`, `mouthAt(fish, tick)`                                              |
 | `simStep.ts`      | `createSim`, `step(sim, axis)` (the server re-runs inputs itself, in `recordings.ts`)                            |
@@ -155,9 +155,9 @@ The server has 18 fish ids; the client has 14 sheets named after species, not id
 describes sheets whose PNGs aren't in `src/assets/creatures/` yet (marlin,
 blue-reef-fish, starfish, parrotfish).
 
-`SIM_FISH` is keyed by **roster id** with an `art` key into the sheets. A test
+`HOOKABLE_FISH` (`constants/fish.ts`, the single fish table) is keyed by **roster id** with its `art` sheet. A test
 asserts every id in `src/constants/fish.ts` (the client mirror of
-`server/src/constants.ts`) has a `SIM_FISH` entry. A roster id with no art needs a
+`server/src/constants.ts`) is hookable. A roster id with no art needs a
 stand-in — see §11.
 
 ## 4. Controls (debug-gated)

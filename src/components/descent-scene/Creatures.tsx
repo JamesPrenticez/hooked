@@ -3,14 +3,14 @@ import { Assets, Rectangle, Texture } from "pixi.js";
 
 import { fishSway, type HookPose, MOUTH_DY } from "@components/harbour-scene/extraction";
 import { cameraScroll, depthToScreenY } from "@components/harbour-scene/framing";
+import { HOOKABLE_BY_ID, type Sheet, SHEETS } from "@constants/fish";
 import { useHookStore } from "@stores/hookStore";
 import { cachedTextures } from "@utils/bootAssets";
 import { SIM_WIDTH, TICK_HZ } from "@utils/simConfig";
-import { fishX } from "@utils/simWorld";
+import { fishX, spawnWorld } from "@utils/simWorld";
 
-import { BITE, CREATURES, GASP, SHEET_ROWS, SPECIES, type Species, STRUGGLE } from "./creatureSpecies";
 import { HookedFish } from "./HookedFish";
-import { cellRect, frameIndex, type SheetAnimation } from "./spriteSheet";
+import { BITE, cellRect, frameIndex, GASP, SHEET_ROWS, type SheetAnimation, STRUGGLE } from "./spriteSheet";
 
 interface CreaturesProps {
 	view: { width: number; height: number };
@@ -23,22 +23,25 @@ interface CreaturesProps {
 	onlyHooked?: boolean;
 }
 
-interface SpeciesFrames {
+/** The creatures cruising the scripted descent: the sim's own roster, spawned once. */
+const AUTO_WORLD = spawnWorld(1);
+
+interface SheetFrames {
 	swim: Texture[];
 	bite: Texture[];
 	struggle: Texture[];
 }
 
-/** Swim, bite and struggle frames per species, once every sheet has loaded. */
+/** Swim, bite and struggle frames per sheet, once every sheet has loaded. */
 function useFrames() {
-	const [sheets, setSheets] = useState(() => cachedTextures(SPECIES.map(s => s.url)));
+	const [sheets, setSheets] = useState(() => cachedTextures(SHEETS.map(s => s.url)));
 
 	useEffect(() => {
 		let live = true;
 		// ponytail: all 14 sheets load on scene mount (~85MB of textures), not via
 		// the boot manifest — same as HarbourScene; load per depth zone or route
 		// through §5's manifest if memory matters.
-		Assets.load<Texture>(SPECIES.map(s => s.url)).then(loaded => {
+		Assets.load<Texture>(SHEETS.map(s => s.url)).then(loaded => {
 			if (live) setSheets(loaded);
 		});
 		return () => {
@@ -48,7 +51,7 @@ function useFrames() {
 
 	return useMemo(() => {
 		if (!sheets) return undefined;
-		const row = (s: Species, { row, frameCount }: SheetAnimation) =>
+		const row = (s: Sheet, { row, frameCount }: SheetAnimation) =>
 			Array.from({ length: frameCount }, (_, col) => {
 				const { x, y, width, height } = cellRect(sheets[s.url], s.cols, SHEET_ROWS, row, col);
 				return new Texture({
@@ -56,8 +59,8 @@ function useFrames() {
 					frame: new Rectangle(x, y, width, height)
 				});
 			});
-		return new Map<Species, SpeciesFrames>(
-			SPECIES.map(s => [
+		return new Map<Sheet, SheetFrames>(
+			SHEETS.map(s => [
 				s,
 				{
 					swim: row(s, s.swim),
@@ -71,7 +74,7 @@ function useFrames() {
 
 /** The frame a fish shows while it is on the hook: the bite once, then the struggle on loop — and once it is
  *  being landed, gasping. */
-function hookedFrame({ bite, struggle }: SpeciesFrames, seconds: number, landing: boolean): Texture {
+function hookedFrame({ bite, struggle }: SheetFrames, seconds: number, landing: boolean): Texture {
 	if (landing) return bite[frameIndex(seconds, GASP)];
 	const biteSeconds = BITE.frameCount / BITE.fps;
 	return seconds < biteSeconds
@@ -92,11 +95,10 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 	if (!frames || (onlyHooked && !sim)) return null;
 
 	if (sim) {
-		const bySpecies = new Map(SPECIES.map(s => [s.id, s]));
 		return sim.world.map((fish, i) => {
 			if ((i === sim.hooked) !== onlyHooked) return null;
-			const species = bySpecies.get(fish.art)!;
-			const set = frames.get(species)!;
+			const { art, scale } = HOOKABLE_BY_ID.get(fish.id)!;
+			const set = frames.get(art)!;
 
 			if (i === sim.hooked) {
 				if (!hook) return null;
@@ -110,13 +112,13 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 					<HookedFish
 						key={i}
 						texture={hookedFrame(set, (sim.tick - sim.hookedTick) / TICK_HZ, !!hook.extraction)}
-						blendMode={species.opaque ? "screen" : "normal"}
+						blendMode={art.opaque ? "screen" : "normal"}
 						x={hook.x - fish.direction * fish.mouth.dy * grow * girth}
 						y={mouthY - fish.mouth.dx * grow}
 						rotation={(-fish.direction * Math.PI) / 2}
 						scale={{
-							x: species.scale * grow * -fish.direction,
-							y: species.scale * grow * girth
+							x: scale * grow * -fish.direction,
+							y: scale * grow * girth
 						}}
 						mouth={{ x: hook.x, y: mouthY }}
 						sway={fishSway(sim)}
@@ -132,23 +134,24 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 			return (
 				<pixiSprite
 					key={i}
-					texture={set.swim[frameIndex(sim.tick / TICK_HZ + fish.phase, species.swim)]}
+					texture={set.swim[frameIndex(sim.tick / TICK_HZ + fish.phase, art.swim)]}
 					anchor={0.5}
-					blendMode={species.opaque ? "screen" : "normal"}
+					blendMode={art.opaque ? "screen" : "normal"}
 					x={(fishX(fish, sim.tick) / SIM_WIDTH) * view.width}
 					y={y}
-					scale={{ x: species.scale * -fish.direction, y: species.scale }}
+					scale={{ x: scale * -fish.direction, y: scale }}
 				/>
 			);
 		});
 	}
 
-	return CREATURES.map((creature, i) => {
-		const { species, direction } = creature;
-		const textures = frames.get(species)!.swim;
-		const fishWidth = textures[0].width * species.scale;
+	return AUTO_WORLD.map((creature, i) => {
+		const { art, scale } = HOOKABLE_BY_ID.get(creature.id)!;
+		const { direction } = creature;
+		const textures = frames.get(art)!.swim;
+		const fishWidth = textures[0].width * scale;
 		const y = depthToScreenY(creature.meters, depth, view);
-		if (Math.abs(y - view.height / 2) > view.height / 2 + textures[0].height * species.scale) return null;
+		if (Math.abs(y - view.height / 2) > view.height / 2 + textures[0].height * scale) return null;
 
 		const travel = view.width + fishWidth;
 		const progress = (seconds * creature.speed + creature.offset) % travel;
@@ -157,12 +160,12 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 		return (
 			<pixiSprite
 				key={i}
-				texture={textures[frameIndex(seconds + creature.phase, species.swim)]}
+				texture={textures[frameIndex(seconds + creature.phase, art.swim)]}
 				anchor={0.5}
-				blendMode={species.opaque ? "screen" : "normal"}
+				blendMode={art.opaque ? "screen" : "normal"}
 				x={x}
 				y={y}
-				scale={{ x: species.scale * -direction, y: species.scale }}
+				scale={{ x: scale * -direction, y: scale }}
 			/>
 		);
 	});
