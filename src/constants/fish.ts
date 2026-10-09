@@ -34,6 +34,8 @@ export interface FishEntry {
 	id: string;
 	name: string;
 	depth: DepthId;
+	/** One still portrait for the selection modal. */
+	image?: string;
 }
 
 /** A fish that swims in the world and can be hooked (the Kraken is reeled in at the bottom instead). */
@@ -69,34 +71,30 @@ const sheet = (
 	opaque
 });
 
-// Sheets are shared: blue-cod, barracuda-epic and starfish have no art yet and borrow a nearby one. All face left.
-const SHRIMP = sheet(new URL("../assets/creatures/shrimp.png", import.meta.url).href, { opaque: true });
-const MACKEREL = sheet(new URL("../assets/creatures/mackeral.png", import.meta.url).href);
-const BARRACUDA = sheet(new URL("../assets/creatures/barracuda.png", import.meta.url).href, { opaque: true });
-const NAPOLEON = sheet(new URL("../assets/creatures/neoplean.png", import.meta.url).href, { opaque: true });
-const TURTLE = sheet(new URL("../assets/creatures/turtle.png", import.meta.url).href, { opaque: true, fps: 8 });
-const PIKE = sheet(new URL("../assets/creatures/pike.png", import.meta.url).href, { opaque: true });
-const CRAB = sheet(new URL("../assets/creatures/crab.png", import.meta.url).href, { cell: [512, 512] });
-const MANTA = sheet(new URL("../assets/creatures/manta ray.png", import.meta.url).href, {
-	opaque: true,
-	cols: 9,
-	fps: 8,
-	cell: [185.78, 235.25]
-});
-const TUNA = sheet(new URL("../assets/creatures/tuna.png", import.meta.url).href);
-const PUFFER = sheet(new URL("../assets/creatures/puffer.png", import.meta.url).href);
-const SHARK = sheet(new URL("../assets/creatures/shark.png", import.meta.url).href, { opaque: true });
-const LANTERN = sheet(new URL("../assets/creatures/lantern.png", import.meta.url).href, {
-	opaque: true,
-	cell: [244, 201.5]
-});
-const JELLY = sheet(new URL("../assets/creatures/jelly.png", import.meta.url).href, { opaque: true, fps: 8 });
-const WHALE = sheet(new URL("../assets/creatures/whale.png", import.meta.url).href, {
-	opaque: true,
-	cols: 6,
-	fps: 8,
-	cell: [269.83, 242.75]
-});
+// One 8-column sheet per species (all face left). Shrimp, king crab, manta ray and starfish have no sheet of their own yet and borrow one.
+const BARRACUDA = sheet(new URL("../assets/fish-sprites/barracuda.png", import.meta.url).href);
+const CLOWN = sheet(new URL("../assets/fish-sprites/clown.png", import.meta.url).href);
+const COD = sheet(new URL("../assets/fish-sprites/cod.png", import.meta.url).href);
+const DRAGON = sheet(new URL("../assets/fish-sprites/dragon.png", import.meta.url).href);
+const GROUPER = sheet(new URL("../assets/fish-sprites/grouper.png", import.meta.url).href);
+const GUPPY = sheet(new URL("../assets/fish-sprites/guppy.png", import.meta.url).href);
+const LANTERN = sheet(new URL("../assets/fish-sprites/lantern.png", import.meta.url).href);
+const MARLIN = sheet(new URL("../assets/fish-sprites/marlin.png", import.meta.url).href);
+const PUFFER = sheet(new URL("../assets/fish-sprites/puffer.png", import.meta.url).href);
+const SARDINE = sheet(new URL("../assets/fish-sprites/sardine.png", import.meta.url).href);
+const SHARK = sheet(new URL("../assets/fish-sprites/shark.png", import.meta.url).href);
+const SNAPPER = sheet(new URL("../assets/fish-sprites/snapper.png", import.meta.url).href);
+const SQUID = sheet(new URL("../assets/fish-sprites/squid.png", import.meta.url).href);
+const STING = sheet(new URL("../assets/fish-sprites/sting.png", import.meta.url).href);
+const TREVALLY = sheet(new URL("../assets/fish-sprites/trevally.png", import.meta.url).href);
+const TUNA = sheet(new URL("../assets/fish-sprites/tuna.png", import.meta.url).href);
+const NAPOLEON = sheet(new URL("../assets/fish-sprites/neoplean.png", import.meta.url).href, { opaque: true });
+const PIKE = sheet(new URL("../assets/fish-sprites/pike.png", import.meta.url).href, { opaque: true });
+const TURTLE = sheet(new URL("../assets/fish-sprites/turtle.png", import.meta.url).href, { fps: 8 });
+const JELLY = sheet(new URL("../assets/fish-sprites/jelly.png", import.meta.url).href, { fps: 8 });
+const WHALE = sheet(new URL("../assets/fish-sprites/sperm.png", import.meta.url).href, { fps: 8 });
+
+const portrait = (name: string) => new URL(`../assets/single-fish/${name}.png`, import.meta.url).href;
 
 /** Seed for every fish until the hit-box overlay says otherwise. */
 const MOUTH: Mouth = { x: -0.4, y: 0.05, r: 0.12 };
@@ -110,8 +108,9 @@ const fish = (
 	speed: number,
 	fromMeters: number,
 	toMeters: number,
-	count: number
-): HookableFish => ({ id, name, depth, art, scale, speed, fromMeters, toMeters, count, mouth: MOUTH });
+	count: number,
+	image?: string
+): HookableFish => ({ id, name, depth, art, scale, speed, fromMeters, toMeters, count, mouth: MOUTH, image });
 
 /** Bettable fish. Ids must match the server roster (`server/src/constants.ts` FISH) — that's what `validateBets`
  *  accepts. Order is the sim's spawn order, so changing it changes every seeded world (bump `SIM_VERSION`). Bands
@@ -119,26 +118,35 @@ const fish = (
  *  (the whale, being huge, at 10,675m) so the Kraken keeps the jackpot layer (10,935m+). */
 export const FISH: (FishEntry | HookableFish)[] = [
 	// shallow
-	fish("shrimp", "Shrimp", "shallow", SHRIMP, 0.55, 35, 110, 1420, 5),
-	fish("sardine", "Sardine", "shallow", MACKEREL, 0.7, 90, 165, 1530, 6),
-	fish("blue-cod", "Blue Cod", "shallow", MACKEREL, 0.7, 70, 300, 1400, 3),
-	fish("barracuda", "Barracuda", "shallow", BARRACUDA, 0.9, 130, 490, 2570, 4),
+	fish("shrimp", "Shrimp", "shallow", GUPPY, 0.55, 35, 110, 1420, 5),
+	fish("sardine", "Sardine", "shallow", SARDINE, 0.7, 90, 165, 1530, 6, portrait("sardine")),
+	fish("blue-cod", "Blue Cod", "shallow", COD, 0.7, 70, 300, 1400, 3, portrait("cod")),
+	fish("barracuda", "Barracuda", "shallow", BARRACUDA, 0.9, 130, 490, 2570, 4, portrait("barracuda")),
+	fish("guppy", "Guppy", "shallow", GUPPY, 0.5, 60, 165, 1530, 5, portrait("guppy")),
+	fish("clown", "Clownfish", "shallow", CLOWN, 0.55, 50, 110, 1420, 4, portrait("clown")),
 	// reef
 	fish("napoleon", "Napoleon Wrasse", "reef", NAPOLEON, 0.8, 55, 1530, 3610, 5),
-	fish("turtle", "Turtle", "reef", TURTLE, 0.85, 40, 1640, 4045, 4),
+	fish("turtle", "Turtle", "reef", TURTLE, 0.85, 40, 1640, 4045, 4, portrait("turtle")),
 	fish("swordfish", "Swordfish", "reef", PIKE, 0.9, 110, 1530, 3935, 4),
-	fish("king-crab", "King Crab", "reef", CRAB, 0.5, 40, 1640, 4045, 4),
+	fish("king-crab", "King Crab", "reef", GROUPER, 0.5, 40, 1640, 4045, 4),
+	fish("snapper", "Snapper", "reef", SNAPPER, 0.8, 60, 1530, 3610, 4, portrait("snapper")),
+	fish("grouper", "Grouper", "reef", GROUPER, 0.9, 45, 1640, 4045, 3, portrait("grouper")),
+	fish("trevelly", "Trevally", "reef", TREVALLY, 0.9, 120, 1530, 3935, 4, portrait("trevelly")),
 	// deep
-	fish("manta-ray", "Manta Ray", "deep", MANTA, 1.2, 60, 4100, 7000, 4),
-	fish("bluefin-tuna", "Bluefin Tuna", "deep", TUNA, 1, 140, 4100, 7110, 5),
+	fish("manta-ray", "Manta Ray", "deep", STING, 1.2, 60, 4100, 7000, 4),
+	fish("bluefin-tuna", "Bluefin Tuna", "deep", TUNA, 1, 140, 4100, 7110, 5, portrait("tuna")),
 	fish("puffer", "Pufferfish", "deep", PUFFER, 0.7, 45, 4210, 7110, 4),
-	fish("shark", "Shark", "deep", SHARK, 2.3, 100, 4430, 7215, 3),
-	fish("barracuda-epic", "Barracuda", "deep", BARRACUDA, 0.9, 120, 4100, 7000, 2),
+	fish("shark", "Shark", "deep", SHARK, 2.3, 100, 4430, 7215, 3, portrait("shark")),
+	fish("barracuda-epic", "Barracuda", "deep", BARRACUDA, 0.9, 120, 4100, 7000, 2, portrait("barracuda")),
+	fish("marlin", "Marlin", "deep", MARLIN, 1.3, 150, 4100, 7110, 3, portrait("marlin")),
+	fish("sting", "Stingray", "deep", STING, 0.9, 50, 4100, 7000, 3, portrait("sting")),
 	// abyss
-	fish("lanternfish", "Lanternfish", "abyss", LANTERN, 0.75, 45, 9895, 10_825, 5),
-	fish("jellyfish", "Jellyfish", "abyss", JELLY, 0.6, 20, 7215, 9675, 6),
-	fish("starfish", "Starfish", "abyss", CRAB, 0.5, 25, 7215, 9675, 3),
-	fish("whale", "Whale", "abyss", WHALE, 4.5, 30, 10_005, 10_675, 2),
+	fish("lanternfish", "Lanternfish", "abyss", LANTERN, 0.75, 45, 9895, 10_825, 5, portrait("lantern")),
+	fish("jellyfish", "Jellyfish", "abyss", JELLY, 0.6, 20, 7215, 9675, 6, portrait("jellly")),
+	fish("starfish", "Starfish", "abyss", JELLY, 0.5, 25, 7215, 9675, 3),
+	fish("whale", "Whale", "abyss", WHALE, 4.5, 30, 10_005, 10_675, 2, portrait("sperm")),
+	fish("squid", "Squid", "abyss", SQUID, 0.8, 40, 7215, 9675, 4, portrait("squid")),
+	fish("dragon", "Sea Dragon", "abyss", DRAGON, 0.9, 50, 7215, 9675, 3, portrait("dragon")),
 	// jackpot
 	{ id: "kraken", name: "Kraken", depth: "jackpot" }
 ];

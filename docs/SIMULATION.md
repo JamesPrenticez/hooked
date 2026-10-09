@@ -150,9 +150,9 @@ to the combined hit radius (tens of px), so no swept test is needed; add one if
 
 ### 3.5 Roster coverage
 
-The server has 18 fish ids; the client has 14 sheets named after species, not ids
+The server has 26 fish ids; the client has one sheet per species in `src/assets/fish-sprites/`, not per id
 (`mackeral.png`, `pike.png`, `crab.png`, `neoplean.png`). `animations.json` already
-describes sheets whose PNGs aren't in `src/assets/creatures/` yet (marlin,
+describes sheets whose PNGs aren't in `src/assets/fish-sprites/` yet (marlin,
 blue-reef-fish, starfish, parrotfish).
 
 `HOOKABLE_FISH` (`constants/fish.ts`, the single fish table) is keyed by **roster id** with its `art` sheet. A test

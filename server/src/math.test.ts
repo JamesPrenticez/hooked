@@ -107,7 +107,7 @@ test("resolveBet — a losing bet reports the table multiplier and a zero payout
 	const miss = resolveBet(unitBet("fish", "whale"), outcome);
 	assert.equal(miss.won, false);
 	assert.equal(miss.payout, "0.00");
-	assert.equal(miss.multiplier, "171.43"); // still says what it would have paid
+	assert.equal(miss.multiplier, "231.43"); // still says what it would have paid
 });
 
 // ===========================================================================
@@ -205,7 +205,7 @@ test("a depth bet and a fish bet on the same outcome both win and both pay", () 
 		results.map(r => r.won),
 		[true, true]
 	);
-	assert.equal(total, Math.round(1000 * DEPTH_MULTIPLIERS.deep) + Math.round(1000 * 31.06));
+	assert.equal(total, Math.round(1000 * DEPTH_MULTIPLIERS.deep) + Math.round(1000 * 36.71));
 	assert.equal(net, total - 2000);
 });
 
@@ -251,19 +251,19 @@ test("combining a depth bet with a fish bet does not distort RTP", () => {
 // ===========================================================================
 
 test("stake at the configured min and max resolves cleanly on the biggest multiplier", () => {
-	const outcome = outcomeFor("whale"); // abyss / whale / jackpot, ×171.43
+	const outcome = outcomeFor("whale"); // abyss / whale / jackpot, ×231.43
 	for (const amount of [config.minBet, config.maxBet]) {
 		const r = resolveBet({ type: "fish", selection: "whale", amount }, outcome);
 		assert.equal(r.won, true);
-		assert.equal(toCents(r.payout), Math.round(toCents(amount) * 171.43));
+		assert.equal(toCents(r.payout), Math.round(toCents(amount) * 231.43));
 		assert.ok(Number.isFinite(toCents(r.payout)) && !r.payout.includes("NaN"));
 	}
 });
 
 test("half-a-cent payouts round up, not to even", () => {
-	// 0.50 × bluefin-tuna 20.71 = 10.355 exactly → 10.36 (Math.round is half-up, not banker's).
+	// 0.50 × bluefin-tuna 24.47 = 12.235 exactly → 12.24 (Math.round is half-up, not banker's).
 	const r = resolveBet({ type: "fish", selection: "bluefin-tuna", amount: "0.50" }, outcomeFor("bluefin-tuna"));
-	assert.equal(r.payout, "10.36");
+	assert.equal(r.payout, "12.24");
 });
 
 test("a round where every bet loses pays zero and nets the full wager back as negative", () => {

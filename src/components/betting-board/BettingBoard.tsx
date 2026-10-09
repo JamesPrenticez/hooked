@@ -48,6 +48,12 @@ const Name = styled.span`
 	text-transform: uppercase;
 `;
 
+const Portrait = styled.img`
+	width: 3rem;
+	height: 3rem;
+	object-fit: contain;
+`;
+
 const Stake = styled.span`
 	font: var(--font-display-legal);
 	color: var(--color-primary-accent);
@@ -126,7 +132,7 @@ const Species = styled.div`
 const FishTile = styled(Tile)`
 	flex: 0 0 auto;
 	min-width: 6.4rem;
-	height: 4.8rem;
+	min-height: 4.8rem;
 	padding: 0.2rem var(--spacing-sm);
 	white-space: nowrap;
 	border-radius: var(--border-radius-md);
@@ -140,11 +146,11 @@ const FishTile = styled(Tile)`
 	}
 
 	@media ${breakpoint.landscape} {
-		height: 4rem;
+		min-height: 4rem;
 	}
 
 	@media ${breakpoint.tablet} {
-		height: 4.8rem;
+		min-height: 4.8rem;
 	}
 `;
 
@@ -163,7 +169,14 @@ export function BettingBoard({ disabled = false }: BettingBoardProps) {
 	const toggle = useBetStore(s => s.toggle);
 	const currency = useBalanceStore(s => s.currency) ?? "USD";
 
-	const tile = (type: BetType, selection: string, name: string, Component: typeof Tile, label = name) => {
+	const tile = (
+		type: BetType,
+		selection: string,
+		name: string,
+		Component: typeof Tile,
+		label = name,
+		image?: string
+	) => {
 		const stake = bets[betKey(type, selection)];
 		return (
 			<Component
@@ -175,6 +188,7 @@ export function BettingBoard({ disabled = false }: BettingBoardProps) {
 				disabled={disabled}
 				onClick={() => toggle(type, selection)}
 			>
+				{image && <Portrait src={image} alt="" />}
 				<Name>{name}</Name>
 				{stake !== undefined && <Stake>{formatMoney(stake, currency)}</Stake>}
 			</Component>
@@ -190,7 +204,9 @@ export function BettingBoard({ disabled = false }: BettingBoardProps) {
 			<SpeciesHeader>
 				Species <Optional>(optional)</Optional>
 			</SpeciesHeader>
-			<Species>{FISH.map(fish => tile("fish", fish.id, fish.name, FishTile, `${fish.name} (${fish.depth})`))}</Species>
+			<Species>
+				{FISH.map(fish => tile("fish", fish.id, fish.name, FishTile, `${fish.name} (${fish.depth})`, fish.image))}
+			</Species>
 		</Board>
 	);
 }

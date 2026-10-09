@@ -40,9 +40,9 @@ const getDefaults = () => Object.fromEntries(TWEAK_KEYS.map(key => [key, { ...NO
 
 export const HARBOUR_LAYOUT: Record<ViewBreakpoint, Record<TweakKey, Tweak>> = {
 	desktop: {
-		background: { x: 0, y: -0.0958, scale: 0.6867 },
-		water: { x: 0, y: -0.5125, scale: 1 },
-		waterline: { x: 0, y: -0.0947, scale: 1 },
+		background: { x: 0, y: -0.0762, scale: 0.7267 },
+		water: { x: 0, y: -0.3602, scale: 1 },
+		waterline: { x: 0, y: 0.0185, scale: 1 },
 		player: { x: -0.0729, y: -0.0947, scale: 0.62 },
 		crane: { x: -0.0182, y: 0, scale: 1.2 },
 		helicopter: { x: 0, y: 0, scale: 1 },
