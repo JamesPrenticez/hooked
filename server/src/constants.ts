@@ -65,18 +65,17 @@ export const FISH: FishDef[] = [
 	// Reef — mid value
 	{ id: "napoleon", depth: "reef", tier: "large", weight: 35, multiplier: 14.63 },
 	{ id: "turtle", depth: "reef", tier: "large", weight: 30, multiplier: 17.07 },
-	{ id: "swordfish", depth: "reef", tier: "large", weight: 20, multiplier: 25.6 },
 	{ id: "king-crab", depth: "reef", tier: "large", weight: 15, multiplier: 34.13 },
 	{ id: "snapper", depth: "reef", tier: "large", weight: 25, multiplier: 20.48 },
 	{ id: "grouper", depth: "reef", tier: "large", weight: 20, multiplier: 25.6 },
 	{ id: "trevelly", depth: "reef", tier: "large", weight: 15, multiplier: 34.13 },
 	// Deep — rare, high value
-	{ id: "manta-ray", depth: "deep", tier: "epic", weight: 35, multiplier: 20.97 },
+	{ id: "sting-ray", depth: "deep", tier: "epic", weight: 35, multiplier: 20.97 },
 	{ id: "bluefin-tuna", depth: "deep", tier: "epic", weight: 30, multiplier: 24.47 },
 	{ id: "shark", depth: "deep", tier: "epic", weight: 20, multiplier: 36.71 },
 	{ id: "barracuda-epic", depth: "deep", tier: "epic", weight: 15, multiplier: 48.94 },
 	{ id: "puffer", depth: "deep", tier: "epic", weight: 10, multiplier: 73.41 },
-	{ id: "marlin", depth: "deep", tier: "epic", weight: 12, multiplier: 61.18 },
+	{ id: "swordfish", depth: "deep", tier: "epic", weight: 12, multiplier: 61.18 },
 	{ id: "sting", depth: "deep", tier: "epic", weight: 8, multiplier: 91.76 },
 	// Abyss — legendary, plus the whale jackpot
 	{ id: "lanternfish", depth: "abyss", tier: "legendary", weight: 40, multiplier: 46.29 },
