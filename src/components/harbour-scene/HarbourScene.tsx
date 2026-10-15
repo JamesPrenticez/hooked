@@ -95,6 +95,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const seconds = useElapsedSeconds();
 	const sim = useHookStore(state => state.sim);
 	const waterlineTweak = useTweak("waterline");
+	const playerTweak = useTweak("player");
 	// How the landing has moved the boat, the crane and the camera from how the harbour rests. Each eases to where
 	// the landing puts it, so when the round ends the harbour settles back to rest instead of snapping.
 	const landing = landingScene(sim);
@@ -150,7 +151,16 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const view = { width: app.screen.width, height: app.screen.height };
 	const waterline = layoutTweak("waterline", view, waterlineTweak);
 	const scroll = cameraScroll(depth, view);
-	const boat = player && boatLayout(view, waterSwell(seconds), scene);
+	const laidOut = player && boatLayout(view, waterSwell(seconds), scene);
+	// The fisherman is nudged and resized about the boat's anchor (`Fisherman`), so the rod tip moves with him.
+	const p = layoutTweak("player", view, playerTweak);
+	const boat = laidOut && {
+		...laidOut,
+		tip: {
+			x: laidOut.x + p.x + (laidOut.tip.x - laidOut.x) * p.scale,
+			y: laidOut.y + p.y + (laidOut.tip.y - laidOut.y) * p.scale
+		}
+	};
 	// Where the hook hangs, which is no longer where the camera is once a fish is on it: it stays at
 	// the depth it was caught while the camera goes up, then is hauled to the surface and lifted out.
 	const posed = sim && boat ? hookPose(sim, view, boat.tip) : undefined;
@@ -193,6 +203,8 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 						<Helicopter view={view} texture={textures?.[helicopterUrl]} hook={hook} />
 						<Helicopter view={view} texture={textures?.[helicopterUrl]} hook={hook} heavy />
 					</pixiContainer>
+					{player && boat && <Fisherman frames={player} boat={boat} seconds={seconds} view={view} />}
+					{/* After the boat, so the line and hook draw in front of it. */}
 					{boat && (
 						<FishingLine
 							tip={boat.tip}
@@ -206,7 +218,6 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 							lineAlpha={scene.line}
 						/>
 					)}
-					{player && boat && <Fisherman frames={player} boat={boat} seconds={seconds} view={view} />}
 				</pixiContainer>
 				{/* Above the hook: the hooked fish overlaps it. */}
 				<Creatures view={view} depth={depth} seconds={seconds} hook={hook} onlyHooked />
