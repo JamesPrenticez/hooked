@@ -7,6 +7,3 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0
  * helpers refuse to run and any debug UI stays unmounted.
  */
 export const DEBUG = import.meta.env.VITE_DEBUG === "true";
-
-/** Shortest time the loading screen stays up, so it never just flashes past. */
-export const MIN_LOADING_MS = 2000;

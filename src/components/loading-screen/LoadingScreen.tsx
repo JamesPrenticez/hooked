@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 
 import background from "@assets/loading/background.png";
 import logo from "@assets/loading/logo.png";
-import { MIN_LOADING_MS } from "@constants/config";
 import { breakpoint } from "@utils/breakpoint";
 
 const bob = keyframes`
@@ -86,16 +84,14 @@ const Percent = styled.span`
 /**
  * The game's initial presentation (BUILD_PLAN §5.1): full-bleed background,
  * Hooked logo and a percentage progress bar, laid out like Never Give Up's.
- * `progress` is the 0–1 asset load; the bar also never runs ahead of a linear
- * ramp over MIN_LOADING_MS, so a fast load still shows a full sweep.
+ * `progress` is the 0–1 asset load.
  *
  * HTML overlay: a sibling of <Application>, never a child of it (§38). It
  * covers the canvas while the `loading` phase is active and unmounts when
  * the phase machine advances.
  */
 export function LoadingScreen({ progress }: { progress: number }) {
-	const ramp = useMinRamp();
-	const pct = Math.round(Math.min(progress * 100, ramp));
+	const pct = Math.round(progress * 100);
 
 	return (
 		<Screen>
@@ -109,21 +105,4 @@ export function LoadingScreen({ progress }: { progress: number }) {
 			<Percent>{pct}%</Percent>
 		</Screen>
 	);
-}
-
-/** 0–100 over MIN_LOADING_MS, in step with the bootstrap's minimum-display gate. */
-function useMinRamp() {
-	const [ramp, setRamp] = useState(0);
-
-	useEffect(() => {
-		const start = performance.now();
-		const id = setInterval(() => {
-			const p = Math.min(100, ((performance.now() - start) / MIN_LOADING_MS) * 100);
-			setRamp(p);
-			if (p >= 100) clearInterval(id);
-		}, 50);
-		return () => clearInterval(id);
-	}, []);
-
-	return ramp;
 }
