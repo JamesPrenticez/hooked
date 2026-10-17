@@ -11,7 +11,7 @@ import {
 } from "@utils/simExtraction";
 import type { Sim } from "@utils/simStep";
 
-import { type BoatStance, hookWorldY, horizonY, waterlineY } from "./framing";
+import { type BoatStance, hookWorldY, horizonY } from "./framing";
 
 interface Size {
 	width: number;
@@ -99,9 +99,9 @@ const CRANE_EDGE_GAP = -0.015;
  *  landed fish, both as a share of the screen height. */
 const CRANE_JIB_SCREEN_Y = 0.1;
 const CRANE_FISH_GAP = 0.02;
-/** Where the water’s surface is on screen once it has dropped away, as a share of the screen height: still above the
- *  bet bar, so its waves show while the fish is lifted clear of them. */
-const LANDING_SURFACE_Y = 0.6;
+/** Where the water’s surface is on screen once it has dropped away, as a share of the screen height: level with the top
+ *  of the bottom bar, so its waves show while the fish is lifted clear of them. Tune by eye — the bar's height varies. */
+export const LANDING_SURFACE_Y = 0.8;
 /** Even the lightest catch the crane lifts is this share of the room under the boom, and every one is this much fatter
  *  than it swims, so what comes up fills the screen. */
 const CRANE_MIN_SHARE = 0.6;
@@ -267,6 +267,9 @@ export interface LandingScene extends BoatStance {
 	crane: number;
 	/** How much of its size the harbour is drawn at, about the spot the fish comes out of the water: 1 at rest. */
 	zoom: number;
+	/** How far the water's surface has dropped to `LANDING_SURFACE_Y` on screen, 0..1: every landing does this, only the
+	 *  crane's also pulls the camera back. */
+	drop: number;
 	/** How much of the man's line is still on the hook, 1..0: he lets go of it as he backs away. */
 	line: number;
 }
@@ -276,6 +279,7 @@ const AT_REST: LandingScene = {
 	retire: 0,
 	crane: 0,
 	zoom: 1,
+	drop: 0,
 	line: 1
 };
 
@@ -285,15 +289,19 @@ const AT_REST: LandingScene = {
  * stationed for the camera's trip back up too, so it is already there when it comes back into view.
  */
 export function landingScene(sim: Sim | undefined): LandingScene {
-	if (sim?.phase === "ascend") return { ...AT_REST, station: 1 };
+	// The water drops during the trip back up, so the landing starts with it already there.
+	if (sim?.phase === "ascend") return { ...AT_REST, station: gearsFor(sim.multiplier).length > 1 ? 1 : 0, drop: 1 };
 	if (sim?.phase !== "extract") return AT_REST;
 
-	const { arrival } = extractionAt(gearsFor(sim.multiplier), sim.catchM, sim.tick - sim.phaseTick);
+	const gears = gearsFor(sim.multiplier);
+	const { arrival } = extractionAt(gears, sim.catchM, sim.tick - sim.phaseTick);
 	const pull = pullOut(arrival.crane);
 	return {
-		station: 1,
+		// The rod alone keeps the man where he is, mid-screen; only heavier gear sends him aside.
+		station: gears.length > 1 ? 1 : 0,
 		retire: pull,
 		crane: craneOut(arrival.crane),
+		drop: 1,
 		zoom: 1 - (1 - ZOOM_OUT) * pull,
 		line: 1 - between(arrival.crane, 0, 0.3)
 	};
@@ -306,7 +314,12 @@ export function landingScene(sim: Sim | undefined): LandingScene {
  */
 export function hookPose(sim: Sim, view: Size, tip: Point): HookPose {
 	const hanging = {
-		x: simHookX(sim.phase === "extract" ? view.width / 2 : tip.x, sim.x, sim.depthM, view.width),
+		x: simHookX(
+			sim.phase === "extract" && gearsFor(sim.multiplier).length > 1 ? view.width / 2 : tip.x,
+			sim.x,
+			sim.depthM,
+			view.width
+		),
 		y: hookWorldY(sim.depthM, tip.y, view)
 	};
 	const fish = sim.world[sim.hooked];
@@ -319,21 +332,24 @@ export function hookPose(sim: Sim, view: Size, tip: Point): HookPose {
 	// long as the room under the boom allows.
 	const crane = gears.length > 1;
 	// The line's end when the fish's lips are just at where it comes out.
-	const surfaceY = crane ? landingSurface(view) : waterlineY(view);
+	const surfaceY = crane ? landingSurface(view) : LANDING_SURFACE_Y * view.height;
 	const lips = surfaceY - MOUTH_DY;
 	const length = crane
 		? craneCatchLength(sim.multiplier, artLength, view) / ZOOM_OUT
 		: catchLength(sim.multiplier, artLength, view);
 
+	// The rod reels the fish all the way up to its tip; the crane only lifts it clear of the water.
+	const lift = crane ? length : Math.max(length, lips - tip.y);
+
 	return {
 		x: hanging.x,
 		// While it is hauled in, the hook rises no higher than the lips-at-the-surface mark; the rest is the lift.
-		y: extraction.stage === "haul" ? Math.max(hanging.y, lips) : lips - extraction.reveal * length,
+		y: extraction.stage === "haul" ? Math.max(hanging.y, lips) : lips - extraction.reveal * lift,
 		grow: length / artLength,
 		surfaceY,
 		girth: crane ? CRANE_GIRTH : 1,
 		extraction,
-		finalY: lips - length
+		finalY: lips - lift
 	};
 }
 

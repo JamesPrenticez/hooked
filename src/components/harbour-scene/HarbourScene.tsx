@@ -23,15 +23,7 @@ import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
 import { BackgroundLayer } from "./BackgroundLayer";
 import { DockCrane } from "./DockCrane";
-import {
-	cameraShake,
-	hookPose,
-	landingPivotY,
-	type LandingScene,
-	landingScene,
-	landingSurface,
-	ZOOM_OUT
-} from "./extraction";
+import { cameraShake, hookPose, LANDING_SURFACE_Y, landingPivotY, type LandingScene, landingScene } from "./extraction";
 import { Fisherman } from "./Fisherman";
 import { boatLayout, cameraScroll, hookWorldY, waterlineY } from "./framing";
 import { Helicopter } from "./Helicopter";
@@ -104,6 +96,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 		retire: useAnimatedNumber(landing.retire),
 		crane: useAnimatedNumber(landing.crane),
 		zoom: useAnimatedNumber(landing.zoom),
+		drop: useAnimatedNumber(landing.drop),
 		line: useAnimatedNumber(landing.line)
 	};
 
@@ -173,9 +166,10 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	// The camera pulls back about a point near the top of the screen, so the crane's jib stays high and the harbour falls away below it.
 	const seam = waterlineY(view);
 	const pivotY = landingPivotY(view);
-	// Over a crane landing the water’s surface drops away down the screen, so the fish comes right out of it.
-	const pull = (1 - scene.zoom) / (1 - ZOOM_OUT);
-	const surface = seam + (landingSurface(view) - seam) * pull + waterline.y;
+	// Over any landing the water’s surface drops away down the screen, so the fish comes right out of it. In world
+	// space that is further down the more the camera has pulled out.
+	const landed = pivotY + (LANDING_SURFACE_Y * view.height - pivotY) / scene.zoom;
+	const surface = seam + (landed - seam) * scene.drop + waterline.y;
 
 	return (
 		<pixiContainer x={shake.x} y={shake.y}>
