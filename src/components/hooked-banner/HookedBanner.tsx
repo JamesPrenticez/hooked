@@ -1,5 +1,6 @@
 import styled from "styled-components";
 
+import { HOOKABLE_BY_ID } from "@constants/fish";
 import { useHookStore } from "@stores/hookStore";
 import { breakpoint } from "@utils/breakpoint";
 import { ANNOUNCE_TICKS } from "@utils/simExtraction";
@@ -47,6 +48,18 @@ const Word = styled.div`
 	}
 `;
 
+const Species = styled.div`
+	color: var(--color-primary-accent);
+	font: var(--font-display-lg);
+	letter-spacing: 0.1em;
+	text-align: center;
+	text-shadow: 0 0.2rem 0 var(--color-black);
+
+	@media ${breakpoint.tablet} {
+		font: var(--font-display-xxl);
+	}
+`;
+
 /**
  * The "HOOKED!" splash: the moment after the fish has fought the hook and before the camera goes back to
  * the surface. The scene dims and flashes, the word slams in oversized and settles, then fades — all off
@@ -62,11 +75,16 @@ export function HookedBanner() {
 	const slam = Math.max(0, 1 - progress / 0.14);
 	const scale = 1 + 1.6 * slam * slam + 0.03 * Math.sin(progress * 40);
 
+	const species = HOOKABLE_BY_ID.get(sim.world[sim.hooked]?.id ?? "")?.name;
+
 	return (
 		<Splash role="status">
 			<Dim style={{ opacity: fade }} />
 			<Flash style={{ opacity: Math.max(0, 1 - progress / 0.1) * 0.5 }} />
-			<Word style={{ opacity: fade, transform: `rotate(-4deg) scale(${scale})` }}>HOOKED!</Word>
+			<Word style={{ opacity: fade, transform: `rotate(-4deg) scale(${scale})` }}>
+				{species && <Species>{species}</Species>}
+				HOOKED!
+			</Word>
 		</Splash>
 	);
 }
