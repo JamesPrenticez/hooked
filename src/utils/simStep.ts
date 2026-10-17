@@ -88,7 +88,7 @@ export function createSim(worldSeed: number, multiplier = MIN_MULTIPLIER): Sim {
 	};
 }
 
-function zoneSpeed(depthM: number): number {
+export function zoneSpeed(depthM: number): number {
 	let speed: number = ZONES[0].speed;
 	for (const zone of ZONES) {
 		if (depthM < zone.fromMeters) break;

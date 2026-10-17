@@ -17,12 +17,11 @@ import { StoreSync } from "@components/system/StoreSync";
 import { DEBUG } from "@constants/config";
 import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import { Button, Checkbox, Overlay } from "@hooked-ui";
-import { useDescentDepth } from "@hooks/useDescentDepth";
 import { useGameBootstrap } from "@hooks/useGameBootstrap";
 import { useHookSim } from "@hooks/useHookSim";
 import { useDebugStore } from "@stores/debugStore";
 import { type GamePhase, useGameStore } from "@stores/gameStore";
-import { useHookStore, useSimHook } from "@stores/hookStore";
+import { useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
 
 const Root = styled.div`
@@ -89,10 +88,8 @@ export function App() {
 	const setIsDebugOpen = useDebugStore(state => state.setIsDebugOpen);
 
 	const [descending, setDescending] = useState(false);
-	const manual = useSimHook();
-	// Manual (debug) runs the arrow-key sim instead of the scripted descent.
-	const descentDepth = useDescentDepth(descending && !manual, () => setDescending(false));
-	useHookSim(descending && manual, () => setDescending(false));
+	// Every cast runs the sim: arrow keys in manual (debug), an autopilot otherwise, so a fish is always caught.
+	useHookSim(descending, () => setDescending(false));
 	// The camera's depth, not the hook's: after a fish bites the camera returns to the surface alone.
 	const simDepth = useHookStore(state => state.sim?.cameraM ?? 0);
 
@@ -100,7 +97,7 @@ export function App() {
 	// at once, whatever the cast is doing, until it's unticked or Surface is hit.
 	const forceTrench = useKrakenStore(state => state.forceTrench);
 	const setForceTrench = useKrakenStore(state => state.setForceTrench);
-	const depth = forceTrench ? KRAKEN_DEPTH_METERS : manual ? simDepth : descentDepth;
+	const depth = forceTrench ? KRAKEN_DEPTH_METERS : simDepth;
 	const underwater = descending || forceTrench;
 
 	// The harbour needs the live `depth` value (the cast is a camera move
