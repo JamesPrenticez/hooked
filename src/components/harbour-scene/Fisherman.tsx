@@ -15,6 +15,8 @@ interface FishermanProps {
 	/** Wall-clock seconds — the animation's clock. */
 	seconds: number;
 	view: { width: number; height: number };
+	/** Scales him up about his rod tip, which stays where it is. 1 is his usual size. */
+	grow?: number;
 }
 
 /**
@@ -24,7 +26,7 @@ interface FishermanProps {
  * drawn above the ocean and the background strip. Plays whichever animation `usePlayerStore`
  * cues — idle until something says otherwise.
  */
-export function Fisherman({ frames, boat, seconds, view }: FishermanProps) {
+export function Fisherman({ frames, boat, seconds, view, grow = 1 }: FishermanProps) {
 	const cue = usePlayerStore(state => state.cue);
 	const tweak = useLayout("player", view);
 
@@ -36,15 +38,19 @@ export function Fisherman({ frames, boat, seconds, view }: FishermanProps) {
 	const { sheet, frame } = playerPose(cue.animation, seconds - clip.startedAt);
 	const { textures, stretchY } = frames[sheet];
 
+	// Growing about the boat's anchor would carry the rod tip with it, so shift back by how far it moved.
+	const tipX = boat.tip.x - (boat.x + tweak.x);
+	const tipY = boat.tip.y - (boat.y + tweak.y);
+
 	return (
 		<pixiSprite
 			texture={textures[frame]}
 			anchor={BOAT_ANCHOR}
-			x={boat.x + tweak.x}
-			y={boat.y + tweak.y}
+			x={boat.x + tweak.x - tipX * (grow - 1)}
+			y={boat.y + tweak.y - tipY * stretchY * (grow - 1)}
 			scale={{
-				x: boat.scale * tweak.scale,
-				y: boat.scale * tweak.scale * stretchY
+				x: boat.scale * tweak.scale * grow,
+				y: boat.scale * tweak.scale * grow * stretchY
 			}}
 		/>
 	);

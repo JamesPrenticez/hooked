@@ -19,13 +19,22 @@ import { useAnimatedNumber } from "@hooks/useAnimatedNumber";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
 import { layoutTweak, useTweak } from "@stores/harbourDebugStore";
 import { useHookStore } from "@stores/hookStore";
+import { usePlayerStore } from "@stores/playerStore";
 import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
 import { BackgroundLayer } from "./BackgroundLayer";
 import { DockCrane } from "./DockCrane";
-import { cameraShake, hookPose, LANDING_SURFACE_Y, landingPivotY, type LandingScene, landingScene } from "./extraction";
+import {
+	cameraShake,
+	hookPose,
+	LANDING_SURFACE_Y,
+	landingPivotY,
+	type LandingScene,
+	landingScene,
+	ROD_GROW
+} from "./extraction";
 import { Fisherman } from "./Fisherman";
-import { boatLayout, cameraScroll, hookWorldY, waterlineY } from "./framing";
+import { boatLayout, cameraScroll, hookWorldY, rodTipShift, waterlineY } from "./framing";
 import { Helicopter } from "./Helicopter";
 import { OceanLayer } from "./OceanLayer";
 import { buildPlayerFrames } from "./playerFrames";
@@ -88,6 +97,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const sim = useHookStore(state => state.sim);
 	const waterlineTweak = useTweak("waterline");
 	const playerTweak = useTweak("player");
+	const shift = rodTipShift(usePlayerStore(state => state.cue.animation));
 	// How the landing has moved the boat, the crane and the camera from how the harbour rests. Each eases to where
 	// the landing puts it, so when the round ends the harbour settles back to rest instead of snapping.
 	const landing = landingScene(sim);
@@ -97,8 +107,10 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 		crane: useAnimatedNumber(landing.crane),
 		zoom: useAnimatedNumber(landing.zoom),
 		drop: useAnimatedNumber(landing.drop),
-		line: useAnimatedNumber(landing.line)
+		line: useAnimatedNumber(landing.line),
+		grow: useAnimatedNumber(landing.grow)
 	};
+	const grow = 1 + (ROD_GROW - 1) * scene.grow;
 
 	useEffect(() => {
 		let live = true;
@@ -150,8 +162,8 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const boat = laidOut && {
 		...laidOut,
 		tip: {
-			x: laidOut.x + p.x + (laidOut.tip.x - laidOut.x) * p.scale,
-			y: laidOut.y + p.y + (laidOut.tip.y - laidOut.y) * p.scale
+			x: laidOut.x + p.x + (laidOut.tip.x - laidOut.x) * p.scale + shift.x * laidOut.scale * p.scale,
+			y: laidOut.y + p.y + (laidOut.tip.y - laidOut.y) * p.scale + shift.y * laidOut.scale * p.scale
 		}
 	};
 	// Where the hook hangs, which is no longer where the camera is once a fish is on it: it stays at
@@ -197,7 +209,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 						<Helicopter view={view} texture={textures?.[helicopterUrl]} hook={hook} />
 						<Helicopter view={view} texture={textures?.[helicopterUrl]} hook={hook} heavy />
 					</pixiContainer>
-					{player && boat && <Fisherman frames={player} boat={boat} seconds={seconds} view={view} />}
+					{player && boat && <Fisherman frames={player} boat={boat} seconds={seconds} view={view} grow={grow} />}
 					{/* After the boat, so the line and hook draw in front of it. */}
 					{boat && (
 						<FishingLine

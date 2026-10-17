@@ -272,12 +272,18 @@ export interface LandingScene extends BoatStance {
 	drop: number;
 	/** How much of the man's line is still on the hook, 1..0: he lets go of it as he backs away. */
 	line: number;
+	/** How far the man is scaled up to `ROD_GROW` about his rod tip, 0..1: only while the rod lands the catch alone. */
+	grow: number;
 }
+
+/** The man's size, as a multiple of how he rests, while the rod brings a catch in on its own. */
+export const ROD_GROW = 1.3;
 
 const AT_REST: LandingScene = {
 	station: 0,
 	retire: 0,
 	crane: 0,
+	grow: 0,
 	zoom: 1,
 	drop: 0,
 	line: 1
@@ -290,7 +296,10 @@ const AT_REST: LandingScene = {
  */
 export function landingScene(sim: Sim | undefined): LandingScene {
 	// The water drops during the trip back up, so the landing starts with it already there.
-	if (sim?.phase === "ascend") return { ...AT_REST, station: gearsFor(sim.multiplier).length > 1 ? 1 : 0, drop: 1 };
+	if (sim?.phase === "ascend") {
+		const heavy = gearsFor(sim.multiplier).length > 1;
+		return { ...AT_REST, station: heavy ? 1 : 0, grow: heavy ? 0 : 1, drop: 1 };
+	}
 	if (sim?.phase !== "extract") return AT_REST;
 
 	const gears = gearsFor(sim.multiplier);
@@ -301,6 +310,7 @@ export function landingScene(sim: Sim | undefined): LandingScene {
 		station: gears.length > 1 ? 1 : 0,
 		retire: pull,
 		crane: craneOut(arrival.crane),
+		grow: gears.length > 1 ? 0 : 1,
 		drop: 1,
 		zoom: 1 - (1 - ZOOM_OUT) * pull,
 		line: 1 - between(arrival.crane, 0, 0.3)

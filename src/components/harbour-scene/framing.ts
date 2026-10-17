@@ -49,6 +49,10 @@ export const BOAT_ANCHOR = { x: 0.5, y: (HULL_Y - 2) / PLAYER_FRAME.height };
 export const REST_HEIGHT = 190;
 /** Rod tip in the idle pose, as a fraction of the box. */
 const ROD_TIP = { x: 269 / PLAYER_FRAME.width, y: 79 / PLAYER_FRAME.height };
+/** Where the rod tip sits in the animations that hold it elsewhere, as sheet px from `ROD_TIP` — measured by eye off the
+ *  sheet, so good to a few px. Everything else keeps it where the idle pose does. */
+const ROD_TIP_SHIFT: Record<string, { x: number; y: number }> = { reel: { x: -11, y: -47 } };
+export const rodTipShift = (animation: string) => ROD_TIP_SHIFT[animation] ?? { x: 0, y: 0 };
 /** How much of the middle third the resting boat may fill, and of the width. */
 const BOAT_MAX_HEIGHT = 0.92;
 const BOAT_MAX_WIDTH = 0.85;

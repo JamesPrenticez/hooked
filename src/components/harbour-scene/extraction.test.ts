@@ -202,7 +202,7 @@ describe("hookPose", () => {
 });
 
 describe("landingScene", () => {
-	const REST = { station: 0, retire: 0, crane: 0, zoom: 1, drop: 0, line: 1 };
+	const REST = { station: 0, retire: 0, crane: 0, zoom: 1, drop: 0, line: 1, grow: 0 };
 
 	it("leaves the harbour as it rests whenever a fish isn't being brought up", () => {
 		expect(landingScene(undefined)).toEqual(REST);
@@ -222,7 +222,7 @@ describe("landingScene", () => {
 
 	it("keeps the boat mid-screen, and the camera in close, while the rod lands a small fish", () => {
 		for (let tick = 0; tick <= extractionTicks(gearsFor(1), 2400); tick += 10) {
-			expect(landingScene(landing(1, tick))).toEqual({ ...REST, station: 0, drop: 1 });
+			expect(landingScene(landing(1, tick))).toEqual({ ...REST, station: 0, grow: 1, drop: 1 });
 		}
 	});
 
