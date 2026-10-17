@@ -30,7 +30,7 @@ const glowPulse = keyframes`
 		filter: drop-shadow(0 0 1rem color-mix(in srgb, var(--glow-color) 55%, transparent));
 	}
 	50% {
-		filter: drop-shadow(0 0 3rem var(--glow-color));
+		filter: drop-shadow(0 0 3rem color-mix(in srgb, var(--glow-color) 100%, transparent));
 	}
 `;
 
