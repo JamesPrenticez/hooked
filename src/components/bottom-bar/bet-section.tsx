@@ -28,7 +28,7 @@ export const BetSection = ({ disabled }: BetSectionProps) => {
 
 	return (
 		<Chip
-			label="Chip"
+			label="Bet"
 			orientation="vertical"
 			value={chip}
 			increments={CHIP_VALUES}
