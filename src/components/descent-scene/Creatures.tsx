@@ -7,7 +7,7 @@ import { HOOKABLE_BY_ID, type Sheet, SHEETS } from "@constants/fish";
 import { useHookStore } from "@stores/hookStore";
 import { cachedTextures } from "@utils/bootAssets";
 import { SIM_WIDTH, TICK_HZ } from "@utils/simConfig";
-import { fishX, spawnWorld } from "@utils/simWorld";
+import { fishHeading, fishX, spawnWorld, swimPose } from "@utils/simWorld";
 
 import { HookedFish } from "./HookedFish";
 import { BITE, cellRect, frameIndex, GASP, SHEET_ROWS, type SheetAnimation, STRUGGLE } from "./spriteSheet";
@@ -106,6 +106,7 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 				// rotated mouth sits `MOUTH_DY` under the hook's line end. The mouth grows with the fish, so its
 				// offset does too — the hook stays put in it.
 				const { grow, girth = 1 } = hook;
+				const direction = fishHeading(fish, sim.hookedTick);
 				const scroll = cameraScroll(depth, view);
 				const mouthY = hook.y - scroll + MOUTH_DY;
 				return (
@@ -113,11 +114,11 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 						key={i}
 						texture={hookedFrame(set, (sim.tick - sim.hookedTick) / TICK_HZ, !!hook.extraction)}
 						blendMode={art.opaque ? "screen" : "normal"}
-						x={hook.x - fish.direction * fish.mouth.dy * grow * girth}
+						x={hook.x - direction * fish.mouth.dy * grow * girth}
 						y={mouthY - fish.mouth.dx * grow}
-						rotation={(-fish.direction * Math.PI) / 2}
+						rotation={(-direction * Math.PI) / 2}
 						scale={{
-							x: scale * grow * -fish.direction,
+							x: scale * grow * -direction,
 							y: scale * grow * girth
 						}}
 						mouth={{ x: hook.x, y: mouthY }}
@@ -139,7 +140,7 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 					blendMode={art.opaque ? "screen" : "normal"}
 					x={(fishX(fish, sim.tick) / SIM_WIDTH) * view.width}
 					y={y}
-					scale={{ x: scale * -fish.direction, y: scale }}
+					scale={{ x: scale * -fishHeading(fish, sim.tick), y: scale }}
 				/>
 			);
 		});
@@ -147,15 +148,12 @@ export function Creatures({ view, depth, seconds, hook, onlyHooked = false }: Cr
 
 	return AUTO_WORLD.map((creature, i) => {
 		const { art, scale } = HOOKABLE_BY_ID.get(creature.id)!;
-		const { direction } = creature;
 		const textures = frames.get(art)!.swim;
 		const fishWidth = textures[0].width * scale;
 		const y = depthToScreenY(creature.meters, depth, view);
 		if (Math.abs(y - view.height / 2) > view.height / 2 + textures[0].height * scale) return null;
 
-		const travel = view.width + fishWidth;
-		const progress = (seconds * creature.speed + creature.offset) % travel;
-		const x = direction === -1 ? view.width + fishWidth / 2 - progress : progress - fishWidth / 2;
+		const { x, direction } = swimPose(creature, fishWidth, view.width, seconds);
 
 		return (
 			<pixiSprite

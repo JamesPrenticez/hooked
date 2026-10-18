@@ -53,10 +53,35 @@ export function spawnWorld(worldSeed: number): WorldFish[] {
 	);
 }
 
-/** Sprite centre x at `tick`, sim px — a closed form, so any tick is one call. Loops off-screen and back. */
+/**
+ * A fish ping-ponging between the side walls, in closed form so any moment is one call: the sprite
+ * centre `x` in `0..width` and the `direction` it faces then (-1 left, 1 right). It turns round
+ * when its sprite touches a wall.
+ */
+export function swimPose(
+	fish: Pick<WorldFish, "direction" | "speed" | "offset">,
+	fishWidth: number,
+	width: number,
+	seconds: number
+): { x: number; direction: -1 | 1 } {
+	const span = width - fishWidth;
+	const progress = (seconds * fish.speed + fish.offset) % (2 * span);
+	const outbound = progress < span;
+	const travelled = outbound ? progress : 2 * span - progress;
+	return {
+		x: fish.direction === -1 ? width - fishWidth / 2 - travelled : fishWidth / 2 + travelled,
+		direction: outbound ? fish.direction : (-fish.direction as -1 | 1)
+	};
+}
+
+/** Sprite centre x at `tick`, sim px. */
 export function fishX(fish: WorldFish, tick: number): number {
-	const progress = ((tick / TICK_HZ) * fish.speed + fish.offset) % (SIM_WIDTH + fish.width);
-	return fish.direction === -1 ? SIM_WIDTH + fish.width / 2 - progress : progress - fish.width / 2;
+	return swimPose(fish, fish.width, SIM_WIDTH, tick / TICK_HZ).x;
+}
+
+/** The way the fish faces at `tick`: -1 left (the art's native way), 1 mirrored. */
+export function fishHeading(fish: WorldFish, tick: number): -1 | 1 {
+	return swimPose(fish, fish.width, SIM_WIDTH, tick / TICK_HZ).direction;
 }
 
 /** Sprite centre y, sim px below the surface. */
@@ -67,7 +92,7 @@ export function fishY(fish: WorldFish): number {
 /** The mouth's contact circle at `tick`, in the sim's px space. */
 export function mouthAt(fish: WorldFish, tick: number): { x: number; y: number; r: number } {
 	return {
-		x: fishX(fish, tick) - fish.direction * fish.mouth.dx,
+		x: fishX(fish, tick) - fishHeading(fish, tick) * fish.mouth.dx,
 		y: fishY(fish) + fish.mouth.dy,
 		r: fish.mouth.r
 	};

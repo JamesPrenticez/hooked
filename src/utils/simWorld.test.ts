@@ -4,7 +4,7 @@ import { FISH, HOOKABLE_FISH } from "@constants/fish";
 
 import { CAST_METERS, HOOK_TIP_DY, PX_PER_METER, SIM_WIDTH, TICK_HZ } from "./simConfig";
 import { createSim, step } from "./simStep";
-import { fishX, mouthAt, spawnWorld } from "./simWorld";
+import { fishHeading, fishX, mouthAt, spawnWorld } from "./simWorld";
 
 it("hooks every roster fish but the Kraken, each with a band and a sheet", () => {
 	expect(HOOKABLE_FISH.map(f => f.id).sort()).toEqual(
@@ -29,13 +29,17 @@ it("keeps every fish inside its species' depth band", () => {
 	}
 });
 
-it("swims fish across and wraps them, in closed form", () => {
+it("swims fish wall to wall and turns them round, in closed form", () => {
 	const fish = { ...spawnWorld(1)[0], offset: 0, speed: 100, width: 100 };
-	expect(fishX({ ...fish, direction: -1 }, 0)).toBe(SIM_WIDTH + 50);
-	expect(fishX({ ...fish, direction: 1 }, 0)).toBe(-50);
-	expect(fishX({ ...fish, direction: 1 }, TICK_HZ)).toBe(50);
-	const loop = ((SIM_WIDTH + 100) / 100) * TICK_HZ;
-	expect(fishX({ ...fish, direction: 1 }, loop)).toBeCloseTo(-50);
+	expect(fishX({ ...fish, direction: -1 }, 0)).toBe(SIM_WIDTH - 50);
+	expect(fishX({ ...fish, direction: 1 }, 0)).toBe(50);
+	expect(fishX({ ...fish, direction: 1 }, TICK_HZ)).toBe(150);
+	const toWall = ((SIM_WIDTH - 100) / 100) * TICK_HZ;
+	expect(fishHeading({ ...fish, direction: 1 }, toWall - 1)).toBe(1);
+	expect(fishHeading({ ...fish, direction: 1 }, toWall + 1)).toBe(-1);
+	expect(fishX({ ...fish, direction: 1 }, toWall)).toBeCloseTo(SIM_WIDTH - 50);
+	expect(fishX({ ...fish, direction: 1 }, toWall + TICK_HZ)).toBeCloseTo(SIM_WIDTH - 150);
+	expect(fishX({ ...fish, direction: 1 }, 2 * toWall)).toBeCloseTo(50);
 });
 
 it("mirrors the mouth with the fish", () => {
@@ -52,7 +56,7 @@ function simWithMouthAt(mouthY: number) {
 	const fish = { ...sim.world[0], speed: 0, offset: 0, direction: -1 as const };
 	fish.mouth = { dx: 0, dy: 0, r: 20 };
 	fish.meters = mouthY / PX_PER_METER;
-	sim.world = [{ ...fish, offset: SIM_WIDTH + fish.width / 2 - SIM_WIDTH / 2 }];
+	sim.world = [{ ...fish, offset: SIM_WIDTH / 2 - fish.width / 2 }];
 	return sim;
 }
 
