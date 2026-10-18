@@ -1,5 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { placeBet } from "./placeBet";
+
 // The sim is fixed at 1920 sim-px wide; the mouth hit-boxes only line up with the art at that width.
 test.use({ viewport: { width: 1920, height: 1080 } });
 
@@ -26,6 +28,7 @@ async function castManualOnPausedClock(page: Page, { multiplier = 1, speed = 1 }
 
 	// Assets load in real time; from here the sim only moves when the clock is run.
 	await page.waitForTimeout(1_500);
+	await placeBet(page);
 	await page.clock.pauseAt(new Date(Date.now() + 2_000));
 	await page.getByRole("button", { name: "Cast Line" }).click();
 }
@@ -199,6 +202,7 @@ test("a stored recording can be verified, and played again to the same catch", a
 	await page.keyboard.press("Escape");
 
 	// No key is pressed: the replay steers the hook itself.
+	await placeBet(page);
 	await page.getByRole("button", { name: "Cast Line" }).click();
 	await watchUntil(page, "ended");
 	await page.getByRole("button", { name: "DEBUG" }).click();

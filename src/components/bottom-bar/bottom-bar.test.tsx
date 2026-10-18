@@ -3,6 +3,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 import { useBetStore } from "@stores/betStore";
 import { useHookStore } from "@stores/hookStore";
+import { useRoundStore } from "@stores/roundStore";
 import { extractionTicks, gearsFor } from "@utils/simExtraction";
 import { createSim } from "@utils/simStep";
 
@@ -10,6 +11,7 @@ import { BottomBar } from "./bottom-bar";
 
 beforeEach(() => {
 	useBetStore.setState({ chip: 100, bets: {} });
+	useRoundStore.setState({ round: null });
 });
 
 const openTargets = () => fireEvent.click(screen.getByRole("button", { name: /select targets/i }));
@@ -107,7 +109,16 @@ it("opens the chip quick-select popup and picks a value from it", () => {
 	expect(useBetStore.getState().chip).toBe(500);
 });
 
-it("turns the total into a payout of stake × multiplier once the catch is being landed", () => {
+const roundPaying = (total: string) => ({
+	roundId: "r1",
+	status: "open" as const,
+	bets: [],
+	outcome: { depth: "shallow" as const, fish: "sardine", tier: "small" as const },
+	payout: { total, wagered: "1.00", net: "0" }
+});
+
+/** Lands a ×62 catch with the stake on Shallow and the server's payout for the round set to `total`. */
+function landWithServerPayout(total: string) {
 	render(<BottomBar descending={false} onCast={() => {}} />);
 	openTargets();
 	fireEvent.click(screen.getByRole("button", { name: "Shallow" }));
@@ -115,9 +126,21 @@ it("turns the total into a payout of stake × multiplier once the catch is being
 
 	const multiplier = 62;
 	const sim = { ...createSim(1), phase: "extract" as const, multiplier, catchM: 2400, phaseTick: 0 };
-	act(() => useHookStore.setState({ sim: { ...sim, tick: extractionTicks(gearsFor(multiplier), sim.catchM) } }));
-
+	act(() => {
+		useRoundStore.setState({ round: roundPaying(total) });
+		useHookStore.setState({ sim: { ...sim, tick: extractionTicks(gearsFor(multiplier), sim.catchM) } });
+	});
 	expect(screen.getByText("Payout")).toBeInTheDocument();
-	expect(screen.getByText("$62.00")).toBeInTheDocument();
+}
+
+it("turns the total into the server's payout once the catch is being landed", () => {
+	landWithServerPayout("2.13");
+	expect(screen.getByText("$2.13")).toBeInTheDocument();
+	act(() => useHookStore.setState({ sim: undefined }));
+});
+
+it("shows no payout for a round the server settled as a loss", () => {
+	landWithServerPayout("0.00");
+	expect(screen.getByText("$0.00")).toBeInTheDocument();
 	act(() => useHookStore.setState({ sim: undefined }));
 });

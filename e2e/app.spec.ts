@@ -1,5 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { placeBet } from "./placeBet";
+
 async function startFishing(page: Page) {
 	await page.goto("/");
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
@@ -21,6 +23,7 @@ test("casting and surfacing play out in the one canvas, without leaving the game
 	await startFishing(page);
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
 
+	await placeBet(page);
 	await page.getByRole("button", { name: "Cast Line" }).click();
 	await expect(page.getByRole("button", { name: "Surface" })).toBeVisible();
 	await expect(page.locator("canvas")).toBeVisible();
@@ -99,6 +102,7 @@ test("a cast that reaches the bottom of the trench fights the Kraken, then reels
 	for (const speed of await hook.getByLabel("Speed (m/s)").all()) await speed.fill("1000000");
 	await page.keyboard.press("Escape");
 
+	await placeBet(page);
 	await page.getByRole("button", { name: "Cast Line" }).click();
 	await expect(page.getByText("11,400m", { exact: true })).toBeVisible();
 
@@ -143,6 +147,7 @@ test("manual hook mode: the arrow keys steer the hook", async ({ page }) => {
 	await control.getByLabel("Mode").selectOption("manual");
 	await page.keyboard.press("Escape");
 
+	await placeBet(page);
 	await page.getByRole("button", { name: "Cast Line" }).click();
 	await page.keyboard.down("ArrowRight");
 	await page.waitForTimeout(600);

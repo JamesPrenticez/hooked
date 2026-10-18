@@ -12,6 +12,7 @@ import { HarbourScene } from "@components/harbour-scene";
 import { HookedBanner } from "@components/hooked-banner";
 import { LoadingScreen } from "@components/loading-screen";
 import { SceneManager } from "@components/scene-manager/SceneManager";
+import { closeRound, openRound } from "@components/system/roundController";
 import { StoreSync } from "@components/system/StoreSync";
 import { DEBUG } from "@constants/config";
 import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
@@ -88,7 +89,11 @@ export function App() {
 
 	const [descending, setDescending] = useState(false);
 	// Every cast runs the sim: arrow keys in manual (debug), an autopilot otherwise, so a fish is always caught.
-	useHookSim(descending, () => setDescending(false));
+	const land = () => {
+		setDescending(false);
+		closeRound().catch(console.error);
+	};
+	useHookSim(descending, land);
 	// The camera's depth, not the hook's: after a fish bites the camera returns to the surface alone.
 	const simDepth = useHookStore(state => state.sim?.cameraM ?? 0);
 
@@ -124,9 +129,15 @@ export function App() {
 			{phase === "game" && (
 				<BottomBar
 					descending={underwater}
-					onCast={() => {
+					onCast={async () => {
 						setForceTrench(false);
-						setDescending(!underwater);
+						if (underwater) return land();
+						try {
+							await openRound();
+							setDescending(true);
+						} catch (err) {
+							console.error(err);
+						}
 					}}
 				/>
 			)}

@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { placeBet } from "./placeBet";
+
 const BONUS_TITLES = ["Re-Cast", "Lucky Bait", "Feeding Frenzy", "Monster Hunt"];
 
 test.beforeEach(async ({ page }) => {
@@ -30,6 +32,7 @@ test("the Bonus button opens a card for each bonus, all of it on screen, and Clo
 
 test("the Bonus button locks while casting and comes back on surfacing", async ({ page }) => {
 	test.slow();
+	await placeBet(page);
 	await page.getByRole("button", { name: "Cast Line" }).click();
 	await expect(page.getByRole("button", { name: "Bonus" })).toBeDisabled();
 
