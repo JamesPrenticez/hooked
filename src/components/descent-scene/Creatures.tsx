@@ -1,16 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
-import { Assets, Rectangle, Texture } from "pixi.js";
+import type { Texture } from "pixi.js";
 
 import { fishSway, type HookPose, MOUTH_DY } from "@components/harbour-scene/extraction";
 import { cameraScroll, depthToScreenY } from "@components/harbour-scene/framing";
-import { HOOKABLE_BY_ID, type Sheet, SHEETS } from "@constants/fish";
+import { HOOKABLE_BY_ID } from "@constants/fish";
+import { type SheetFrames, useFrames } from "@hooks/useFrames";
 import { useHookStore } from "@stores/hookStore";
-import { cachedTextures } from "@utils/bootAssets";
 import { SIM_WIDTH, TICK_HZ } from "@utils/simConfig";
 import { fishHeading, fishX, spawnWorld, swimPose } from "@utils/simWorld";
 
 import { HookedFish } from "./HookedFish";
-import { BITE, cellRect, frameIndex, GASP, SHEET_ROWS, type SheetAnimation, STRUGGLE } from "./spriteSheet";
+import { BITE, frameIndex, GASP, STRUGGLE } from "./spriteSheet";
 
 interface CreaturesProps {
 	view: { width: number; height: number };
@@ -25,52 +24,6 @@ interface CreaturesProps {
 
 /** The creatures cruising the scripted descent: the sim's own roster, spawned once. */
 const AUTO_WORLD = spawnWorld(1);
-
-interface SheetFrames {
-	swim: Texture[];
-	bite: Texture[];
-	struggle: Texture[];
-}
-
-/** Swim, bite and struggle frames per sheet, once every sheet has loaded. */
-function useFrames() {
-	const [sheets, setSheets] = useState(() => cachedTextures(SHEETS.map(s => s.url)));
-
-	useEffect(() => {
-		let live = true;
-		// ponytail: all 14 sheets load on scene mount (~85MB of textures), not via
-		// the boot manifest — same as HarbourScene; load per depth zone or route
-		// through §5's manifest if memory matters.
-		Assets.load<Texture>(SHEETS.map(s => s.url)).then(loaded => {
-			if (live) setSheets(loaded);
-		});
-		return () => {
-			live = false;
-		};
-	}, []);
-
-	return useMemo(() => {
-		if (!sheets) return undefined;
-		const row = (s: Sheet, { row, frameCount }: SheetAnimation) =>
-			Array.from({ length: frameCount }, (_, col) => {
-				const { x, y, width, height } = cellRect(sheets[s.url], s.cols, SHEET_ROWS, row, col);
-				return new Texture({
-					source: sheets[s.url].source,
-					frame: new Rectangle(x, y, width, height)
-				});
-			});
-		return new Map<Sheet, SheetFrames>(
-			SHEETS.map(s => [
-				s,
-				{
-					swim: row(s, s.swim),
-					bite: row(s, BITE),
-					struggle: row(s, STRUGGLE)
-				}
-			])
-		);
-	}, [sheets]);
-}
 
 /** The frame a fish shows while it is on the hook: the bite once, then the struggle on loop — and once it is
  *  being landed, gasping. */

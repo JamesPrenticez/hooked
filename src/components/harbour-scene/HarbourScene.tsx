@@ -36,6 +36,7 @@ import {
 import { Fisherman } from "./Fisherman";
 import { boatLayout, cameraScroll, hookWorldY, rodTipShift, waterlineY } from "./framing";
 import { Helicopter } from "./Helicopter";
+import { IdleFish } from "./IdleFish";
 import { OceanLayer } from "./OceanLayer";
 import { buildPlayerFrames } from "./playerFrames";
 import { SeamWaves } from "./SeamWaves";
@@ -209,6 +210,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 						<Helicopter view={view} texture={textures?.[helicopterUrl]} hook={hook} />
 						<Helicopter view={view} texture={textures?.[helicopterUrl]} hook={hook} heavy />
 					</pixiContainer>
+					<IdleFish view={view} seconds={seconds} scatter={!!sim || depth > 0} />
 					{player && boat && <Fisherman frames={player} boat={boat} seconds={seconds} view={view} grow={grow} />}
 					{/* After the boat, so the line and hook draw in front of it. */}
 					{boat && (
