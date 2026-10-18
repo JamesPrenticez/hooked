@@ -6,11 +6,10 @@
 // Kept deliberately dumb: it stores loosely-typed values and validates
 // nothing. routes/debug.ts owns validation; rounds.ts and http.ts read these.
 
-/** A forced outcome override — any subset of the outcome fields. */
+/** A forced catch: a fish, or a depth zone (which lands its first fish). A fish wins when both are set. */
 export interface ForcedOutcome {
 	depth?: string;
 	fish?: string;
-	tier?: string;
 }
 
 interface Simulation {

@@ -3,7 +3,7 @@
 // HTTP-level integration tests. Binds config.port for real (not an
 // ephemeral port) because POST /api/session self-fetches that exact port
 // (routes/session.ts) — can't run this alongside `pnpm server` on the same
-// port.
+// port; set SERVER_PORT to run it next to a dev server.
 
 import assert from "node:assert/strict";
 import { createServer, type Server } from "node:http";
@@ -58,44 +58,41 @@ async function newSession() {
 	};
 }
 
-const depthBet = (selection: string, amount: string) => ({
-	type: "depth",
-	selection,
-	amount
-});
-const fishBet = (selection: string, amount: string) => ({
-	type: "fish",
-	selection,
-	amount
-});
-const startBody = (bets: unknown[]) => ({ message: { start: { bets } } });
+const startBody = (stake: string, volatility: unknown = "medium") => ({ message: { start: { stake, volatility } } });
 const completeBody = (roundId: string) => ({
 	message: { complete: { roundId } }
 });
 const forceOutcome = (body: Record<string, string>) => call("POST", "/api/debug/force-outcome", { body });
 
-test("start debits the wager, complete credits the payout, and both surface in round detail + history", async () => {
+/** Cents a stake pays at a market price — the test's own arithmetic, not the server's. */
+const payCents = (stake: string, multiplier: string) => Math.round(Number(stake) * Number(multiplier) * 100);
+const money = (cents: number) => (cents / 100).toFixed(2);
+
+test("start debits the stake, complete credits the payout, and both surface in round detail + history", async () => {
 	const session = await newSession();
 
-	// Pin the outcome so a fish bet on it is a guaranteed win — a deterministic
-	// happy path that doesn't depend on the weighted roll landing on our fish.
+	// Pin the catch so the round is a deterministic happy path that doesn't depend on the roll landing on our fish.
 	await forceOutcome({ fish: "shark" });
 	const start = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
-		body: startBody([fishBet("shark", "10.00")])
+		body: startBody("10.00", "high")
 	});
 	assert.equal(start.status, 200);
 	const roundId = start.json.roundId;
-	assert.equal(start.json.message.roundId, roundId);
-	assert.equal(start.json.message.payout.wagered, "10.00");
-	assert.equal(start.json.message.payout.total, "367.10"); // shark ×36.71 (server/src/constants.ts)
-	assert.equal(start.json.message.payout.net, "357.10"); // 367.10 − 10.00
-	assert.equal(start.json.message.bets[0].won, true);
-	assert.equal(start.json.message.metadata.balance, "0"); // not authoritative (§14)
+	const { message } = start.json;
+	assert.equal(message.roundId, roundId);
+	assert.equal(message.volatility, "high");
+	assert.equal(message.stake, "10.00");
+	assert.equal(message.outcome.fish, "shark");
+	// The catch pays the price the market lists for it, and the payout is the stake times that price.
+	const sharkPrice = message.market.find((e: { fish: string }) => e.fish === "shark").multiplier;
+	assert.equal(message.outcome.multiplier, sharkPrice);
+	assert.equal(message.payout.wagered, "10.00");
+	assert.equal(message.payout.total, money(payCents("10.00", sharkPrice)));
+	assert.equal(message.payout.net, money(payCents("10.00", sharkPrice) - 1000));
+	assert.equal(message.metadata.balance, "0"); // not authoritative (§14)
 
-	const afterStart = await call("GET", "/api/game/balance", {
-		token: session.sessionToken
-	});
+	const afterStart = await call("GET", "/api/game/balance", { token: session.sessionToken });
 	assert.equal(afterStart.json.balance, "990.00");
 
 	const complete = await call("POST", "/api/game/play", {
@@ -103,74 +100,70 @@ test("start debits the wager, complete credits the payout, and both surface in r
 		body: completeBody(roundId)
 	});
 	assert.equal(complete.status, 200);
-	assert.equal(complete.json.message.payout.total, "367.10");
+	assert.equal(complete.json.message.payout.total, message.payout.total);
 
-	const afterComplete = await call("GET", "/api/game/balance", {
-		token: session.sessionToken
-	});
-	assert.equal(afterComplete.json.balance, "1357.10"); // 990.00 + 367.10
+	const afterComplete = await call("GET", "/api/game/balance", { token: session.sessionToken });
+	assert.equal(afterComplete.json.balance, money(99000 + payCents("10.00", sharkPrice)));
 
-	const detail = await call("GET", `/api/game/round/${roundId}`, {
-		token: session.sessionToken
-	});
+	const detail = await call("GET", `/api/game/round/${roundId}`, { token: session.sessionToken });
 	assert.equal(detail.status, 200);
 	assert.equal(detail.json.status, "completed");
+	assert.deepEqual(detail.json.market, message.market);
+	assert.deepEqual(detail.json.outcome, message.outcome);
+	assert.equal(detail.json.volatility, "high");
+	assert.equal(detail.json.stake, "10.00");
 
-	const history = await call("GET", "/api/game/history", {
-		token: session.sessionToken
-	});
+	const history = await call("GET", "/api/game/history", { token: session.sessionToken });
 	assert.equal(history.status, 200);
 	assert.ok(history.json.rounds.some((r: { roundId: string }) => r.roundId === roundId));
 
 	await forceOutcome({}); // clear the pin for the rest of the file
 });
 
-test("multiple simultaneous bets resolve independently against one outcome (BUILD_PLAN 3.3)", async () => {
+test("the Kraken pays its fixed price whatever the market rotation, so the jackpot is exact", async () => {
 	const session = await newSession();
-	await forceOutcome({ depth: "deep", fish: "shark", tier: "epic" });
-
-	// Three bets on one outcome: depth hit (deep ×5.65), fish hit (shark ×36.71),
-	// fish miss (whale). Total = 56.50 + 367.10 + 0, wagered 30, net = 393.60.
+	await forceOutcome({ fish: "kraken" });
 	const start = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
-		body: startBody([depthBet("deep", "10.00"), fishBet("shark", "10.00"), fishBet("whale", "10.00")])
+		body: startBody("1.00", "medium")
 	});
-	assert.equal(start.status, 200);
-	const [depthRes, sharkRes, whaleRes] = start.json.message.bets;
-	assert.deepEqual([depthRes.won, sharkRes.won, whaleRes.won], [true, true, false]);
-	assert.equal(depthRes.payout, "56.50");
-	assert.equal(sharkRes.payout, "367.10");
-	assert.equal(whaleRes.payout, "0.00");
-	assert.equal(start.json.message.payout.total, "367.10");
-	assert.equal(start.json.message.payout.wagered, "30.00");
-	assert.equal(start.json.message.payout.net, "393.60");
-
+	assert.equal(start.json.message.outcome.multiplier, "100.00");
+	assert.equal(start.json.message.payout.total, "100.00");
+	assert.equal(start.json.message.payout.net, "99.00");
 	await forceOutcome({});
 });
 
-test("a losing round reports a negative net", async () => {
+test("a catch that pays less than the stake reports a negative net", async () => {
 	const session = await newSession();
-	await forceOutcome({ depth: "jackpot", fish: "kraken", tier: "jackpot" });
+	await forceOutcome({ fish: "shrimp" }); // every shallow price is under 1× at medium
 	const start = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
-		body: startBody([depthBet("shallow", "5.00")])
+		body: startBody("5.00", "medium")
 	});
-	assert.equal(start.json.message.bets[0].won, false);
-	assert.equal(start.json.message.payout.total, "0.00");
-	assert.equal(start.json.message.payout.net, "-5.00");
+	const { payout } = start.json.message;
+	assert.ok(Number(payout.total) < 5, payout.total);
+	assert.ok(payout.net.startsWith("-"), payout.net);
+	assert.equal(payout.net, money(Math.round(Number(payout.total) * 100) - 500));
+	await forceOutcome({});
+});
+
+test("a forced depth lands a fish from that zone, priced off the market", async () => {
+	const session = await newSession();
+	await forceOutcome({ depth: "abyss" });
+	const start = await call("POST", "/api/game/play", {
+		token: session.sessionToken,
+		body: startBody("1.00", "low")
+	});
+	const { outcome, market } = start.json.message;
+	assert.equal(outcome.depth, "abyss");
+	assert.equal(outcome.multiplier, market.find((e: { fish: string }) => e.fish === outcome.fish).multiplier);
 	await forceOutcome({});
 });
 
 test("round_already_started — starting a second round before completing the first", async () => {
 	const session = await newSession();
-	await call("POST", "/api/game/play", {
-		token: session.sessionToken,
-		body: startBody([depthBet("shallow", "5.00")])
-	});
-	const second = await call("POST", "/api/game/play", {
-		token: session.sessionToken,
-		body: startBody([depthBet("reef", "5.00")])
-	});
+	await call("POST", "/api/game/play", { token: session.sessionToken, body: startBody("5.00") });
+	const second = await call("POST", "/api/game/play", { token: session.sessionToken, body: startBody("5.00", "low") });
 	assert.equal(second.status, 409);
 	assert.equal(second.json.error.code, "round_already_started");
 });
@@ -179,7 +172,7 @@ test("round_already_completed — completing a round twice", async () => {
 	const session = await newSession();
 	const { json: start } = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
-		body: startBody([fishBet("shark", "5.00")])
+		body: startBody("5.00")
 	});
 	const first = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
@@ -207,7 +200,7 @@ test("round_not_found — unknown id and another session's round", async () => {
 
 	const { json: startedByA } = await call("POST", "/api/game/play", {
 		token: a.sessionToken,
-		body: startBody([fishBet("shark", "5.00")])
+		body: startBody("5.00")
 	});
 	const foreignComplete = await call("POST", "/api/game/play", {
 		token: b.sessionToken,
@@ -220,37 +213,45 @@ test("round_not_found — unknown id and another session's round", async () => {
 	assert.equal(foreignDetail.status, 404);
 });
 
-test("insufficient_balance — wager exceeds available balance", async () => {
+test("insufficient_balance — stake exceeds available balance", async () => {
 	const session = await newSession();
 	await call("POST", "/api/debug/reset-balance", { body: { balance: "1.00" } });
 	const res = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
-		body: startBody([depthBet("shallow", "50.00")]) // within stake limits, over balance
+		body: startBody("50.00") // within stake limits, over balance
 	});
 	assert.equal(res.status, 400);
 	assert.equal(res.json.error.code, "insufficient_balance");
 	await call("POST", "/api/debug/reset-balance", { body: {} }); // back to the default for later tests
 });
 
-test("invalid_bet — empty bets, bad type, bad amount, unknown selections, stake limits", async () => {
+test("invalid_bet — bad stake, bad volatility, stake limits", async () => {
 	const session = await newSession();
-	const cases = [
-		[],
-		[{ type: "coin-flip", selection: "shallow", amount: "5.00" }],
-		[{ type: "depth", selection: "shallow", amount: "5.999" }],
-		[{ type: "depth", selection: "moon", amount: "5.00" }],
-		[{ type: "fish", selection: "", amount: "5.00" }],
-		[{ type: "fish", selection: "mermaid", amount: "5.00" }], // not on the roster
-		[{ type: "depth", selection: "shallow", amount: "0.05" }], // below minBet 0.10
-		[{ type: "depth", selection: "shallow", amount: "999.00" }] // above maxBet 500.00
+	const cases: [string, unknown][] = [
+		["", "medium"],
+		["abc", "medium"],
+		["5.999", "medium"],
+		["-5.00", "medium"],
+		["0.05", "medium"], // below minBet 0.10
+		["999.00", "medium"], // above maxBet 500.00
+		["5.00", "extreme"],
+		["5.00", null],
+		["5.00", 2]
 	];
-	for (const bets of cases) {
+	for (const [stake, volatility] of cases) {
 		const res = await call("POST", "/api/game/play", {
 			token: session.sessionToken,
-			body: startBody(bets)
+			body: startBody(stake, volatility)
 		});
-		assert.equal(res.status, 400, JSON.stringify(bets));
-		assert.equal(res.json.error.code, "invalid_bet", JSON.stringify(bets));
+		assert.equal(res.status, 400, JSON.stringify([stake, volatility]));
+		assert.equal(res.json.error.code, "invalid_bet", JSON.stringify([stake, volatility]));
+	}
+
+	// A stake that isn't a string at all, a start with no volatility, and a start with nothing in it.
+	for (const start of [{ stake: 5, volatility: "medium" }, { stake: "5.00" }, {}]) {
+		const res = await call("POST", "/api/game/play", { token: session.sessionToken, body: { message: { start } } });
+		assert.equal(res.status, 400);
+		assert.equal(res.json.error.code, "invalid_bet");
 	}
 });
 
@@ -265,7 +266,7 @@ test("invalid_message — message must contain exactly one of start|complete", a
 
 	const both = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
-		body: { message: { start: { bets: [] }, complete: { roundId: "x" } } }
+		body: { message: { start: { stake: "1.00", volatility: "low" }, complete: { roundId: "x" } } }
 	});
 	assert.equal(both.status, 400);
 	assert.equal(both.json.error.code, "invalid_message");
@@ -310,7 +311,7 @@ test("session/refresh rotates the token — old token dies, new token works", as
 	assert.equal(refreshOldAgain.status, 401);
 });
 
-test("current reflects an open round (bets only, no outcome), then clears after complete", async () => {
+test("current reflects an open round (stake and volatility only, no outcome), then clears after complete", async () => {
 	const session = await newSession();
 	const before_ = await call("POST", "/api/game/current", {
 		token: session.sessionToken
@@ -319,15 +320,17 @@ test("current reflects an open round (bets only, no outcome), then clears after 
 
 	const { json: start } = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
-		body: startBody([depthBet("shallow", "5.00")])
+		body: startBody("5.00", "high")
 	});
 	const duringOpen = await call("POST", "/api/game/current", {
 		token: session.sessionToken
 	});
 	assert.equal(duringOpen.json.active, true);
 	assert.equal(duringOpen.json.roundId, start.roundId);
-	assert.deepEqual(duringOpen.json.bets, [{ type: "depth", selection: "shallow", amount: "5.00" }]);
+	assert.equal(duringOpen.json.stake, "5.00");
+	assert.equal(duringOpen.json.volatility, "high");
 	assert.equal(duringOpen.json.outcome, undefined); // withheld per §30 — fetch via getRound() instead
+	assert.equal(duringOpen.json.market, undefined);
 
 	await call("POST", "/api/game/play", {
 		token: session.sessionToken,

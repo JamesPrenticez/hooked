@@ -7,6 +7,7 @@ import styled from "styled-components";
 import { BottomBar } from "@components/bottom-bar";
 import { DebugModal } from "@components/debug";
 import { DepthIndicator } from "@components/depth-indicator";
+import { MarketBoard, MarketReveal } from "@components/fish-market";
 import { HarbourDebug } from "@components/harbour-debug";
 import { HarbourScene } from "@components/harbour-scene";
 import { HookedBanner } from "@components/hooked-banner";
@@ -88,7 +89,9 @@ export function App() {
 	const setIsDebugOpen = useDebugStore(state => state.setIsDebugOpen);
 
 	const [descending, setDescending] = useState(false);
-	// Every cast runs the sim: arrow keys in manual (debug), an autopilot otherwise, so a fish is always caught.
+	// A cast first deals the round's fish market onto the board (`MarketReveal`); the hook goes down once it has settled.
+	const [revealing, setRevealing] = useState(false);
+	// Every cast runs the sim: arrow keys in manual (debug), an autopilot to the server's fish otherwise.
 	const land = () => {
 		setDescending(false);
 		closeRound().catch(console.error);
@@ -125,19 +128,29 @@ export function App() {
 			{phase === "loading" && <LoadingScreen progress={progress} />}
 
 			{phase === "game" && underwater && <DepthIndicator depth={depth} />}
+			{phase === "game" && <MarketBoard hidden={underwater || revealing} />}
 			{phase === "game" && <HookedBanner />}
 			{phase === "game" && (
 				<BottomBar
 					descending={underwater}
+					revealing={revealing}
 					onCast={async () => {
 						setForceTrench(false);
 						if (underwater) return land();
 						try {
 							await openRound();
-							setDescending(true);
+							setRevealing(true);
 						} catch (err) {
 							console.error(err);
 						}
+					}}
+				/>
+			)}
+			{phase === "game" && revealing && (
+				<MarketReveal
+					onDone={() => {
+						setRevealing(false);
+						setDescending(true);
 					}}
 				/>
 			)}

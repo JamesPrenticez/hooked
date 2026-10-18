@@ -67,7 +67,8 @@ export function catchLength(
 		),
 		max
 	);
-	const growth = (multiplier - MIN_MULTIPLIER) / (MAX_MULTIPLIER - MIN_MULTIPLIER);
+	// A catch worth less than the stake is no lighter than a plain one.
+	const growth = Math.max(0, (multiplier - MIN_MULTIPLIER) / (MAX_MULTIPLIER - MIN_MULTIPLIER));
 	// Eased out: the first few multipliers are the visible ones, a 250× is already most of the way to a 500×.
 	return base + (max - base) * (1 - (1 - growth) ** 2);
 }
@@ -390,7 +391,8 @@ export function fishSway(sim: Sim): number {
 /**
  * What the man in the boat should be doing: idle either side of a run, bracing from the moment the fish bites,
  * reeling while the rod does the work, cheering from the sidelines once it takes the crane or helicopter, and
- * celebrating the catch. `undefined` leaves whatever is playing (the Kraken's reel, the moment of surfacing).
+ * celebrating the catch — or, when it is worth less than the stake, being let down by it. `undefined` leaves whatever
+ * is playing (the Kraken's reel, the moment of surfacing).
  */
 export function playerCue(sim: Sim | undefined): PlayerAnimationName | undefined {
 	if (!sim || sim.phase === "descend") return "idle";
@@ -398,6 +400,9 @@ export function playerCue(sim: Sim | undefined): PlayerAnimationName | undefined
 	if (sim.phase !== "extract") return undefined;
 
 	const { stage } = extractionAt(gearsFor(sim.multiplier), sim.catchM, sim.tick - sim.phaseTick);
-	if (stage === "hold") return sim.multiplier >= CRANE_FROM ? "celebrate_big" : "celebrate";
+	if (stage === "hold") {
+		if (sim.multiplier >= CRANE_FROM) return "celebrate_big";
+		return sim.multiplier >= MIN_MULTIPLIER ? "celebrate" : "disappointed";
+	}
 	return stage === "haul" || stage === "rod" ? "reel" : "celebrate_big";
 }

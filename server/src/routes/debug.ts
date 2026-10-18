@@ -3,14 +3,14 @@
 // this whole module is only imported when config.debugControls is true, so the
 // routes don't exist in production at all.
 //
-// Covers: force outcome (depth/fish/tier — "Force Kraken" is just
-// { depth: "jackpot", fish: "kraken", tier: "jackpot" } from the toolbar),
-// reset balance, reset session, simulated latency/errors, and saving a
-// sandbox run to the recording library. Deterministic seeded outcomes are the
-// provably-fair RNG instead — see server/src/rng.ts and the /api/seed/*
-// endpoints.
+// Covers: force outcome (a fish, or a depth zone — "Force Kraken" is just
+// { fish: "kraken" } from the toolbar), reset balance, reset session,
+// simulated latency/errors, and saving a sandbox run to the recording
+// library. Deterministic seeded outcomes are the provably-fair RNG instead —
+// see server/src/rng.ts and the /api/seed/* endpoints.
 
 import { config } from "../config.ts";
+import { DEPTHS, FISH_IDS } from "../constants.ts";
 import { getDebugState, resetDebugState, setForcedOutcome, setSimulation } from "../debug-state.ts";
 import { HttpError, route } from "../http.ts";
 import { toCents } from "../money.ts";
@@ -19,10 +19,7 @@ import { resetRounds } from "../rounds.ts";
 import { resetSeeds } from "../seeds.ts";
 import { resetBalances, resetSessions } from "../sessions.ts";
 
-const DEPTHS = ["shallow", "reef", "deep", "abyss", "jackpot"];
-const TIERS = ["small", "large", "epic", "legendary", "jackpot"];
-
-function optEnum(value: unknown, allowed: string[], field: string): string | undefined {
+function optEnum(value: unknown, allowed: readonly string[], field: string): string | undefined {
 	if (value == null) return undefined;
 	if (typeof value !== "string" || !allowed.includes(value)) {
 		throw new HttpError(400, "invalid_debug_request", `${field} must be one of: ${allowed.join(", ")}`);
@@ -38,29 +35,16 @@ function optNumber(value: unknown, field: string, min = 0): number | undefined {
 	return value;
 }
 
-function optString(value: unknown, field: string): string | undefined {
-	if (value == null) return undefined;
-	if (typeof value !== "string" || value.length === 0) {
-		throw new HttpError(400, "invalid_debug_request", `${field} must be a non-empty string`);
-	}
-	return value;
-}
-
 // Not registered at all in production — the routes 404 like any other unknown path.
 if (config.debugControls) {
 	route("GET", "/api/debug/state", () => getDebugState());
 
-	// Body: { depth?, fish?, tier? }. Omit a field to leave it rolled; {} clears all.
+	// Body: { fish?, depth? }. A fish pins the catch; a depth pins the zone and lands its first fish. {} clears it.
 	route("POST", "/api/debug/force-outcome", ctx => {
-		const body = (ctx.body ?? {}) as {
-			depth?: unknown;
-			fish?: unknown;
-			tier?: unknown;
-		};
+		const body = (ctx.body ?? {}) as { depth?: unknown; fish?: unknown };
 		setForcedOutcome({
 			depth: optEnum(body.depth, DEPTHS, "depth"),
-			fish: optString(body.fish, "fish"),
-			tier: optEnum(body.tier, TIERS, "tier")
+			fish: optEnum(body.fish, [...FISH_IDS], "fish")
 		});
 		return getDebugState();
 	});

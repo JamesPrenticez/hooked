@@ -1,72 +1,57 @@
 // Authenticated game endpoints (§5, §8, §9, §14). POST /api/game/play is the
 // single envelope for every game action — start opens a round (debits the
-// wager, generates the outcome now), complete settles it (credits the
-// payout). See docs/BUILD_PLAN.md milestone 1 for the error-code table.
+// stake, rolls the market and the catch now), complete settles it (credits
+// the payout). See docs/BUILD_PLAN.md milestone 1 for the error-code table.
 
 import { config } from "../config.ts";
-import { FISH_IDS } from "../constants.ts";
+import { VOLATILITIES } from "../constants.ts";
 import { HttpError, route } from "../http.ts";
 import { toCents } from "../money.ts";
 import { hashSeed } from "../rng.ts";
 import {
-	type Bet,
-	type DepthId,
 	getOpenRound,
 	getRound,
 	hasOpenRound,
 	listCompleted,
 	openRound,
-	rollOutcome,
+	rollRound,
 	type Round,
-	settleRound
+	settleRound,
+	type Volatility
 } from "../rounds.ts";
 import { adjustBalance, requireSession } from "../sessions.ts";
-
-const DEPTH_IDS: DepthId[] = ["shallow", "reef", "deep", "abyss", "jackpot"];
 
 const MIN_BET_CENTS = toCents(config.minBet);
 const MAX_BET_CENTS = toCents(config.maxBet);
 
-function validateBets(bets: unknown): Bet[] {
-	if (!Array.isArray(bets) || bets.length === 0) {
-		throw new HttpError(400, "invalid_bet", "bets must be a non-empty array");
+const isVolatility = (value: unknown): value is Volatility => VOLATILITIES.includes(value as Volatility);
+
+function validateStart(start: { stake?: unknown; volatility?: unknown }) {
+	const cents = typeof start.stake === "string" ? toCents(start.stake) : NaN;
+	if (!(cents > 0)) {
+		throw new HttpError(400, "invalid_bet", `Invalid stake: ${String(start.stake)}`);
 	}
-	return bets.map(b => {
-		const bet = b as Partial<Bet>;
-		if (bet.type !== "depth" && bet.type !== "fish") {
-			throw new HttpError(400, "invalid_bet", `Unknown bet type: ${String(bet.type)}`);
-		}
-		const cents = typeof bet.amount === "string" ? toCents(bet.amount) : NaN;
-		if (!(cents > 0)) {
-			throw new HttpError(400, "invalid_bet", `Invalid bet amount: ${String(bet.amount)}`);
-		}
-		if (cents < MIN_BET_CENTS || cents > MAX_BET_CENTS) {
-			throw new HttpError(
-				400,
-				"invalid_bet",
-				`Bet amount ${bet.amount} is outside the ${config.minBet}–${config.maxBet} limit`
-			);
-		}
-		if (bet.type === "depth" && !DEPTH_IDS.includes(bet.selection as DepthId)) {
-			throw new HttpError(400, "invalid_bet", `Unknown depth selection: ${String(bet.selection)}`);
-		}
-		if (bet.type === "fish" && !FISH_IDS.has(bet.selection as string)) {
-			throw new HttpError(400, "invalid_bet", `Unknown fish selection: ${String(bet.selection)}`);
-		}
-		return {
-			type: bet.type,
-			selection: bet.selection as string,
-			amount: bet.amount as string
-		};
-	});
+	if (cents < MIN_BET_CENTS || cents > MAX_BET_CENTS) {
+		throw new HttpError(
+			400,
+			"invalid_bet",
+			`Stake ${start.stake} is outside the ${config.minBet}–${config.maxBet} limit`
+		);
+	}
+	if (!isVolatility(start.volatility)) {
+		throw new HttpError(400, "invalid_bet", `Unknown volatility: ${String(start.volatility)}`);
+	}
+	return { stake: start.stake as string, volatility: start.volatility };
 }
 
 /** metadata.balance is always "0" on /game/play responses — not authoritative (§14). */
 function toRoundResult(round: Round) {
 	return {
 		roundId: round.roundId,
+		volatility: round.volatility,
+		stake: round.stake,
+		market: round.market,
 		outcome: round.outcome,
-		bets: round.betResults,
 		payout: round.payout,
 		metadata: { balance: "0" }
 	};
@@ -86,13 +71,14 @@ route("POST", "/api/game/current", ctx => {
 			currency: session.currency,
 			active: false
 		};
-	// Outcome/payout withheld here (§30) — client calls GET /api/game/round/{id} to resume.
+	// Market/outcome/payout withheld here (§30) — client calls GET /api/game/round/{id} to resume.
 	return {
 		balance: session.balance,
 		currency: session.currency,
 		active: true,
 		roundId: open.roundId,
-		bets: open.bets
+		stake: open.stake,
+		volatility: open.volatility
 	};
 });
 
@@ -109,14 +95,14 @@ route("POST", "/api/game/play", ctx => {
 		if (hasOpenRound(session.playerId)) {
 			throw new HttpError(409, "round_already_started", "A round is already open for this session");
 		}
-		const bets = validateBets((message.start as { bets?: unknown }).bets);
-		const wagered = bets.reduce((sum, b) => sum + toCents(b.amount), 0);
+		const { stake, volatility } = validateStart(message.start as { stake?: unknown; volatility?: unknown });
+		const wagered = toCents(stake);
 		if (wagered > toCents(session.balance)) {
-			throw new HttpError(400, "insufficient_balance", "Total wager exceeds available balance");
+			throw new HttpError(400, "insufficient_balance", "Stake exceeds available balance");
 		}
 		// Open the round first, then debit — adjustBalance is pure arithmetic and
-		// can't throw, so the wager is never taken without a round to back it.
-		const round = openRound(session.playerId, bets);
+		// can't throw, so the stake is never taken without a round to back it.
+		const round = openRound(session.playerId, stake, volatility);
 		adjustBalance(session, -wagered);
 		return { message: toRoundResult(round), roundId: round.roundId };
 	}
@@ -143,42 +129,48 @@ route("GET", "/api/game/round/:id", ctx => {
 	return {
 		roundId: round.roundId,
 		status: round.status,
+		volatility: round.volatility,
+		stake: round.stake,
+		market: round.market,
 		outcome: round.outcome,
-		bets: round.betResults,
 		payout: round.payout,
 		seed: round.seed
 	};
 });
 
-// Provably-fair check (§36): recompute an outcome from a seed triple. Stateless
+// Provably-fair check (§36): recompute a round from a seed triple. Stateless
 // — the caller supplies the revealed serverSeed (from POST /api/seed/reveal)
-// plus the clientSeed/nonce recorded with the round, and compares the returned
-// outcome to what that round paid out. Forced rounds won't match by design.
+// plus the clientSeed/nonce/volatility recorded with the round, and compares
+// the returned market and outcome to what that round paid out. Forced rounds
+// won't match by design.
 route("POST", "/api/game/verify", ctx => {
 	requireSession(ctx);
 	const body = (ctx.body ?? {}) as {
 		serverSeed?: unknown;
 		clientSeed?: unknown;
 		nonce?: unknown;
+		volatility?: unknown;
 	};
 	if (
 		typeof body.serverSeed !== "string" ||
 		typeof body.clientSeed !== "string" ||
 		typeof body.nonce !== "number" ||
 		!Number.isInteger(body.nonce) ||
-		body.nonce < 0
+		body.nonce < 0 ||
+		!isVolatility(body.volatility)
 	) {
 		throw new HttpError(
 			400,
 			"invalid_verify_request",
-			"serverSeed and clientSeed must be strings and nonce a non-negative integer"
+			"serverSeed and clientSeed must be strings, nonce a non-negative integer and volatility low, medium or high"
 		);
 	}
 	return {
 		serverSeedHash: hashSeed(body.serverSeed),
 		clientSeed: body.clientSeed,
 		nonce: body.nonce,
-		outcome: rollOutcome(body.serverSeed, body.clientSeed, body.nonce)
+		volatility: body.volatility,
+		...rollRound(body.serverSeed, body.clientSeed, body.nonce, body.volatility)
 	};
 });
 
@@ -186,8 +178,9 @@ route("GET", "/api/game/history", ctx => {
 	const session = requireSession(ctx);
 	const rounds = listCompleted(session.playerId).map(r => ({
 		roundId: r.roundId,
+		volatility: r.volatility,
+		stake: r.stake,
 		outcome: r.outcome,
-		bets: r.betResults,
 		payout: r.payout,
 		seed: r.seed,
 		completedAt: new Date(r.completedAt ?? r.createdAt).toISOString()

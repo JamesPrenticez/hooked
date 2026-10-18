@@ -1,9 +1,11 @@
 import styled from "styled-components";
 
-import selectTargetsIcon from "@assets/bottom-bar/select-targets.png";
+import { volatilityLevel } from "@constants/volatility";
 import { IconButton } from "@hooked-ui";
 import { useBetStore } from "@stores/betStore";
 import { breakpoint } from "@utils/breakpoint";
+
+import { DepthMeter } from "./depth-meter";
 
 const Trigger = styled(IconButton)`
 	pointer-events: auto;
@@ -35,49 +37,40 @@ const Trigger = styled(IconButton)`
 	}
 `;
 
-const Icon = styled.img`
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
+const Level = styled.span`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.3rem;
 	pointer-events: none;
 `;
 
-const Badge = styled.span`
-	position: absolute;
-	top: -0.2rem;
-	right: -0.2rem;
-	min-width: 2rem;
-	height: 2rem;
-	padding: 0 0.4rem;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 50%;
-	background: var(--color-negative);
-	color: var(--color-white);
+const Name = styled.span`
 	font: var(--font-display-legal);
-	line-height: 1;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
 `;
 
-interface SelectTargetsSectionProps {
+interface VolatilitySectionProps {
 	disabled: boolean;
 	onOpen: () => void;
 }
 
-export const SelectTargetsSection = ({ disabled, onOpen }: SelectTargetsSectionProps) => {
-	const count = useBetStore(s => Object.keys(s.bets).length);
+/** Shows the volatility the next cast is made at — how deep the hook tends to dive — and opens `VolatilityModal` to change it. */
+export const VolatilitySection = ({ disabled, onOpen }: VolatilitySectionProps) => {
+	const level = volatilityLevel(useBetStore(s => s.volatility));
 
 	return (
 		<Trigger
 			disabled={disabled}
 			onClick={onOpen}
 			aria-haspopup="dialog"
-			aria-label={count > 0 ? `Select targets, ${count} selected` : "Select targets"}
+			aria-label={`Volatility, ${level.label}`}
 			icon={
-				<>
-					<Icon src={selectTargetsIcon} alt="" />
-					{count > 0 && <Badge>{count}</Badge>}
-				</>
+				<Level>
+					<Name>{level.short}</Name>
+					<DepthMeter depth={level.depth} />
+				</Level>
 			}
 		/>
 	);

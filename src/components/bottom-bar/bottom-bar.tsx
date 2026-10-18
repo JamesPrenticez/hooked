@@ -8,9 +8,9 @@ import { BetSection } from "./bet-section";
 import { BonusModal } from "./bonus-modal";
 import { BonusSection } from "./bonus-section";
 import { CallToActionSection } from "./call-to-action-section";
-import { SelectTargetsSection } from "./select-targets.modal";
-import { SelectTargetsModal } from "./select-targets-modal";
 import { TotalSection } from "./total-section";
+import { VolatilityModal } from "./volatility-modal";
+import { VolatilitySection } from "./volatility-section";
 
 const Container = styled.div`
 	position: fixed;
@@ -70,22 +70,25 @@ const Bar = styled.div`
 
 interface BottomBarProps {
 	descending: boolean;
+	/** A round is open but the hook has not gone down: its fish market is still being dealt. Locks the bar like a cast. */
+	revealing?: boolean;
 	onCast: () => void;
 }
 
 /**
- * Mobile-first bottom UI: chip selector, cast-line control, total wager, a
- * "Select Targets" button and a "Bonus" button. The depth/species board
- * (`BettingBoard`) used to sit inline here; it now opens in
- * `SelectTargetsModal` instead, mirroring never-give-up's difficulty picker.
- * Bonus opens `BonusModal`, mirroring its bonus-buy button.
+ * Mobile-first bottom UI: the stake, the cast-line control, the total and a
+ * "Volatility" button and a "Bonus" button. Volatility opens
+ * `VolatilityModal` (how deep the hook tends to dive), mirroring
+ * never-give-up's difficulty picker. Bonus opens `BonusModal`, mirroring its
+ * bonus-buy button.
  *
- * Cast toggles the client-only descent view (App.tsx) — bets aren't submitted
- * to the server yet, and targets and bonuses lock while descending.
+ * Cast opens a round on the server and deals its fish market (App.tsx); the
+ * stake, volatility and bonuses lock from then until the catch is landed.
  */
-export const BottomBar = ({ descending, onCast }: BottomBarProps) => {
-	const [targetsOpen, setTargetsOpen] = useState(false);
+export const BottomBar = ({ descending, revealing = false, onCast }: BottomBarProps) => {
+	const [volatilityOpen, setVolatilityOpen] = useState(false);
 	const [bonusOpen, setBonusOpen] = useState(false);
+	const locked = descending || revealing;
 
 	return (
 		<>
@@ -93,14 +96,14 @@ export const BottomBar = ({ descending, onCast }: BottomBarProps) => {
 			<TotalSection />
 			<Container>
 				<Bar>
-					<BonusSection disabled={descending} onOpen={() => setBonusOpen(true)} />
+					<BonusSection disabled={locked} onOpen={() => setBonusOpen(true)} />
 					<Balance />
-					<BetSection disabled={descending} />
-					<CallToActionSection descending={descending} onCast={onCast} />
-					<SelectTargetsSection disabled={descending} onOpen={() => setTargetsOpen(true)} />
+					<BetSection disabled={locked} />
+					<CallToActionSection descending={descending} disabled={revealing} onCast={onCast} />
+					<VolatilitySection disabled={locked} onOpen={() => setVolatilityOpen(true)} />
 				</Bar>
 
-				{targetsOpen && <SelectTargetsModal disabled={descending} onClose={() => setTargetsOpen(false)} />}
+				{volatilityOpen && <VolatilityModal onClose={() => setVolatilityOpen(false)} />}
 				{bonusOpen && <BonusModal onClose={() => setBonusOpen(false)} />}
 			</Container>
 		</>

@@ -1,12 +1,12 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { placeBet } from "./placeBet";
+import { closeDebug, marketDialog } from "./market";
 
 // The sim is fixed at 1920 sim-px wide; the mouth hit-boxes only line up with the art at that width.
 test.use({ viewport: { width: 1920, height: 1080 } });
 
 /**
- * Seed 1's world: sitting still on the centre line, the hook takes a sardine at ~741m (tick ~202).
+ * Seed 1's world: sitting still on the centre line, the hook takes a guppy at ~774m (tick 211).
  * `speed` runs more sim ticks per frame (the debug panel's ×2/×4/×8) — the run is identical, it just
  * takes fewer software-rendered frames to get through.
  */
@@ -24,13 +24,22 @@ async function castManualOnPausedClock(page: Page, { multiplier = 1, speed = 1 }
 	await control.getByLabel("Mode").selectOption("manual");
 	await control.getByLabel("Catch multiplier").fill(String(multiplier));
 	await control.getByLabel("Speed").selectOption(String(speed));
-	await page.keyboard.press("Escape");
+	await closeDebug(page);
 
 	// Assets load in real time; from here the sim only moves when the clock is run.
 	await page.waitForTimeout(1_500);
-	await placeBet(page);
 	await page.clock.pauseAt(new Date(Date.now() + 2_000));
+	await castOnPausedClock(page);
+}
+
+/** Casts with the clock paused: taps through the fish market pop-up, then runs the clock over its short flight to the
+ *  dock board, after which the hook goes down. */
+async function castOnPausedClock(page: Page) {
 	await page.getByRole("button", { name: "Cast Line" }).click();
+	await marketDialog(page).click();
+	// React has to commit the flight before the clock can run it.
+	await page.waitForTimeout(150);
+	await page.clock.runFor(600);
 }
 
 /** The debug panel's readout. It lives in the closed dialog, which is still in the DOM — no need to open it to read. */
@@ -66,9 +75,9 @@ test("the hook takes a fish by the mouth and holds it", async ({ page }) => {
 	await page.clock.runFor(2_500);
 	expect(await readout(page)).toMatch(/^descend .* hooked none$/);
 
-	await page.clock.runFor(1_000);
+	await watchUntil(page, "hooked");
 	const hooked = await readout(page);
-	expect(hooked).toMatch(/^hooked .* hooked sardine$/);
+	expect(hooked).toMatch(/^hooked .* hooked guppy$/);
 
 	// Frozen: more time doesn't move the hook, and steering is ignored.
 	await page.keyboard.down("ArrowRight");
@@ -105,13 +114,13 @@ test("HOOKED! splashes once the fish has fought the hook, and only the camera th
 // The multiplier picks who lands the fish: the man in the boat always, then the crane, the helicopter and the Chinook.
 for (const { multiplier, gear } of [
 	{ multiplier: 1, gear: ["extract:rod"] },
-	{ multiplier: 30, gear: ["extract:rod", "extract:crane"] },
+	{ multiplier: 5, gear: ["extract:rod", "extract:crane"] },
 	{
-		multiplier: 100,
+		multiplier: 12,
 		gear: ["extract:rod", "extract:crane", "extract:helicopter"]
 	},
 	{
-		multiplier: 500,
+		multiplier: 50,
 		gear: ["extract:rod", "extract:crane", "extract:helicopter", "extract:chinook"]
 	}
 ]) {
@@ -139,7 +148,7 @@ for (const { multiplier, gear } of [
 // The readout climbs as the fish comes out and lands on the catch's own multiplier.
 test("the multiplier readout climbs to the catch's multiplier as it is landed", async ({ page }) => {
 	test.setTimeout(300_000);
-	await castManualOnPausedClock(page, { multiplier: 100, speed: 8 });
+	await castManualOnPausedClock(page, { multiplier: 12, speed: 8 });
 
 	const readoutText = page.getByRole("status", { name: "Catch multiplier" });
 	const seen: number[] = [];
@@ -147,7 +156,7 @@ test("the multiplier readout climbs to the catch's multiplier as it is landed", 
 		if (await readoutText.isVisible()) seen.push(Number((await readoutText.textContent())?.replace("×", "")));
 		await page.clock.runFor(60);
 	}
-	await expect(readoutText).toHaveText("×100");
+	await expect(readoutText).toHaveText("×12");
 	expect(seen.length).toBeGreaterThan(0);
 	expect(seen).toEqual([...seen].sort((a, b) => a - b));
 });
@@ -177,7 +186,7 @@ test("Save run stores a finished run once the server has re-simulated it to the 
 
 	await page.getByRole("button", { name: "DEBUG" }).click();
 	await page.getByRole("button", { name: "Save run" }).click();
-	await expect(page.getByTestId("save-status")).toHaveText(/^Saved #\d+: sardine \(shallow\)/);
+	await expect(page.getByTestId("save-status")).toHaveText(/^Saved #\d+: guppy \(shallow\)/);
 });
 
 // Also against the real server: Play fetches the stored inputs and the sim re-runs them without the keys.
@@ -188,24 +197,23 @@ test("a stored recording can be verified, and played again to the same catch", a
 
 	await page.getByRole("button", { name: "DEBUG" }).click();
 	await page.getByRole("button", { name: "Save run" }).click();
-	await expect(page.getByTestId("save-status")).toHaveText(/^Saved #\d+: sardine \(shallow\)/);
+	await expect(page.getByTestId("save-status")).toHaveText(/^Saved #\d+: guppy \(shallow\)/);
 
 	const recordings = page.locator("details").filter({ hasText: "Load" });
 	await recordings.getByText("Recordings", { exact: true }).click();
 	await recordings.getByRole("button", { name: "Load" }).click();
-	const row = page.getByTestId("recording-row").filter({ hasText: "sardine" }).first();
+	const row = page.getByTestId("recording-row").filter({ hasText: "guppy" }).first();
 	await row.getByRole("button", { name: "Verify" }).click();
-	await expect(page.getByTestId("recordings-status")).toHaveText(/verified — sardine/);
+	await expect(page.getByTestId("recordings-status")).toHaveText(/verified — guppy/);
 
 	await row.getByRole("button", { name: "Play" }).click();
 	await expect(page.getByTestId("recordings-status")).toHaveText(/^Replay #\d+ loaded/);
-	await page.keyboard.press("Escape");
+	await closeDebug(page);
 
 	// No key is pressed: the replay steers the hook itself.
-	await placeBet(page);
-	await page.getByRole("button", { name: "Cast Line" }).click();
+	await castOnPausedClock(page);
 	await watchUntil(page, "ended");
 	await page.getByRole("button", { name: "DEBUG" }).click();
 	await page.getByRole("button", { name: "Save run" }).click();
-	await expect(page.getByTestId("save-status")).toHaveText(/sardine \(shallow\).* already in the library/);
+	await expect(page.getByTestId("save-status")).toHaveText(/guppy \(shallow\).* already in the library/);
 });

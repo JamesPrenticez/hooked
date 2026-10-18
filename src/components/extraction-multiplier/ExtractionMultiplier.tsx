@@ -1,6 +1,7 @@
 import styled, { keyframes } from "styled-components";
 
 import { useLandingMultiplier } from "@hooks/useLandingMultiplier";
+import { formatMultiplier } from "@utils/formatMultiplier";
 
 const pop = keyframes`
 	from {
@@ -35,7 +36,7 @@ export function ExtractionMultiplier() {
 
 	return (
 		<Readout role="status" aria-label="Catch multiplier">
-			<Value key={landing.stage}>×{landing.value}</Value>
+			<Value key={landing.stage}>×{formatMultiplier(landing.value)}</Value>
 		</Readout>
 	);
 }

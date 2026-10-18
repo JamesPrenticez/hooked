@@ -1,10 +1,11 @@
-// Drives a round against the server: cast opens it (debiting the stake), landing
-// settles it (crediting the payout). The balance shown is always what the server
-// reports afterwards — the client never adjusts it itself (balanceStore).
+// Drives a round against the server: cast opens it (debiting the stake and
+// dealing the fish market), landing settles it (crediting the payout). The
+// balance shown is always what the server reports afterwards — the client never
+// adjusts it itself (balanceStore).
 
 import { completeRound, getBalance, startRound } from "@api";
 import { useBalanceStore } from "@stores/balanceStore";
-import { toWireBets, useBetStore } from "@stores/betStore";
+import { toWireStart, useBetStore } from "@stores/betStore";
 import { useRoundStore } from "@stores/roundStore";
 
 import { setInflightRoundId } from "./roundRecovery";
@@ -14,9 +15,9 @@ async function syncBalance() {
 	useBalanceStore.getState().setBalance(balance, currency);
 }
 
-/** Places the composed bets and refreshes the balance. Throws (ApiError) if the server refuses them. */
+/** Opens a round at the composed stake and volatility and refreshes the balance. Throws (ApiError) if the server refuses it. */
 export async function openRound(): Promise<void> {
-	const round = await startRound(toWireBets(useBetStore.getState().bets));
+	const round = await startRound(toWireStart(useBetStore.getState()));
 	setInflightRoundId(round.roundId);
 	useRoundStore.getState().setRound({ ...round, status: "open" });
 	await syncBalance();

@@ -55,6 +55,9 @@ export interface Sim {
 	phaseTick: number;
 	/** How heavy the catch is (`MIN_MULTIPLIER`..`MAX_MULTIPLIER`) — sets its size and the gear that lands it. */
 	multiplier: number;
+	/** The roster id the hook is after: only a fish of that kind will take it, so a run can end in the fish the server
+	 *  chose. Unset, any fish will (the debug sandbox). The Kraken isn't in the world — the hook runs to the bottom. */
+	target?: string;
 	/** The hook's depth when the fish took it: where the ascent and the landing start from. */
 	catchM: number;
 	/** Every fish, fixed by `worldSeed`. */
@@ -69,9 +72,10 @@ export interface Sim {
 	result?: SimResult;
 }
 
-export function createSim(worldSeed: number, multiplier = MIN_MULTIPLIER): Sim {
+export function createSim(worldSeed: number, multiplier = MIN_MULTIPLIER, target?: string): Sim {
 	return {
 		worldSeed,
+		target,
 		tick: 0,
 		x: SIM_WIDTH / 2,
 		vx: 0,
@@ -166,10 +170,11 @@ export function step(sim: Sim, axis: number): void {
 	} else if (sim.depthM >= CAST_METERS) hookFish(sim);
 }
 
-/** The first mouth (lowest index) the hook tip touches, if any, goes on the hook. */
+/** The first mouth (lowest index) the hook tip touches, if any, goes on the hook — of the target's kind, when it has one. */
 function hookFish(sim: Sim): void {
 	const tipY = sim.depthM * PX_PER_METER + HOOK_TIP_DY;
 	for (let i = 0; i < sim.world.length; i++) {
+		if (sim.target && sim.world[i].id !== sim.target) continue;
 		const mouth = mouthAt(sim.world[i], sim.tick);
 		const dx = sim.x - mouth.x;
 		const dy = tipY - mouth.y;

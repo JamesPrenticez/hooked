@@ -2,6 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 import { useBalanceStore } from "@stores/balanceStore";
 import { useRoundStore } from "@stores/roundStore";
+import { roundSnapshot } from "@utils/roundFixture";
 
 import { recoverFromServer, setInflightRoundId } from "./roundRecovery";
 
@@ -24,20 +25,7 @@ beforeEach(() => {
 const CURRENT = { balance: "990.00", currency: "USD", active: false };
 
 const detail = (status: "open" | "completed") => ({
-	roundId: "r1",
-	status,
-	bets: [
-		{
-			type: "depth",
-			selection: "shallow",
-			amount: "10.00",
-			won: false,
-			multiplier: "0.00",
-			payout: "0.00"
-		}
-	],
-	outcome: { depth: "deep", fish: "shark", tier: "epic" },
-	payout: { total: "0.00", wagered: "10.00", net: "-10.00" },
+	...roundSnapshot({ status }),
 	seed: { serverSeedHash: "h", clientSeed: "c", nonce: 1 }
 });
 
@@ -56,10 +44,8 @@ it("resumes an active round from full detail and persists its id", async () => {
 	await recoverFromServer({ ...CURRENT, active: true, roundId: "r1" });
 
 	expect(fetchMock.mock.calls[0][0]).toContain("/api/game/round/r1");
-	expect(useRoundStore.getState().round).toMatchObject({
-		roundId: "r1",
-		status: "open"
-	});
+	// The market and the catch come back with it, so the board can be redrawn and the dive resumed.
+	expect(useRoundStore.getState().round).toEqual(roundSnapshot({ status: "open" }));
 	expect(localStorage.getItem("deepcatch.roundId")).toBe("r1");
 });
 

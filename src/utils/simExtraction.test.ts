@@ -68,7 +68,7 @@ describe("ascentDepth", () => {
 
 describe("extractionAt", () => {
 	it("starts at the catch depth with nothing out of the water and no gear called", () => {
-		for (const gears of [gearsFor(1), gearsFor(30), gearsFor(500)]) {
+		for (const gears of [gearsFor(1), gearsFor(CRANE_FROM), gearsFor(500)]) {
 			expect(extractionAt(gears, CATCH_M, 0)).toEqual({
 				stage: "haul",
 				depthM: CATCH_M,
@@ -90,24 +90,27 @@ describe("extractionAt", () => {
 		}
 	});
 
-	it.each([1, 30, 100, 500])("slowly and steadily brings a %i× fish fully out, then holds", multiplier => {
-		const frames = landing(gearsFor(multiplier));
-		for (let i = 1; i < frames.length; i++) expect(frames[i].reveal).toBeGreaterThanOrEqual(frames[i - 1].reveal);
-		expect(frames.at(-1)).toMatchObject({ stage: "hold", reveal: 1 });
-		// A "slow" reveal: no tick shows more than a sliver of the fish arriving at once.
-		for (let i = 1; i < frames.length; i++) expect(frames[i].reveal - frames[i - 1].reveal).toBeLessThan(0.02);
-	});
+	it.each([1, CRANE_FROM, HELICOPTER_FROM, CHINOOK_FROM])(
+		"slowly and steadily brings a %i× fish fully out, then holds",
+		multiplier => {
+			const frames = landing(gearsFor(multiplier));
+			for (let i = 1; i < frames.length; i++) expect(frames[i].reveal).toBeGreaterThanOrEqual(frames[i - 1].reveal);
+			expect(frames.at(-1)).toMatchObject({ stage: "hold", reveal: 1 });
+			// A "slow" reveal: no tick shows more than a sliver of the fish arriving at once.
+			for (let i = 1; i < frames.length; i++) expect(frames[i].reveal - frames[i - 1].reveal).toBeLessThan(0.02);
+		}
+	);
 
 	it("hands over from the rod to the crane to the helicopter, in that order, never back", () => {
 		const order = (multiplier: number) => [...new Set(landing(gearsFor(multiplier)).map(f => f.stage))];
 		expect(order(1)).toEqual(["haul", "rod", "hold"]);
-		expect(order(30)).toEqual(["haul", "rod", "crane", "hold"]);
-		expect(order(100)).toEqual(["haul", "rod", "crane", "helicopter", "hold"]);
-		expect(order(500)).toEqual(["haul", "rod", "crane", "helicopter", "chinook", "hold"]);
+		expect(order(CRANE_FROM)).toEqual(["haul", "rod", "crane", "hold"]);
+		expect(order(HELICOPTER_FROM)).toEqual(["haul", "rod", "crane", "helicopter", "hold"]);
+		expect(order(CHINOOK_FROM)).toEqual(["haul", "rod", "crane", "helicopter", "chinook", "hold"]);
 	});
 
 	it("holds the fish where it is while the next gear is called in", () => {
-		const frames = landing(gearsFor(30));
+		const frames = landing(gearsFor(CRANE_FROM));
 		const calling = frames.filter(f => f.stage === "crane" && f.arrival.crane > 0 && f.arrival.crane < 1);
 		expect(calling.length).toBeGreaterThan(0);
 		expect(new Set(calling.map(f => f.reveal)).size).toBe(1);
@@ -117,12 +120,12 @@ describe("extractionAt", () => {
 	});
 
 	it("gives the crane time to come out and get its cable down before it lifts", () => {
-		const calling = landing(gearsFor(30)).filter(f => f.stage === "crane" && f.arrival.crane < 1);
+		const calling = landing(gearsFor(CRANE_FROM)).filter(f => f.stage === "crane" && f.arrival.crane < 1);
 		expect(calling.length).toBeGreaterThanOrEqual(2 * TICK_HZ);
 	});
 
 	it("lifts a crane catch out slowly, never more than a fifth of it in a second, so it feels heavy", () => {
-		const frames = landing(gearsFor(30));
+		const frames = landing(gearsFor(CRANE_FROM));
 		for (let i = TICK_HZ; i < frames.length; i++) {
 			expect(frames[i].reveal - frames[i - TICK_HZ].reveal).toBeLessThan(0.2);
 		}
@@ -134,14 +137,18 @@ describe("extractionAt", () => {
 			return frames[frames.length - 1].arrival;
 		};
 		expect(arrivalAtEnd(1)).toEqual({ crane: 0, helicopter: 0, chinook: 0 });
-		expect(arrivalAtEnd(30)).toEqual({ crane: 1, helicopter: 0, chinook: 0 });
+		expect(arrivalAtEnd(CRANE_FROM)).toEqual({ crane: 1, helicopter: 0, chinook: 0 });
 		expect(arrivalAtEnd(500)).toEqual({ crane: 1, helicopter: 1, chinook: 1 });
 	});
 
 	it("takes longer the heavier the catch", () => {
-		expect(extractionTicks(gearsFor(30), CATCH_M)).toBeGreaterThan(extractionTicks(gearsFor(1), CATCH_M));
-		expect(extractionTicks(gearsFor(100), CATCH_M)).toBeGreaterThan(extractionTicks(gearsFor(30), CATCH_M));
-		expect(extractionTicks(gearsFor(500), CATCH_M)).toBeGreaterThan(extractionTicks(gearsFor(100), CATCH_M));
+		expect(extractionTicks(gearsFor(CRANE_FROM), CATCH_M)).toBeGreaterThan(extractionTicks(gearsFor(1), CATCH_M));
+		expect(extractionTicks(gearsFor(HELICOPTER_FROM), CATCH_M)).toBeGreaterThan(
+			extractionTicks(gearsFor(CRANE_FROM), CATCH_M)
+		);
+		expect(extractionTicks(gearsFor(CHINOOK_FROM), CATCH_M)).toBeGreaterThan(
+			extractionTicks(gearsFor(HELICOPTER_FROM), CATCH_M)
+		);
 	});
 
 	it("gives the finished catch a beat to hang there before the round ends", () => {
@@ -179,5 +186,27 @@ describe("shownMultiplier", () => {
 		expect(shownMultiplier(62, 0.5)).toBeGreaterThan(MIN_MULTIPLIER);
 		expect(shownMultiplier(62, 0.5)).toBeLessThan(62);
 		expect(shownMultiplier(62, 1)).toBe(62);
+	});
+
+	it("lands on a multiplier with decimals exactly, as the market pays it", () => {
+		expect(shownMultiplier(6.35, 1)).toBe(6.35);
+		expect(shownMultiplier(100.5, 1)).toBe(100.5);
+	});
+
+	it("shows a catch worth less than the stake as itself the whole way — it has nowhere to climb to", () => {
+		for (const reveal of [0, 0.3, 1]) expect(shownMultiplier(0.25, reveal)).toBe(0.25);
+	});
+});
+
+describe("the gear thresholds", () => {
+	it("are in the order of the gear they call in, and inside the range the market pays", () => {
+		expect(MIN_MULTIPLIER).toBeLessThan(CRANE_FROM);
+		expect(CRANE_FROM).toBeLessThan(HELICOPTER_FROM);
+		expect(HELICOPTER_FROM).toBeLessThan(CHINOOK_FROM);
+		expect(CHINOOK_FROM).toBeLessThan(MAX_MULTIPLIER);
+	});
+
+	it("land a catch worth less than the stake with the rod alone", () => {
+		expect(gearsFor(0.25)).toEqual(["rod"]);
 	});
 });

@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 import { createServer, type Server } from "node:http";
 import { after, before, test } from "node:test";
 
+import { HOOKABLE_BY_ID } from "../../../src/constants/fish.ts";
 import { SIM_VERSION } from "../../../src/utils/simConfig.ts";
 import { encodeInputs, toBase64 } from "../../../src/utils/simRecording.ts";
 import { createSim, step } from "../../../src/utils/simStep.ts";
@@ -59,45 +60,33 @@ async function newSession(): Promise<string> {
 	return json.sessionToken;
 }
 
-const startBody = (bets: unknown[]) => ({ message: { start: { bets } } });
+const startBody = (stake: string, volatility = "medium") => ({ message: { start: { stake, volatility } } });
 
-test("force-outcome pins depth/fish/tier on the next round, and {} clears it", async () => {
+test("force-outcome pins the catch on the next round, and {} clears it", async () => {
 	const token = await newSession();
 
-	const forced = await call("POST", "/api/debug/force-outcome", {
-		body: { depth: "jackpot", fish: "kraken", tier: "jackpot" }
-	});
+	const forced = await call("POST", "/api/debug/force-outcome", { body: { fish: "kraken" } });
 	assert.equal(forced.status, 200);
-	assert.deepEqual(forced.json.forcedOutcome, {
-		depth: "jackpot",
-		fish: "kraken",
-		tier: "jackpot"
-	});
+	assert.deepEqual(forced.json.forcedOutcome, { fish: "kraken" });
 
-	const start = await call("POST", "/api/game/play", {
-		token,
-		body: startBody([{ type: "fish", selection: "kraken", amount: "1.00" }])
-	});
+	const start = await call("POST", "/api/game/play", { token, body: startBody("1.00") });
 	assert.deepEqual(start.json.message.outcome, {
 		depth: "jackpot",
 		fish: "kraken",
-		tier: "jackpot"
+		tier: "jackpot",
+		multiplier: "100.00"
 	});
-	assert.equal(start.json.message.bets[0].won, true);
 
 	const cleared = await call("POST", "/api/debug/force-outcome", { body: {} });
 	assert.deepEqual(cleared.json.forcedOutcome, {});
 });
 
-test("force-outcome can pin a single field and leave the rest rolled", async () => {
+test("force-outcome can pin a depth zone and leave the fish in it rolled off the market", async () => {
 	const token = await newSession();
 	await call("POST", "/api/debug/force-outcome", { body: { depth: "abyss" } });
 
 	for (let i = 0; i < 5; i++) {
-		const start = await call("POST", "/api/game/play", {
-			token,
-			body: startBody([{ type: "depth", selection: "abyss", amount: "1.00" }])
-		});
+		const start = await call("POST", "/api/game/play", { token, body: startBody("1.00") });
 		assert.equal(start.json.message.outcome.depth, "abyss");
 		await call("POST", "/api/game/play", {
 			token,
@@ -107,25 +96,23 @@ test("force-outcome can pin a single field and leave the rest rolled", async () 
 	await call("POST", "/api/debug/force-outcome", { body: {} });
 });
 
-test("force-outcome rejects unknown depth/tier", async () => {
+test("force-outcome rejects an unknown depth or fish", async () => {
 	const bad = await call("POST", "/api/debug/force-outcome", {
 		body: { depth: "moon" }
 	});
 	assert.equal(bad.status, 400);
 	assert.equal(bad.json.error.code, "invalid_debug_request");
 
-	const badTier = await call("POST", "/api/debug/force-outcome", {
-		body: { tier: "mythic" }
+	const badFish = await call("POST", "/api/debug/force-outcome", {
+		body: { fish: "mermaid" }
 	});
-	assert.equal(badTier.status, 400);
+	assert.equal(badFish.status, 400);
+	assert.equal(badFish.json.error.code, "invalid_debug_request");
 });
 
 test("reset-balance restores the starting balance, or a supplied one", async () => {
 	const token = await newSession();
-	await call("POST", "/api/game/play", {
-		token,
-		body: startBody([{ type: "depth", selection: "shallow", amount: "100.00" }])
-	});
+	await call("POST", "/api/game/play", { token, body: startBody("100.00") });
 	assert.equal((await call("GET", "/api/game/balance", { token })).json.balance, "900.00");
 
 	await call("POST", "/api/debug/reset-balance");
@@ -195,7 +182,9 @@ test("reset-session kills every token", async () => {
 	assert.equal(dead.json.error.code, "invalid_session");
 });
 
-/** A finished run sitting still over seed 1's world, as the client would post it. */
+let caught = "";
+
+/** A finished run sitting still over seed 1's world, as the client would post it, and the fish it caught. */
 function sandboxRun() {
 	const sim = createSim(1);
 	const axes: number[] = [];
@@ -203,6 +192,7 @@ function sandboxRun() {
 		axes.push(0);
 		step(sim, 0);
 	}
+	caught = sim.world[sim.hooked].id;
 	return {
 		simVersion: SIM_VERSION,
 		worldSeed: 1,
@@ -216,8 +206,9 @@ test("recordings saves a sandbox run after re-simulating it, and says so when it
 		body: sandboxRun()
 	});
 	assert.equal(first.status, 200);
-	assert.equal(first.json.fish, "sardine");
-	assert.equal(first.json.depth, "shallow");
+	// The server re-simulates to the fish the client's own sim caught, in that fish's zone.
+	assert.equal(first.json.fish, caught);
+	assert.equal(first.json.depth, HOOKABLE_BY_ID.get(caught)?.depth);
 	assert.equal(first.json.duplicate, false);
 
 	// The client's claim about what it caught is not read.

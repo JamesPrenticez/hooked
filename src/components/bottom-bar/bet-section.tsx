@@ -20,7 +20,7 @@ interface BetSectionProps {
 	disabled: boolean;
 }
 
-/** Chip selector — the stake applied to the next depth/species tap in `SelectTargetsModal`. */
+/** Stake selector — what the next cast puts down. */
 export const BetSection = ({ disabled }: BetSectionProps) => {
 	const chip = useBetStore(s => s.chip);
 	const setChip = useBetStore(s => s.setChip);

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { useHookStore } from "@stores/hookStore";
+import { useRoundStore } from "@stores/roundStore";
 import { autopilotAxis } from "@utils/simAutopilot";
 import { SIM_VERSION, TICK_HZ } from "@utils/simConfig";
 import { decodeInputs, encodeInputs } from "@utils/simRecording";
@@ -12,10 +13,13 @@ import { useHookKeys } from "./useHookKeys";
 const MAX_FRAME_MS = 250;
 
 /**
- * Runs the sim from the arrow keys (or, in `replay` mode, a stored recording) while `active`, on a fixed-step accumulator
- * (`timeScale` just runs more ticks per frame), publishing one snapshot per
- * frame to `hookStore.sim` and clearing it when `active` drops. Every tick's steering is kept, and when the
- * run ends it is published as `hookStore.recording` before `onSurfaced` is called. A run cut short leaves none.
+ * Runs the sim while `active`, on a fixed-step accumulator (`timeScale` just runs more ticks per frame), publishing one
+ * snapshot per frame to `hookStore.sim` and clearing it when `active` drops. A real cast plays out the round the
+ * server opened: the autopilot steers the hook to the fish the server chose, and the catch weighs what the round's
+ * market says it pays. In the debug sandbox the arrow keys steer instead (`manual`), or a stored recording does
+ * (`replay`), and any fish will take the hook. Every tick's steering is kept, and when a sandbox run ends it is
+ * published as `hookStore.recording` before `onSurfaced` is called. A run cut short, or aimed at a fish, leaves none
+ * — the server could not replay it without the target.
  */
 export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 	const axis = useHookKeys(active);
@@ -29,10 +33,12 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 		const run = state.hookMode === "replay" ? state.replay : undefined;
 		const script = run ? decodeInputs(run.inputs) : undefined;
 		const manual = state.hookMode === "manual";
-		const { multiplier } = run ?? state;
+		const round = manual || run ? undefined : useRoundStore.getState().round;
+		const target = round?.outcome.fish;
+		const multiplier = round ? Number(round.outcome.multiplier) : (run ?? state).multiplier;
 		// A fresh world each cast; the debug panel's seed only pins it for manual runs and replays.
 		const worldSeed = run?.worldSeed ?? (manual ? state.worldSeed : Math.floor(Math.random() * 2 ** 31));
-		const sim = createSim(worldSeed, multiplier);
+		const sim = createSim(worldSeed, multiplier, target);
 		const axes: number[] = [];
 		let accumulator = 0;
 		let last = performance.now();
@@ -51,10 +57,12 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 			}
 			publish();
 			if (sim.result) {
-				const inputs = encodeInputs(axes);
-				useHookStore.setState({
-					recording: { simVersion: SIM_VERSION, worldSeed, multiplier, inputs, result: sim.result }
-				});
+				if (!target) {
+					const inputs = encodeInputs(axes);
+					useHookStore.setState({
+						recording: { simVersion: SIM_VERSION, worldSeed, multiplier, inputs, result: sim.result }
+					});
+				}
 				return onSurfacedRef.current?.();
 			}
 			frame = requestAnimationFrame(tick);

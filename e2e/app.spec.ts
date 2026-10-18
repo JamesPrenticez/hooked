@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { placeBet } from "./placeBet";
+import { cast, closeDebug, forceCatch } from "./market";
 
 async function startFishing(page: Page) {
 	await page.goto("/");
@@ -23,8 +23,7 @@ test("casting and surfacing play out in the one canvas, without leaving the game
 	await startFishing(page);
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
 
-	await placeBet(page);
-	await page.getByRole("button", { name: "Cast Line" }).click();
+	await cast(page);
 	await expect(page.getByRole("button", { name: "Surface" })).toBeVisible();
 	await expect(page.locator("canvas")).toBeVisible();
 
@@ -66,7 +65,7 @@ test("the debug panel's Kraken section parks the hook at the trench, plays every
 	const kraken = page.locator("details").filter({ hasText: "Kraken" });
 	await kraken.getByText("Kraken", { exact: true }).click();
 	await kraken.getByRole("checkbox", { name: /Force hook to the trench/ }).check();
-	await page.keyboard.press("Escape");
+	await closeDebug(page);
 
 	// Straight to the bottom: no Cast Line, no dive to wait out.
 	await expect(page.getByText("11,400m", { exact: true })).toBeVisible();
@@ -76,7 +75,7 @@ test("the debug panel's Kraken section parks the hook at the trench, plays every
 	const animations = kraken.locator("fieldset").getByRole("button");
 	await expect(animations).toHaveCount(29);
 	for (const animation of await animations.all()) await animation.click();
-	await page.keyboard.press("Escape");
+	await closeDebug(page);
 
 	// Still there after all that; only Surface (or unticking) lets it go.
 	await expect(page.getByText("11,400m", { exact: true })).toBeVisible();
@@ -88,53 +87,55 @@ test("the debug panel's Kraken section parks the hook at the trench, plays every
 	expect(errors).toEqual([]);
 });
 
-test("a cast that reaches the bottom of the trench fights the Kraken, then reels back to the harbour", async ({
+test("a cast the server lands the Kraken on dives to the bottom of the trench, then reels back to the harbour", async ({
 	page
 }) => {
-	test.slow();
+	test.setTimeout(300_000);
 	const errors: string[] = [];
 	page.on("pageerror", error => errors.push(error.message));
 
 	await startFishing(page);
+	// Eight times the speed (Hook control) gets the hook to the bottom in well under a minute.
 	await page.getByRole("button", { name: "DEBUG" }).click();
-	const hook = page.locator("details").filter({ hasText: "Display unit" });
-	await hook.getByText("Hook", { exact: true }).click();
-	for (const speed of await hook.getByLabel("Speed (m/s)").all()) await speed.fill("1000000");
-	await page.keyboard.press("Escape");
+	const control = page.locator("details").filter({ hasText: "Mode" });
+	await control.getByText("Hook control", { exact: true }).click();
+	await control.getByLabel("Speed").selectOption("8");
+	await closeDebug(page);
 
-	await placeBet(page);
-	await page.getByRole("button", { name: "Cast Line" }).click();
-	await expect(page.getByText("11,400m", { exact: true })).toBeVisible();
+	// The hook goes after the fish the server chose, so only the Kraken sends it all the way down.
+	await forceCatch(page, "kraken");
+	try {
+		await cast(page);
+		await expect(page.getByText("11,400m", { exact: true })).toBeVisible({ timeout: 120_000 });
 
-	// The Kraken keeps the hook down there for its 8s fight, not a beat.
-	await page.waitForTimeout(6_000);
-	await expect(page.getByText("11,400m", { exact: true })).toBeVisible();
-
-	// Then the long reel back up.
-	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible({
-		timeout: 45_000
-	});
-	await expect(page.getByText("11,400m", { exact: true })).not.toBeVisible();
+		// Then the reel back up to the harbour.
+		await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible({ timeout: 120_000 });
+		await expect(page.getByText("11,400m", { exact: true })).not.toBeVisible();
+	} finally {
+		await forceCatch(page);
+	}
 
 	await expect(page.locator("canvas")).toBeVisible();
 	expect(errors).toEqual([]);
 });
 
-test("bets on a depth and a fish add to the total, clear, and lock while casting", async ({ page }) => {
+test("the volatility picker changes the volatility, and locks while casting", async ({ page }) => {
 	// Every click waits on software-rendered Pixi frames, which crawl under parallel load.
 	test.slow();
 	await startFishing(page);
 
-	await page.getByRole("button", { name: "Shallow", exact: true }).click();
-	await page.getByRole("button", { name: "Shark (deep)" }).click();
-	await expect(page.getByRole("button", { name: "Shallow", exact: true })).toHaveAttribute("aria-pressed", "true");
-	await expect(page.getByText("$2.00", { exact: true })).toBeVisible();
+	const trigger = page.getByRole("button", { name: /^Volatility/ });
+	await expect(trigger).toHaveAccessibleName("Volatility, Medium");
 
-	await page.getByRole("button", { name: "Clear" }).click();
-	await expect(page.getByText("$0.00", { exact: true })).toBeVisible();
+	await trigger.click();
+	const dialog = page.getByRole("dialog", { name: "Volatility" });
+	await expect(dialog.getByRole("button", { name: /^Medium/ })).toHaveAttribute("aria-pressed", "true");
+	await dialog.getByRole("button", { name: /^High/ }).click();
+	await expect(dialog).not.toBeVisible();
+	await expect(trigger).toHaveAccessibleName("Volatility, High");
 
-	await page.getByRole("button", { name: "Cast Line" }).click();
-	await expect(page.getByRole("button", { name: "Shallow", exact: true })).toBeDisabled();
+	await cast(page);
+	await expect(trigger).toBeDisabled();
 });
 
 test("manual hook mode: the arrow keys steer the hook", async ({ page }) => {
@@ -145,10 +146,9 @@ test("manual hook mode: the arrow keys steer the hook", async ({ page }) => {
 	const control = page.locator("details").filter({ hasText: "Mode" });
 	await control.getByText("Hook control", { exact: true }).click();
 	await control.getByLabel("Mode").selectOption("manual");
-	await page.keyboard.press("Escape");
+	await closeDebug(page);
 
-	await placeBet(page);
-	await page.getByRole("button", { name: "Cast Line" }).click();
+	await cast(page);
 	await page.keyboard.down("ArrowRight");
 	await page.waitForTimeout(600);
 	await page.keyboard.up("ArrowRight");

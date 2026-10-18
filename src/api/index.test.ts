@@ -1,6 +1,6 @@
 import { beforeEach, expect, it, vi } from "vitest";
 
-import type { Bet } from "@type/api";
+import type { StartMessage } from "@type/api";
 import { encodeInputs, fromBase64 } from "@utils/simRecording";
 
 import {
@@ -109,33 +109,31 @@ it("adoptSessionTokenFromUrl returns false when no token is present", () => {
 	expect(adoptSessionTokenFromUrl()).toBe(false);
 });
 
-it("startRound wraps bets in the start envelope and resolves to the result", async () => {
-	const bets: Bet[] = [{ type: "depth", selection: "shallow", amount: "5.00" }];
-	const result = {
-		roundId: "r1",
-		outcome: { depth: "shallow", fish: "x", tier: "small" },
-		bets: [],
-		payout: { total: "0.00", wagered: "5.00" },
-		metadata: { balance: "0" }
-	};
-	fetchMock.mockResolvedValueOnce(jsonRes(200, { roundId: "r1", message: result }));
+/** A round as the server sends it back from `start` and `complete`. */
+const roundResult = {
+	roundId: "r1",
+	volatility: "medium",
+	stake: "5.00",
+	market: [{ fish: "x", multiplier: "1.50" }],
+	outcome: { depth: "shallow", fish: "x", tier: "small", multiplier: "1.50" },
+	payout: { total: "7.50", wagered: "5.00", net: "2.50" },
+	metadata: { balance: "0" }
+};
 
-	expect(await startRound(bets)).toEqual(result);
+it("startRound wraps the stake and volatility in the start envelope and resolves to the result", async () => {
+	const start: StartMessage = { stake: "5.00", volatility: "medium" };
+	fetchMock.mockResolvedValueOnce(jsonRes(200, { roundId: "r1", message: roundResult }));
+
+	expect(await startRound(start)).toEqual(roundResult);
 	const [url, init] = fetchMock.mock.calls[0];
 	expect(url).toContain("/api/game/play");
 	expect(JSON.parse(init.body as string)).toEqual({
-		message: { start: { bets } }
+		message: { start: { stake: "5.00", volatility: "medium" } }
 	});
 });
 
 it("completeRound wraps the roundId in the complete envelope", async () => {
-	const result = {
-		roundId: "r1",
-		outcome: { depth: "shallow", fish: "x", tier: "small" },
-		bets: [],
-		payout: { total: "0.00", wagered: "5.00" },
-		metadata: { balance: "0" }
-	};
+	const result = roundResult;
 	fetchMock.mockResolvedValueOnce(jsonRes(200, { roundId: "r1", message: result }));
 
 	expect(await completeRound("r1")).toEqual(result);
@@ -149,7 +147,7 @@ it("a second play call is rejected while the first is still in flight (§4.4)", 
 	let release!: (v: unknown) => void;
 	fetchMock.mockImplementationOnce(() => new Promise(r => (release = r)));
 
-	const first = startRound([{ type: "depth", selection: "shallow", amount: "5.00" }]);
+	const first = startRound({ stake: "5.00", volatility: "low" });
 	await expect(completeRound("r1")).rejects.toMatchObject({
 		code: "request_in_flight"
 	});
@@ -157,13 +155,7 @@ it("a second play call is rejected while the first is still in flight (§4.4)", 
 	release(
 		jsonRes(200, {
 			roundId: "r1",
-			message: {
-				roundId: "r1",
-				outcome: {},
-				bets: [],
-				payout: {},
-				metadata: { balance: "0" }
-			}
+			message: roundResult
 		})
 	);
 	await first;
@@ -180,13 +172,16 @@ it("getRound requests the round detail endpoint", async () => {
 		jsonRes(200, {
 			roundId: "r1",
 			status: "completed",
-			outcome: { depth: "shallow", fish: "x", tier: "small" },
-			bets: [],
-			payout: { total: "0.00", wagered: "5.00" }
+			volatility: "high",
+			stake: "5.00",
+			market: roundResult.market,
+			outcome: roundResult.outcome,
+			payout: roundResult.payout
 		})
 	);
 	const detail = await getRound("r1");
 	expect(detail.status).toBe("completed");
+	expect(detail.market).toEqual(roundResult.market);
 	expect(fetchMock.mock.calls[0][0]).toContain("/api/game/round/r1");
 });
 
@@ -233,7 +228,7 @@ it("initSession adopts a launch-URL token and strips it, then reads current stat
 
 it("initSession restores a persisted token without minting a new session", async () => {
 	localStorage.setItem("deepcatch.sessionToken", "stored-tok");
-	fetchMock.mockResolvedValueOnce(current({ active: true, roundId: "r9", bets: [] }));
+	fetchMock.mockResolvedValueOnce(current({ active: true, roundId: "r9", stake: "5.00", volatility: "medium" }));
 
 	const state = await initSession();
 

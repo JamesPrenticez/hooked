@@ -2,9 +2,9 @@ import { useState } from "react";
 import styled from "styled-components";
 
 import { Button } from "@hooked-ui";
-import { useBetStore } from "@stores/betStore";
 import { HARBOUR_LAYOUT, type Tweak, TWEAK_KEYS, type TweakKey, useHarbourDebugStore } from "@stores/harbourDebugStore";
 import { useHookStore } from "@stores/hookStore";
+import { useRoundStore } from "@stores/roundStore";
 import { viewBreakpoint } from "@utils/breakpoint";
 import { extractionAt, extractionTicks, gearsFor } from "@utils/simExtraction";
 import { createSim, type Sim } from "@utils/simStep";
@@ -77,13 +77,13 @@ const Buttons = styled.div`
 
 /** Where the catch is taken from when previewing, metres — deep enough that the haul has somewhere to come from. */
 const PREVIEW_CATCH_M = 3000;
-/** The fish hung when none is bet on. */
+/** The fish hung when no round has landed one. */
 const DEFAULT_FISH = "bluefin-tuna";
 
-/** Index into `world` of the first fish bet on, else the first tuna. */
+/** Index into `world` of the fish the last round landed, else the first tuna. */
 function previewFish(world: Sim["world"]): number {
-	const bet = Object.keys(useBetStore.getState().bets).find(key => key.startsWith("fish:"));
-	const bound = bet ? world.findIndex(fish => fish.id === bet.slice("fish:".length)) : -1;
+	const landed = useRoundStore.getState().round?.outcome.fish;
+	const bound = landed ? world.findIndex(fish => fish.id === landed) : -1;
 	return bound >= 0 ? bound : world.findIndex(fish => fish.id === DEFAULT_FISH);
 }
 

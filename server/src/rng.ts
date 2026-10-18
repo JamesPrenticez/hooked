@@ -62,3 +62,13 @@ export function rollWeighted(stream: Generator<number>, weights: number[]): numb
 	}
 	return weights.length - 1; // unreachable: roll started < total === sum(weights)
 }
+
+/** Fisher–Yates shuffle of `items` in place, drawn from the stream: every ordering is equally likely (rollInt has no
+ *  modulo bias). Returns `items`. */
+export function shuffle<T>(stream: Generator<number>, items: T[]): T[] {
+	for (let i = items.length - 1; i > 0; i--) {
+		const j = rollInt(stream, i + 1);
+		[items[i], items[j]] = [items[j], items[i]];
+	}
+	return items;
+}

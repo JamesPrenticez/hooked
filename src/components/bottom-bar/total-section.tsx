@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { ExtractionMultiplier } from "@components/extraction-multiplier";
 import { useLandingMultiplier } from "@hooks/useLandingMultiplier";
 import { useBalanceStore } from "@stores/balanceStore";
-import { selectTotalCents, useBetStore } from "@stores/betStore";
+import { useBetStore } from "@stores/betStore";
 import { useHookStore } from "@stores/hookStore";
 import { useRoundStore } from "@stores/roundStore";
 import { formatMoney } from "@utils/formatMoney";
@@ -41,15 +41,17 @@ const TotalAmount = styled.span`
 `;
 
 /**
- * Sum of every depth/species stake placed in `SelectTargetsModal`, pinned top-left. Once the fish is hooked and
- * being landed it becomes the round's payout — the figure the server credits — counting up as the multiplier climbs.
+ * The stake for the next cast, pinned top-left. Once the fish is hooked and being landed it becomes the round's
+ * payout — the figure the server credits — counting up as the multiplier climbs.
  */
 export const TotalSection = () => {
-	const total = useBetStore(selectTotalCents);
+	const total = useBetStore(s => s.chip);
 	const currency = useBalanceStore(s => s.currency) ?? "USD";
 	const landing = useLandingMultiplier();
-	const landingPhase = useHookStore(s => s.sim?.phase === "ascend" || s.sim?.phase === "extract");
-	const simMultiplier = useHookStore(s => s.sim?.multiplier ?? 1);
+	const landingPhase = useHookStore(
+		s => s.sim?.phase === "ascend" || s.sim?.phase === "extract" || s.sim?.phase === "reel"
+	);
+	const simMultiplier = useHookStore(s => s.sim?.multiplier || 1);
 	const serverPayout = useRoundStore(s => s.round?.payout.total);
 
 	// The server's payout, revealed in step with the climb. Number() is display-only (Rule 6b).
