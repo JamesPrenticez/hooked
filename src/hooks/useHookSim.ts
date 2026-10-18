@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { useHookStore } from "@stores/hookStore";
+import { autopilotAxis } from "@utils/simAutopilot";
 import { SIM_VERSION, TICK_HZ } from "@utils/simConfig";
 import { decodeInputs, encodeInputs } from "@utils/simRecording";
 import { createSim, step } from "@utils/simStep";
@@ -27,7 +28,10 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 		// In replay mode the recording fixes the world and every tick's steering; the keys are not read.
 		const run = state.hookMode === "replay" ? state.replay : undefined;
 		const script = run ? decodeInputs(run.inputs) : undefined;
-		const { worldSeed, multiplier } = run ?? state;
+		const manual = state.hookMode === "manual";
+		const { multiplier } = run ?? state;
+		// A fresh world each cast; the debug panel's seed only pins it for manual runs and replays.
+		const worldSeed = run?.worldSeed ?? (manual ? state.worldSeed : Math.floor(Math.random() * 2 ** 31));
 		const sim = createSim(worldSeed, multiplier);
 		const axes: number[] = [];
 		let accumulator = 0;
@@ -41,7 +45,7 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 			last = now;
 			// Stops the tick it surfaces: a recording carries exactly the run, nothing from the rest of the frame.
 			while (accumulator >= 1 / TICK_HZ && !sim.result) {
-				axes.push(script ? (script[sim.tick] ?? 0) : axis());
+				axes.push(script ? (script[sim.tick] ?? 0) : manual ? axis() : autopilotAxis(sim));
 				step(sim, axes[axes.length - 1]);
 				accumulator -= 1 / TICK_HZ;
 			}

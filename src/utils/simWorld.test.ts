@@ -1,30 +1,29 @@
 import { expect, it } from "vitest";
 
-import { SPECIES } from "@components/DescentScene/creatureSpecies";
-import { FISH } from "@constants/fish";
+import { FISH, HOOKABLE_FISH } from "@constants/fish";
 
-import { CAST_METERS, HOOK_TIP_DY, PX_PER_METER, SIM_FISH, SIM_WIDTH, TICK_HZ } from "./simConfig";
+import { CAST_METERS, HOOK_TIP_DY, PX_PER_METER, SIM_WIDTH, TICK_HZ } from "./simConfig";
 import { createSim, step } from "./simStep";
 import { fishX, mouthAt, spawnWorld } from "./simWorld";
 
-it("has a SIM_FISH for every hookable roster id, drawn with a real sheet at its real scale", () => {
-	expect(SIM_FISH.map(f => f.id).sort()).toEqual(
+it("hooks every roster fish but the Kraken, each with a band and a sheet", () => {
+	expect(HOOKABLE_FISH.map(f => f.id).sort()).toEqual(
 		FISH.filter(f => f.id !== "kraken")
 			.map(f => f.id)
 			.sort()
 	);
-	for (const f of SIM_FISH) expect(SPECIES.find(s => s.id === f.art)?.scale, f.id).toBe(f.scale);
+	for (const f of HOOKABLE_FISH) expect(f.count, f.id).toBeGreaterThan(1);
 });
 
 it("spawns the same world for a seed, a different one for another", () => {
 	expect(spawnWorld(7)).toEqual(spawnWorld(7));
 	expect(spawnWorld(7)).not.toEqual(spawnWorld(8));
-	expect(spawnWorld(7)).toHaveLength(SIM_FISH.reduce((n, f) => n + f.count, 0));
+	expect(spawnWorld(7)).toHaveLength(HOOKABLE_FISH.reduce((n, f) => n + f.count, 0));
 });
 
 it("keeps every fish inside its species' depth band", () => {
 	for (const fish of spawnWorld(3)) {
-		const band = SIM_FISH.find(f => f.id === fish.id)!;
+		const band = HOOKABLE_FISH.find(f => f.id === fish.id)!;
 		expect(fish.meters).toBeGreaterThanOrEqual(band.fromMeters);
 		expect(fish.meters).toBeLessThanOrEqual(band.toMeters);
 	}

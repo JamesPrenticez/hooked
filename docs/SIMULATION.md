@@ -7,7 +7,7 @@ _Debug-gated hook control → recorded runs in SQLite → a provably-fair replay
 Today the descent is decoration. The server already decides every round
 (`rollOutcome` in `server/src/rounds.ts`: HMAC seed → depth → fish), but on the
 client the hook sweeps on three summed sine waves of wall-clock time
-(`src/components/DescentScene/lineDrift.ts`), the fish loop across the screen on
+(`src/components/descent-scene/lineDrift.ts`), the fish loop across the screen on
 the same clock (`Creatures.tsx`), and nothing is ever caught — `useDescentDepth`
 runs down, holds for the Kraken at the bottom, and reels back up.
 
@@ -66,7 +66,7 @@ Provably fair → 7. Real rounds → 8. Phase 0 is groundwork.
 ### 3.1 Ground rules for `src/utils/sim*.ts`
 
 - **Pure and isomorphic.** No `pixi.js`, React, DOM or asset imports.
-  (`creatureSpecies.ts` imports PNGs, so the sim can't import it.)
+  (`constants/fish.ts` names its sheets with `new URL(..., import.meta.url)` — a plain string under Node — so the sim can read it.)
 - **Imports are `./sibling.ts` only, with the explicit extension.** Node can't
   resolve the `@utils`-style aliases and ESLint bans `../` inside `src/`. This is
   why the whole core is one flat directory with a `sim` prefix.
@@ -82,7 +82,7 @@ Provably fair → 7. Real rounds → 8. Phase 0 is groundwork.
 
 | File              | Holds                                                                                                            |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `simConfig.ts`    | `SIM_VERSION`, `TICK_HZ` (60), `SIM_WIDTH` (1920), hook + phase constants, frozen depth/speed table, `SIM_FISH`  |
+| `simConfig.ts`    | `SIM_VERSION`, `TICK_HZ` (60), `SIM_WIDTH` (1920), hook + phase constants, frozen depth/speed table              |
 | `simRandom.ts`    | mulberry32, lifted out of `creatureSpecies.ts` (which imports it back — no behaviour change)                     |
 | `simWorld.ts`     | `spawnWorld(worldSeed)`, `fishX(fish, tick)`, `mouthAt(fish, tick)`                                              |
 | `simStep.ts`      | `createSim`, `step(sim, axis)` (the server re-runs inputs itself, in `recordings.ts`)                            |
@@ -150,14 +150,14 @@ to the combined hit radius (tens of px), so no swept test is needed; add one if
 
 ### 3.5 Roster coverage
 
-The server has 18 fish ids; the client has 14 sheets named after species, not ids
+The server has 26 fish ids; the client has one sheet per species in `src/assets/fish-sprites/`, not per id
 (`mackeral.png`, `pike.png`, `crab.png`, `neoplean.png`). `animations.json` already
-describes sheets whose PNGs aren't in `src/assets/creatures/` yet (marlin,
+describes sheets whose PNGs aren't in `src/assets/fish-sprites/` yet (marlin,
 blue-reef-fish, starfish, parrotfish).
 
-`SIM_FISH` is keyed by **roster id** with an `art` key into the sheets. A test
+`HOOKABLE_FISH` (`constants/fish.ts`, the single fish table) is keyed by **roster id** with its `art` sheet. A test
 asserts every id in `src/constants/fish.ts` (the client mirror of
-`server/src/constants.ts`) has a `SIM_FISH` entry. A roster id with no art needs a
+`server/src/constants.ts`) is hookable. A roster id with no art needs a
 stand-in — see §11.
 
 ## 4. Controls (debug-gated)

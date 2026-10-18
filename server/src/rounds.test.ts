@@ -80,8 +80,8 @@ test("resolveBet — depth bet pays DEPTH_MULTIPLIERS on a hit, zero on a miss",
 test("resolveBet — fish bet pays the roster multiplier on a hit, zero on a miss", () => {
 	const hit = resolveBet({ type: "fish", selection: "shark", amount: "4.00" }, OUTCOME);
 	assert.equal(hit.won, true);
-	assert.equal(hit.multiplier, "31.06"); // FISH shark multiplier
-	assert.equal(hit.payout, "124.24"); // 4.00 × 31.06
+	assert.equal(hit.multiplier, "36.71"); // FISH shark multiplier
+	assert.equal(hit.payout, "146.84"); // 4.00 × 36.71
 
 	const miss = resolveBet({ type: "fish", selection: "whale", amount: "4.00" }, OUTCOME);
 	assert.equal(miss.won, false);

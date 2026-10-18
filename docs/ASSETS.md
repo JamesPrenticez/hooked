@@ -3,7 +3,7 @@
 What to provide, in what format, and where it goes. Living doc — sections
 land as their milestone comes up. Current focus: **§7 Harbour / Main Hub**.
 
-Placeholder art is already in the build (`src/components/HarbourScene/layers.ts`
+Placeholder art is already in the build (`src/components/harbour-scene/layers.ts`
 and friends). Every real asset drops in by replacing a placeholder — the
 layer stack, z-order and scene wiring don't change.
 

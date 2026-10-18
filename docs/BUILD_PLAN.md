@@ -40,7 +40,7 @@ Establish the basic project structure and development tooling.
 
 - [x] Application bootstrap — one `<Application>` (`@pixi/react`); HTML overlays are siblings of the canvas, not children
 - [x] `loading → tutorial → game` phase machine; advance only after asset load **and** Pixi's first non-empty frame (`src/hooks/useGameBootstrap.ts`, `src/stores/gameStore.ts`)
-- [x] Scene manager (`src/components/SceneManager/`) — generic, keyed registry; not one-off per phase
+- [x] Scene manager (`src/components/scene-manager/`) — generic, keyed registry; not one-off per phase
 - [x] Scene transitions (`src/hooks/useCrossfade.ts`) — 300ms crossfade, framework-agnostic so it's unit-testable without a renderer
 - [x] Zustand stores in `src/stores/`; cross-store effects only in `components/system/StoreSync.tsx` (wires `api`'s `onSessionExpired` → phase reset)
 - [ ] Headless controllers (autoplay/auto-bet) render `null` and drive sequences through stores — deferred: no betting/round system yet to drive one; lands with autoplay/auto-bet (milestones 8-9) using the same `components/system/` pattern as StoreSync
@@ -364,7 +364,7 @@ no-token / non-401-failure paths.
       `balance` + `currency`, both verbatim from a server response. Its only
       mutator is `setBalance(balance, currency)` (whoever holds a
       `CurrentResponse`/`BalanceResponse`/settled round calls it)
-- [x] Display balance — `src/components/Balance/`: HTML overlay (sibling of
+- [x] Display balance — `src/components/balance/`: HTML overlay (sibling of
       `<Application>`, §38), mounted for the `game` phase in `App.tsx`. Reads
       the store, formats with `Intl.NumberFormat`, renders nothing until the
       first figure arrives
@@ -465,7 +465,7 @@ Create the game's initial presentation and asset loading pipeline.
 - [x] Loading animation — `spin` + `bob` keyframes; both drop under
       `prefers-reduced-motion: reduce`
 
-`src/components/LoadingScreen/` is an HTML overlay, a sibling of
+`src/components/loading-screen/` is an HTML overlay, a sibling of
 `<Application>` and never its child (§38), mounted for the `loading` phase in
 `App.tsx`. Progress is a `ponytail` fake ramp (`useFakeProgress`) — §5.2
 ("Load required assets") replaces it with a `progress` prop fed by
@@ -538,7 +538,7 @@ Create the primary game environment.
 - [x] Buildings
 - [x] Lighting
 
-`src/components/HarbourScene/` replaces the `game`-phase `PlaceholderScene`
+`src/components/harbour-scene/` replaces the `game`-phase `PlaceholderScene`
 in `App.tsx`. Each checklist item is a flat Pixi-drawn layer in `layers.ts`,
 composed back-to-front (`sky → buildings → ocean → boats → dock → cranes →
 props → lighting`). The art is placeholder — a real webp / skeleton asset
@@ -581,7 +581,7 @@ so `playerFrames.ts` cuts each frame from measured positions and sets it in one
 shared box (re-measure if the sheets are redrawn). `player.png` is no longer
 used.
 
-The screen is laid out in thirds (`src/components/HarbourScene/framing.ts`):
+The screen is laid out in thirds (`src/components/harbour-scene/framing.ts`):
 sky, city and docks in the top third (the background strip is placed so the
 docks' waterline lands on `HORIZON_Y`); the boat and fisherman centred on the
 harbour water in the middle third (`boatLayout`, drawn by
@@ -594,7 +594,7 @@ The cast is a camera move through that one world, not a scene swap:
 from the rod tip into the water and the underwater takes the whole screen
 (`CAST_METERS` of depth, ~1.5s at the default shallow speed). Ascending plays
 it in reverse. `hook.png` and the line hang from the rod tip
-(`src/components/DescentScene/FishingLine.tsx`), so the hook is visible on the
+(`src/components/descent-scene/FishingLine.tsx`), so the hook is visible on the
 rod at idle. The hook loads with mipmaps, since it's drawn far smaller than its
 source; the player sheets don't, being drawn larger than their 256px frames. The
 line and hook hang from the idle pose's rod tip whichever clip is playing, so
@@ -608,7 +608,6 @@ casting will need a rod tip per frame.
 - [ ] Crane movement
 - [ ] Birds
 - [x] Water movement
-- [x] Day/Night Cycle
 - [ ] Jack pot sign
 
 ### Acceptance Criteria

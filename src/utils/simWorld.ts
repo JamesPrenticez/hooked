@@ -1,11 +1,12 @@
-import { PX_PER_METER, SIM_FISH, SIM_WIDTH, TICK_HZ } from "./simConfig.ts";
+import { PX_PER_METER, SIM_WIDTH, TICK_HZ } from "./simConfig.ts";
 import { seededRandom } from "./simRandom.ts";
+// The one `../` import: the fish table is shared with the client, and Node resolves it by path.
+// eslint-disable-next-line no-restricted-imports
+import { HOOKABLE_FISH } from "../constants/fish.ts";
 
 export interface WorldFish {
 	/** Roster id. */
 	id: string;
-	/** `Species.id` of the sheet it is drawn with. */
-	art: string;
 	meters: number;
 	/** -1 swims right-to-left (the art's native way), 1 is mirrored. */
 	direction: -1 | 1;
@@ -23,19 +24,18 @@ export interface WorldFish {
 }
 
 /**
- * Scatters every `SIM_FISH` through its depth band: each band is cut into `count`
+ * Scatters every `HOOKABLE_FISH` through its depth band: each band is cut into `count`
  * slices with one fish per slice, so a `worldSeed` alone fixes every fish.
  */
 export function spawnWorld(worldSeed: number): WorldFish[] {
 	const random = seededRandom(worldSeed);
-	return SIM_FISH.flatMap(f =>
+	return HOOKABLE_FISH.flatMap(f =>
 		Array.from({ length: f.count }, (_, i): WorldFish => {
 			const slice = (f.toMeters - f.fromMeters) / f.count;
-			const width = f.cellW * f.scale;
-			const height = f.cellH * f.scale;
+			const width = f.art.cellW * f.scale;
+			const height = f.art.cellH * f.scale;
 			return {
 				id: f.id,
-				art: f.art,
 				meters: f.fromMeters + slice * (i + random()),
 				direction: random() < 0.5 ? -1 : 1,
 				speed: f.speed * (0.8 + random() * 0.4),

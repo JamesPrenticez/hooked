@@ -49,17 +49,16 @@ whether anything ever _reuses_ the instance.
 ### 1. Cache by (bucketed) color, vary strength via `alpha`
 
 Use when the _shape_ of the gradient is constant and only its color and/or
-overall strength change — a moon that's always the same color, a sun that
-sweeps a bounded arc, a beacon that cycles a bounded hue wheel.
+overall strength change — a glow that's always the same color, or a beacon that cycles a bounded hue wheel.
 
 - Bake the color stops at a fixed reference alpha (e.g. `0.9`) once.
-- Drive all per-frame variation (shimmer, sway, day/night strength) through
+- Drive all per-frame variation (shimmer, sway, strength) through
   the fill call's separate numeric `alpha` — `g.fill({ fill: gradient, alpha })`
   — instead of re-baking alpha into the color stops. `Graphics.fill()`
   multiplies a texture/gradient fill by this `alpha` on top of whatever's
   baked in, so one cached instance covers every strength.
 - Key the cache on **bucketed** RGB (round each channel to a step, e.g. 8),
-  not exact RGB. A continuously-cycling color (day/night arc, rainbow
+  not exact RGB. A continuously-cycling color (rainbow
   beacon) still only touches a small, bounded set of buckets, so the cache
   plateaus. Caching on exact float-derived RGB would almost never hit and
   isn't worth the Map overhead.
@@ -67,31 +66,18 @@ sweeps a bounded arc, a beacon that cycles a bounded hue wheel.
   that's a soft, blurred glow — the GPU bilinear-scales it up over a large
   radius fine, and it cuts canvas-fill and upload cost ~16×.
 
-Shared helper: `src/components/HarbourScene/gradientCache.ts` —
-`bucketColor()` + `cachedGradient()`. Used by:
-
-- `CelestialBody.tsx` — sun/moon glow (`glowGradient`)
-- `WaterReflections.tsx` — moon-reflection ribbon (`ribbonGradient`); the
-  window-glow band uses a plain module-level constant instead, since its
-  color never varies at all
-- `TowerBeacon.tsx` — beacon halo (`haloGradient`)
-
 ### 2. Destroy the previous instance the moment it's replaced
 
 Use when the color genuinely drifts almost every frame and caching would
 (almost) never hit, or would visibly quantize something that's supposed to
-fade smoothly — the sky gradient behind the whole scene is the example here:
-bucketing it would stair-step the color during a fast sunrise/sunset.
+fade smoothly — bucketing it would stair-step the color as it fades.
 
 Instead: keep exactly one instance alive, and call `.destroy()` on the
 previous one right after building its replacement — safe because `g.clear()`
 already dropped the geometry that referenced it, so nothing still needs it.
 This is a straight swap, not a cache: no growth ever, full color accuracy,
 and the actual rebuild-every-frame cost is unchanged (only worth doing when,
-like the sky's 256×1 gradient, that cost is already cheap).
-
-Applied in `SkyLayer.tsx` (`skyGradient`, backed by a module-level
-`previousGradient`).
+like a 256×1 gradient, that cost is already cheap).
 
 ## Auditing for this
 

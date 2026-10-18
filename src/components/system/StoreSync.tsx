@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { setOnSessionExpired } from "@api";
-import { playerCue } from "@components/HarbourScene/extraction";
+import { playerCue } from "@components/harbour-scene/extraction";
 import { useGameStore } from "@stores/gameStore";
 import { useHookStore } from "@stores/hookStore";
 import { usePlayerStore } from "@stores/playerStore";

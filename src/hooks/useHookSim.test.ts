@@ -10,7 +10,14 @@ import { useHookSim } from "./useHookSim";
 
 beforeEach(() => {
 	vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame", "performance"] });
-	useHookStore.setState({ worldSeed: 1, multiplier: 1, timeScale: 8, sim: undefined, recording: undefined });
+	useHookStore.setState({
+		hookMode: "manual",
+		worldSeed: 1,
+		multiplier: 1,
+		timeScale: 8,
+		sim: undefined,
+		recording: undefined
+	});
 });
 
 afterEach(() => vi.useRealTimers());

@@ -1,11 +1,11 @@
 import { Assets, type Texture } from "pixi.js";
 
+import bgDesktopUrl from "@assets/background/bg-desktop.png";
+import bgMobileUrl from "@assets/background/bg-mobile.png";
 import boomSegmentUrl from "@assets/dock-crane/boom-segment.png";
 import boomTipUrl from "@assets/dock-crane/boom-tip.png";
 import towerUrl from "@assets/dock-crane/tower.png";
 import helicopterUrl from "@assets/helicopter/helicopter.png";
-import bgDesktopWideUrl from "@assets/layers/hub/background/bg-desktop-wide.png";
-import bgMobileWideUrl from "@assets/layers/hub/background/bg-mobile-wide.png";
 import seamUrl from "@assets/layers/hub/water/seam.png";
 import causticsUrl from "@assets/layers/hub/water/underwater-caustics.webp";
 import shaftsUrl from "@assets/layers/hub/water/underwater-shafts.webp";
@@ -13,8 +13,8 @@ import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
 import hookUrl from "@assets/player/hook.png";
 import basicSheetUrl from "@assets/player/player-idle-cast-reel.png";
 import extendedSheetUrl from "@assets/player/player-succes-fail.png";
-import { SPECIES } from "@components/DescentScene/creatureSpecies";
-import { SHEET_URLS } from "@components/DescentScene/krakenSheets";
+import { SHEET_URLS } from "@components/descent-scene/krakenSheets";
+import { SHEETS } from "@constants/fish";
 import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT } from "@constants/krakenAnimations";
 
 /** Textures drawn well under their source size get mipmaps so fine detail doesn't shimmer. */
@@ -25,8 +25,8 @@ export const mipmapped = (src: string) => ({
 
 /** Everything the game scenes draw from the first frame, so nothing pops in after the loading screen. */
 const BOOT_ASSETS = [
-	bgDesktopWideUrl,
-	bgMobileWideUrl,
+	bgDesktopUrl,
+	bgMobileUrl,
 	mipmapped(waterTileUrl),
 	mipmapped(seamUrl),
 	basicSheetUrl,
@@ -39,7 +39,7 @@ const BOOT_ASSETS = [
 	mipmapped(boomSegmentUrl),
 	mipmapped(boomTipUrl),
 	mipmapped(helicopterUrl),
-	...SPECIES.map(s => s.url),
+	...SHEETS.map(s => s.url),
 	SHEET_URLS[KRAKEN_ANIMATIONS[KRAKEN_FIGHT[0]].sheet]
 ];
 

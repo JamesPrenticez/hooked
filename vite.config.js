@@ -67,27 +67,27 @@ export default defineConfig(({ mode }) => {
 					"src/vitest.setup.ts",
 					"src/main.tsx",
 					"src/App.tsx",
-					"src/components/SceneManager/SceneManager.tsx",
+					"src/components/scene-manager/SceneManager.tsx",
 					"src/components/PlaceholderScene/PlaceholderScene.tsx",
 					// Same reason as PlaceholderScene: thin @pixi/react wiring, no
 					// logic of its own (that's in layers.ts, which IS covered), and
 					// it needs a real WebGL canvas happy-dom can't give.
-					"src/components/HarbourScene/HarbourScene.tsx",
+					"src/components/harbour-scene/HarbourScene.tsx",
 					// Same reasoning as HarbourScene.tsx — thin @pixi/react drawing
 					// wiring, no real logic (that's depthAmbience.ts/particles.ts,
 					// which ARE covered), needs a real WebGL canvas.
-					"src/components/DescentScene/DescentScene.tsx",
-					"src/components/DescentScene/ParallaxLayer.tsx",
-					"src/components/DescentScene/WaterLayer.tsx",
-					"src/components/DescentScene/WaterTiles.tsx",
-					"src/components/DescentScene/FishingLine.tsx",
-					"src/components/DescentScene/DepthMarkers.tsx",
+					"src/components/descent-scene/DescentScene.tsx",
+					"src/components/descent-scene/ParallaxLayer.tsx",
+					"src/components/descent-scene/WaterLayer.tsx",
+					"src/components/descent-scene/WaterTiles.tsx",
+					"src/components/descent-scene/FishingLine.tsx",
+					"src/components/descent-scene/DepthMarkers.tsx",
 					// The landing's drawing — crane, helicopter and the fish clipped at the
 					// waterline. Thin @pixi/react wiring over extraction.ts (which IS covered),
 					// and masks need a real WebGL canvas.
-					"src/components/DescentScene/HookedFish.tsx",
-					"src/components/HarbourScene/DockCrane.tsx",
-					"src/components/HarbourScene/Helicopter.tsx",
+					"src/components/descent-scene/HookedFish.tsx",
+					"src/components/harbour-scene/DockCrane.tsx",
+					"src/components/harbour-scene/Helicopter.tsx",
 					"src/**/*.d.ts",
 					"src/**/index.ts",
 					// hooked-ui (vendored from @animo-gaming/ui): stories aren't

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 /**
  * Wall-clock seconds since mount, advancing on `requestAnimationFrame`.
- * For real-time effects (e.g. window-light flicker) that need a live clock
+ * For real-time effects (e.g. water drift) that need a live clock
  * but can't call `performance.now()` directly during render — see
  * `react-hooks/purity`.
  */
