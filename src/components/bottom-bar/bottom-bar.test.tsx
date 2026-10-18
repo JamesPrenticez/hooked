@@ -1,7 +1,10 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 
 import { useBetStore } from "@stores/betStore";
+import { useHookStore } from "@stores/hookStore";
+import { extractionTicks, gearsFor } from "@utils/simExtraction";
+import { createSim } from "@utils/simStep";
 
 import { BottomBar } from "./bottom-bar";
 
@@ -59,7 +62,7 @@ it("locks the Bonus button while descending", () => {
 	expect(screen.getByRole("button", { name: "Bonus" })).toBeDisabled();
 });
 
-it("a depth bet and a fish bet add up in the total, and Clear empties it", () => {
+it("a depth bet and a fish bet add up in the total", () => {
 	render(<BottomBar descending={false} onCast={() => {}} />);
 	expect(screen.getByText("$0.00")).toBeInTheDocument();
 
@@ -68,9 +71,6 @@ it("a depth bet and a fish bet add up in the total, and Clear empties it", () =>
 	fireEvent.click(screen.getByRole("button", { name: "Shark (deep)" }));
 	expect(screen.getByRole("button", { name: "Shallow" })).toHaveAttribute("aria-pressed", "true");
 	expect(screen.getByText("$2.00")).toBeInTheDocument();
-
-	fireEvent.click(screen.getByRole("button", { name: "Clear" }));
-	expect(screen.getByText("$0.00")).toBeInTheDocument();
 });
 
 it("tapping a bet tile again removes it", () => {
@@ -105,4 +105,19 @@ it("opens the chip quick-select popup and picks a value from it", () => {
 	fireEvent.click(screen.getByRole("button", { name: "$5.00" }));
 
 	expect(useBetStore.getState().chip).toBe(500);
+});
+
+it("turns the total into a payout of stake × multiplier once the catch is being landed", () => {
+	render(<BottomBar descending={false} onCast={() => {}} />);
+	openTargets();
+	fireEvent.click(screen.getByRole("button", { name: "Shallow" }));
+	expect(screen.getByText("Total bet")).toBeInTheDocument();
+
+	const multiplier = 62;
+	const sim = { ...createSim(1), phase: "extract" as const, multiplier, catchM: 2400, phaseTick: 0 };
+	act(() => useHookStore.setState({ sim: { ...sim, tick: extractionTicks(gearsFor(multiplier), sim.catchM) } }));
+
+	expect(screen.getByText("Payout")).toBeInTheDocument();
+	expect(screen.getByText("$62.00")).toBeInTheDocument();
+	act(() => useHookStore.setState({ sim: undefined }));
 });

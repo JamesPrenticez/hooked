@@ -88,18 +88,21 @@ export const BottomBar = ({ descending, onCast }: BottomBarProps) => {
 	const [bonusOpen, setBonusOpen] = useState(false);
 
 	return (
-		<Container>
-			<Bar>
-				<BonusSection disabled={descending} onOpen={() => setBonusOpen(true)} />
-				<Balance />
-				<BetSection disabled={descending} />
-				<CallToActionSection descending={descending} onCast={onCast} />
-				<TotalSection disabled={descending} />
-				<SelectTargetsSection disabled={descending} onOpen={() => setTargetsOpen(true)} />
-			</Bar>
+		<>
+			{/* Outside Container: its tablet transform would re-anchor an absolute child to the bar. */}
+			<TotalSection />
+			<Container>
+				<Bar>
+					<BonusSection disabled={descending} onOpen={() => setBonusOpen(true)} />
+					<Balance />
+					<BetSection disabled={descending} />
+					<CallToActionSection descending={descending} onCast={onCast} />
+					<SelectTargetsSection disabled={descending} onOpen={() => setTargetsOpen(true)} />
+				</Bar>
 
-			{targetsOpen && <SelectTargetsModal disabled={descending} onClose={() => setTargetsOpen(false)} />}
-			{bonusOpen && <BonusModal onClose={() => setBonusOpen(false)} />}
-		</Container>
+				{targetsOpen && <SelectTargetsModal disabled={descending} onClose={() => setTargetsOpen(false)} />}
+				{bonusOpen && <BonusModal onClose={() => setBonusOpen(false)} />}
+			</Container>
+		</>
 	);
 };

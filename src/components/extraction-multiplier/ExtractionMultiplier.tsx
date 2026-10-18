@@ -1,7 +1,6 @@
 import styled, { keyframes } from "styled-components";
 
-import { useHookStore } from "@stores/hookStore";
-import { extractionAt, gearsFor, shownMultiplier } from "@utils/simExtraction";
+import { useLandingMultiplier } from "@hooks/useLandingMultiplier";
 
 const pop = keyframes`
 	from {
@@ -12,18 +11,11 @@ const pop = keyframes`
 	}
 `;
 
-const Readout = styled.div`
-	position: absolute;
-	top: 30%;
-	left: var(--spacing-md);
-	transform-origin: left center;
+const Readout = styled.span`
 	color: var(--color-primary);
-	font: var(--font-display-xxxl);
+	font: var(--font-display-lg);
+	text-shadow: 0 0.2rem 0 var(--color-negative);
 	font-variant-numeric: tabular-nums;
-	text-shadow:
-		0 0.3rem 0 var(--color-negative),
-		0 0.8rem 1.6rem var(--color-black);
-	pointer-events: none;
 	user-select: none;
 `;
 
@@ -35,18 +27,15 @@ const Value = styled.span`
 
 /**
  * The multiplier climbing while a catch is landed: it ticks up as the fish comes out, sticks while a gear strains
- * against it and jumps as the next takes over. Off the sim's clock, like `HookedBanner`. HTML overlay.
+ * against it and jumps as the next takes over. Off the sim's clock, like `HookedBanner`. Sits beside the payout panel (`TotalSection`).
  */
 export function ExtractionMultiplier() {
-	const sim = useHookStore(state => state.sim);
-	if (sim?.phase !== "extract") return null;
-
-	const { stage, reveal } = extractionAt(gearsFor(sim.multiplier), sim.catchM, sim.tick - sim.phaseTick);
-	if (stage === "haul") return null;
+	const landing = useLandingMultiplier();
+	if (!landing) return null;
 
 	return (
 		<Readout role="status" aria-label="Catch multiplier">
-			<Value key={stage}>×{shownMultiplier(sim.multiplier, reveal)}</Value>
+			<Value key={landing.stage}>×{landing.value}</Value>
 		</Readout>
 	);
 }
