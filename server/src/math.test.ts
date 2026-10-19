@@ -6,7 +6,7 @@
 //
 //   1. Tables       — the price pools fit the roster, and prices are real.
 //   2. RTP          — every volatility returns 96%, however the market is arranged.
-//   3. Probability  — rollRound realises the odds; the market rotates.
+//   3. Probability  — rollRound realises the odds; the market is fixed.
 //   4. Simulation   — a long run of rounds converges on 96% at every volatility.
 //   5. Edge cases   — payout rounding and the stake limits on the biggest prize.
 //
@@ -30,7 +30,7 @@ const rosterOf = (d: DepthId) => FISH.filter(f => f.depth === d);
 const oddsTotal = (v: Volatility) => DEPTHS.reduce((sum, d) => sum + LEVELS[v].odds[d], 0);
 const pZone = (v: Volatility, d: DepthId) => LEVELS[v].odds[d] / oddsTotal(v);
 
-/** What a volatility returns per unit staked, given what each zone's fish pay on average. */
+/** What a volatility returns per unit staked, given what each zone's fish are listed at on average (bonus aside). */
 const returnOf = (v: Volatility, zoneMean: (d: DepthId) => number) =>
 	DEPTHS.reduce((sum, d) => sum + pZone(v, d) * zoneMean(d), 0);
 
@@ -58,9 +58,9 @@ test("prices are real money, and a deeper zone is worth more than the one above 
 	}
 });
 
-test("the hook dives deeper, and the jackpot grows, as the volatility rises", () => {
+test("the hook dives shallower, and the jackpot grows, as the volatility rises", () => {
 	const deep = (v: Volatility) => pZone(v, "deep") + pZone(v, "abyss") + pZone(v, "jackpot");
-	assert.ok(deep("low") < deep("medium") && deep("medium") < deep("high"), "dive odds must rise");
+	assert.ok(deep("low") > deep("medium") && deep("medium") > deep("high"), "dive odds must fall");
 	assert.ok(PRICES.low.jackpot[0] < PRICES.medium.jackpot[0] && PRICES.medium.jackpot[0] < PRICES.high.jackpot[0]);
 	for (const v of VOLATILITIES) assert.ok(pZone(v, "shallow") > pZone(v, "abyss"), `${v}: shallow is the common catch`);
 });
@@ -69,28 +69,24 @@ test("the hook dives deeper, and the jackpot grows, as the volatility rises", ()
 // 2. RTP — the 96% target (GDD "Mathematical Model & RTP")
 // ===========================================================================
 
-test("theoretical RTP — every volatility returns 96% (to the cent the prices are rounded to)", () => {
+test("theoretical RTP — every volatility returns 96% (bonus aside, to within the cent rounding of the prices)", () => {
 	for (const v of VOLATILITIES) {
 		const rtp = returnOf(v, d => mean(PRICES[v][d]));
-		assert.ok(Math.abs(rtp - RTP) < 0.001, `${v}: ${(rtp * 100).toFixed(3)}%`);
+		assert.ok(Math.abs(rtp - RTP) < 0.005, `${v}: ${(rtp * 100).toFixed(3)}%`);
 	}
 });
 
-test("however the prices are arranged across the fish, the return does not move", () => {
-	// Every fish in a zone is as likely as any other, so a round's expected pay is the mean of the prices its zone
-	// was dealt — and a shuffle deals the same prices. If rollMarket ever dropped or repeated one, this breaks.
+test("the listed market returns 96% too", () => {
 	for (const v of VOLATILITIES) {
-		for (let nonce = 0; nonce < 40; nonce++) {
-			const { market } = rollRound("arrangement", "check", nonce, v);
-			const price = new Map(market.map(e => [e.fish, Number(e.multiplier)]));
-			const rtp = returnOf(v, d => mean(rosterOf(d).map(f => price.get(f.id)!)));
-			assert.ok(Math.abs(rtp - RTP) < 0.001, `${v} nonce ${nonce}: ${(rtp * 100).toFixed(3)}%`);
-		}
+		const { market } = rollRound("arrangement", "check", 0, v);
+		const price = new Map(market.map(e => [e.fish, Number(e.multiplier)]));
+		const rtp = returnOf(v, d => mean(rosterOf(d).map(f => price.get(f.id)!)));
+		assert.ok(Math.abs(rtp - RTP) < 0.005, `${v}: ${(rtp * 100).toFixed(3)}%`);
 	}
 });
 
 // ===========================================================================
-// 3. Probability — the market rotates, and the catch follows the odds
+// 3. Probability — the catch follows the odds
 // ===========================================================================
 
 test("a market lists every fish once, each zone dealt exactly its own prices", () => {
@@ -113,27 +109,18 @@ test("a market lists every fish once, each zone dealt exactly its own prices", (
 	}
 });
 
-test("prices rotate: a fish is dealt different prices from round to round, and the board never stands still", () => {
-	const sharkPrices = new Set<string>();
-	let unchanged = 0;
-	let last = "";
-	for (let nonce = 0; nonce < 300; nonce++) {
-		const { market } = rollRound("rotation", "check", nonce, "medium");
-		sharkPrices.add(market.find(e => e.fish === "shark")!.multiplier);
-		const board = JSON.stringify(market);
-		if (board === last) unchanged++;
-		last = board;
+test("the market is fixed: every round of a volatility lists the same prices", () => {
+	for (const v of VOLATILITIES) {
+		const first = JSON.stringify(rollRound("fixed", "check", 0, v).market);
+		for (let nonce = 1; nonce < 20; nonce++)
+			assert.equal(JSON.stringify(rollRound("fixed", "check", nonce, v).market), first);
 	}
-	assert.ok(sharkPrices.size >= PRICES.medium.deep.length - 1, `shark only ever took ${sharkPrices.size} prices`);
-	assert.equal(unchanged, 0);
 });
 
-test("the Kraken is the one fish whose price never rotates — it is the only fish in its zone", () => {
+test("the Kraken is listed at the jackpot", () => {
 	for (const v of VOLATILITIES) {
-		for (let nonce = 0; nonce < 20; nonce++) {
-			const kraken = rollRound("kraken", "check", nonce, v).market.find(e => e.fish === "kraken")!;
-			assert.equal(Number(kraken.multiplier), PRICES[v].jackpot[0]);
-		}
+		const kraken = rollRound("kraken", "check", 0, v).market.find(e => e.fish === "kraken")!;
+		assert.equal(Number(kraken.multiplier), PRICES[v].jackpot[0]);
 	}
 });
 
@@ -148,9 +135,10 @@ const sims = Object.fromEntries(
 		const zoneHits = Object.fromEntries(DEPTHS.map(d => [d, 0])) as Record<DepthId, number>;
 		let paid = 0;
 		for (let nonce = 0; nonce < SIM_N; nonce++) {
-			const { outcome } = rollRound("math-test-server-seed", "math-test-client-seed", nonce, v);
+			const { outcome, bonus } = rollRound("math-test-server-seed", "math-test-client-seed", nonce, v);
 			zoneHits[outcome.depth]++;
-			paid += Number(outcome.multiplier);
+			// The bonus is too rare for a run this size to average out, so the run is checked without it.
+			paid += Number(outcome.multiplier) / Number(bonus.find(b => b.fish === outcome.fish)?.multiplier ?? 1);
 		}
 		return [v, { zoneHits, rtp: paid / SIM_N }];
 	})
@@ -171,7 +159,7 @@ test("measured zone frequencies match the odds of every volatility", () => {
 	}
 });
 
-test("simulated RTP — over a long run, every volatility converges on 96%", () => {
+test("simulated RTP — over a long run, every volatility converges on 96%, bonus aside", () => {
 	// The jackpot is a small share of the rounds but a big share of the return at high volatility, so that is
 	// where the sample is noisiest; the theoretical test above is the exact guarantee.
 	for (const v of VOLATILITIES) {
@@ -202,4 +190,35 @@ test("a stake at the configured minimum still pays whole cents on the smallest p
 	const cheapest = Math.min(...VOLATILITIES.map(v => Math.min(...DEPTHS.flatMap(d => PRICES[v][d]))));
 	const paid = payoutCents(toCents(config.minBet), cheapest.toFixed(2));
 	assert.ok(Number.isInteger(paid) && paid >= 0);
+});
+
+// ===========================================================================
+// 5. Bonus — the highlighted fish
+// ===========================================================================
+
+test("every round highlights 1 to 5 distinct fish, in roster order, each with a bonus of 100x to 8888x", () => {
+	const order = FISH.map(f => f.id);
+	for (let nonce = 0; nonce < 500; nonce++) {
+		const { bonus } = rollRound("bonus", "check", nonce, "medium");
+		assert.ok(bonus.length >= 1 && bonus.length <= 5, `${bonus.length} fish`);
+		const ids = bonus.map(b => b.fish);
+		assert.deepEqual(
+			ids,
+			order.filter(id => ids.includes(id))
+		);
+		for (const b of bonus) assert.ok(Number(b.multiplier) >= 100 && Number(b.multiplier) <= 8888);
+	}
+});
+
+test("a highlighted catch pays its bonus on top; an ordinary one is never highlighted", () => {
+	let hits = 0;
+	for (let nonce = 0; nonce < 60_000; nonce++) {
+		const { outcome, bonus, market } = rollRound("bonus-hit", "check", nonce, "low");
+		const hit = bonus.find(b => b.fish === outcome.fish);
+		if (!hit) continue;
+		hits++;
+		const price = Number(market.find(e => e.fish === outcome.fish)!.multiplier);
+		assert.ok(Math.abs(Number(outcome.multiplier) - price * Number(hit.multiplier)) < 0.01);
+	}
+	assert.ok(hits > 5 && hits < 80, `${hits} hits in 60000 rounds`);
 });

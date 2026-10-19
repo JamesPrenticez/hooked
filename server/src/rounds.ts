@@ -12,7 +12,7 @@ import { randomUUID } from "node:crypto";
 
 import { FISH } from "./constants.ts";
 import { getForcedOutcome } from "./debug-state.ts";
-import { outcomeFor, rollCatch, rollMarket } from "./market.ts";
+import { applyBonus, outcomeFor, rollBonus, rollCatch, rollMarket } from "./market.ts";
 import { fromCents, toCents } from "./money.ts";
 import { byteStream } from "./rng.ts";
 import { consumeNonce } from "./seeds.ts";
@@ -29,11 +29,18 @@ export interface MarketEntry {
 	multiplier: string;
 }
 
+/** A highlighted fish: if it is the one landed this round, its payout is multiplied by this. */
+export interface BonusEntry {
+	fish: string;
+	/** Decimal string, a whole multiple of the stake (100 to 8888). */
+	multiplier: string;
+}
+
 export interface FishingOutcome {
 	depth: DepthId;
 	fish: string;
 	tier: FishTier;
-	/** What the landed fish pays this round: its price on the market. */
+	/** What the landed fish pays this round: its price on the market, times its bonus if it was highlighted. */
 	multiplier: string;
 }
 
@@ -60,6 +67,8 @@ export interface Round {
 	stake: string;
 	volatility: Volatility;
 	market: MarketEntry[];
+	/** The 1 to 5 fish highlighted this round, each with the bonus it pays if landed. */
+	bonus: BonusEntry[];
 	outcome: FishingOutcome;
 	payout: PayoutResult;
 	seed: RoundSeed;
@@ -76,13 +85,14 @@ const openByPlayer = new Map<string, string>(); // playerId -> roundId
  * /api/game/verify recomputes exactly this, so it must never consult
  * debug/force state.
  *
- * One stream, in order: the market's shuffles, then where the hook dives and
- * which fish it lands.
+ * One stream, in order: where the hook dives, which fish it lands, then the highlighted fish.
  */
 export function rollRound(serverSeed: string, clientSeed: string, nonce: number, volatility: Volatility) {
 	const stream = byteStream(serverSeed, clientSeed, nonce);
-	const market = rollMarket(stream, volatility);
-	return { market, outcome: rollCatch(stream, volatility, market) };
+	const market = rollMarket(volatility);
+	const caught = rollCatch(stream, volatility, market);
+	const bonus = rollBonus(stream, caught.fish);
+	return { market, bonus, outcome: applyBonus(caught, bonus) };
 }
 
 function generateRound(serverSeed: string, clientSeed: string, nonce: number, volatility: Volatility) {
@@ -93,7 +103,7 @@ function generateRound(serverSeed: string, clientSeed: string, nonce: number, vo
 	// depth lands that zone's first fish.
 	const { fish, depth } = getForcedOutcome();
 	const forced = fish ? FISH.find(f => f.id === fish) : depth ? FISH.find(f => f.depth === depth) : undefined;
-	return forced ? { market: rolled.market, outcome: outcomeFor(forced, rolled.market) } : rolled;
+	return forced ? { ...rolled, outcome: applyBonus(outcomeFor(forced, rolled.market), rolled.bonus) } : rolled;
 }
 
 /** What `stakeCents` pays at `multiplier` (a decimal string), in whole cents, halves rounding up. Integer arithmetic
@@ -118,7 +128,7 @@ export function getRound(roundId: string): Round | undefined {
 /** Caller (routes/game.ts) has already validated the stake, the volatility and the balance. */
 export function openRound(playerId: string, stake: string, volatility: Volatility): Round {
 	const seed = consumeNonce(playerId);
-	const { market, outcome } = generateRound(seed.serverSeed, seed.clientSeed, seed.nonce, volatility);
+	const { market, bonus, outcome } = generateRound(seed.serverSeed, seed.clientSeed, seed.nonce, volatility);
 	const wagered = toCents(stake);
 	const total = payoutCents(wagered, outcome.multiplier);
 	const round: Round = {
@@ -128,6 +138,7 @@ export function openRound(playerId: string, stake: string, volatility: Volatilit
 		stake,
 		volatility,
 		market,
+		bonus,
 		outcome,
 		payout: {
 			total: fromCents(total),

@@ -47,11 +47,18 @@ export interface MarketEntry {
 	multiplier: string;
 }
 
+/** A fish highlighted this round: if it is the one landed, its payout is multiplied by this. */
+export interface BonusEntry {
+	fish: string;
+	/** Decimal string, a whole multiple (100 to 8888). */
+	multiplier: string;
+}
+
 export interface FishingOutcome {
 	depth: DepthId;
 	fish: string;
 	tier: FishTier;
-	/** Decimal string — what the landed fish pays this round: its price on the market. */
+	/** Decimal string — what the landed fish pays this round: its price on the market, times its bonus if it was highlighted. */
 	multiplier: string;
 }
 
@@ -98,6 +105,8 @@ export interface RoundResult {
 	stake: string;
 	/** Every fish and what it pays this round, in roster order — rotates each round. */
 	market: MarketEntry[];
+	/** The 1 to 5 fish highlighted this round, each with the bonus it pays if landed. */
+	bonus: BonusEntry[];
 	outcome: FishingOutcome;
 	payout: PayoutResult;
 	/** Always "0" on /game/play responses — NOT authoritative (§14). Read
@@ -120,6 +129,7 @@ export interface RoundDetailResponse {
 	volatility: Volatility;
 	stake: string;
 	market: MarketEntry[];
+	bonus: BonusEntry[];
 	outcome: FishingOutcome;
 	payout: PayoutResult;
 	seed: RoundSeed;
@@ -170,6 +180,7 @@ export interface VerifyResponse {
 	nonce: number;
 	volatility: Volatility;
 	market: MarketEntry[];
+	bonus: BonusEntry[];
 	outcome: FishingOutcome;
 }
 

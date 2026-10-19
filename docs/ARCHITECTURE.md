@@ -12,7 +12,7 @@ The architecture must support:
 - Server-side RNG
 - Server-side outcome generation
 - Server-side payout calculation
-- A stake and a volatility per round, with a rotating fish market
+- A stake and a volatility per round, with a fixed fish market
 - Deterministic/reproducible development outcomes
 - Reusable fishing presentation
 - Modular scenes
@@ -1162,8 +1162,8 @@ increments per round, and the round's **volatility**.
 
 ```text
 server/src/rng.ts:  HMAC-SHA256 byte stream over (serverSeed, clientSeed, nonce)
-                    → consumed to shuffle each zone's prices across its fish (the market),
-                      then to roll the depth zone, then the fish in it
+                    → consumed to roll the depth zone,
+                      then the fish in it, then its size
 ```
 
 - `POST /api/seed/rotate { clientSeed }` — player-set, blocked while a round is open.

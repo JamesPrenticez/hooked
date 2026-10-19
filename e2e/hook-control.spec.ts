@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-import { closeDebug, marketDialog } from "./market";
+import { closeDebug } from "./market";
 
 // The sim is fixed at 1920 sim-px wide; the mouth hit-boxes only line up with the art at that width.
 test.use({ viewport: { width: 1920, height: 1080 } });
@@ -32,14 +32,12 @@ async function castManualOnPausedClock(page: Page, { multiplier = 1, speed = 1 }
 	await castOnPausedClock(page);
 }
 
-/** Casts with the clock paused: taps through the fish market pop-up, then runs the clock over its short flight to the
- *  dock board, after which the hook goes down. */
+/** Casts with the clock paused: runs the clock over the bonus highlight, after which the hook goes down. */
 async function castOnPausedClock(page: Page) {
 	await page.getByRole("button", { name: "Cast Line" }).click();
-	await marketDialog(page).click();
-	// React has to commit the flight before the clock can run it.
+	// React has to commit the highlight (and its timer) before the clock can run it.
 	await page.waitForTimeout(150);
-	await page.clock.runFor(600);
+	await page.clock.runFor(2_600);
 }
 
 /** The debug panel's readout. It lives in the closed dialog, which is still in the DOM — no need to open it to read. */

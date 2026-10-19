@@ -1,7 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-import { marketDialog } from "./market";
-
 /** The balance readout, as a number. */
 async function balance(page: import("@playwright/test").Page) {
 	const text = await page.getByText("Balance", { exact: true }).locator("..").innerText();
@@ -25,11 +23,10 @@ test("casting takes the stake off the balance and landing pays the server's payo
 	await page.getByRole("button", { name: "Close", exact: true }).last().click();
 	await page.getByRole("button", { name: "Cast Line" }).click();
 
-	// The stake is the default $1.00. The hook goes down once the fish market has been dealt.
+	// The stake is the default $1.00. The hook goes down once the bonus fish have been lit.
 	const { message } = await (await started).json();
 	expect(message.stake).toBe("1.00");
 	await expect.poll(() => balance(page)).toBeCloseTo(before - 1, 2);
-	await marketDialog(page).click();
 
 	// The hook goes down and the catch is landed; the cast button is back once the round is over.
 	await expect(page.getByRole("button", { name: "Surface" })).toBeVisible();

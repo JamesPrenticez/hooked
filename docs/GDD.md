@@ -101,11 +101,11 @@ A sign on the left-hand dock lists every fish with the price it pays this round,
 - Before the first cast the board is an empty sign. After a round it keeps that round's prices, with the fish the hook landed ringed, until the next cast. It is hidden while the hook is down.
 - On a phone the board is smaller; on a landscape phone the zone names give way to coloured stripes.
 
-## The rotation
+## The prices
 
-Each depth zone has a fixed **pool of prices**, one per fish. Every round the pool is **shuffled** across the zone's fish: the Shark might be the zone's best earner one round and its worst the next. The set of prices in a zone never changes, only who holds them. The Kraken is alone in its zone, so its price never rotates.
+Each depth zone has a fixed **pool of prices**, one per fish, listed in ascending order down the zone's roster. The market is the same every round for a volatility; only the volatility changes the prices.
 
-Which fish the hook lands within a zone is random, and every fish in the zone is equally likely. Prices rotate; luck doesn't.
+Which fish the hook lands within a zone is random, and every fish in the zone is equally likely. Prices are fixed; luck isn't.
 
 ## The reveal
 

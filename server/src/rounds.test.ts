@@ -41,14 +41,20 @@ test("the same seeds deal a different market at a different volatility", () => {
 	assert.notDeepEqual(low, high);
 });
 
-test("every rolled outcome is roster-consistent: fish sits in its depth, tier matches, and it pays its market price", () => {
+test("every rolled outcome is roster-consistent: fish sits in its depth, tier matches, and it pays its market price (times its bonus, if highlighted)", () => {
 	for (const v of VOLATILITIES) {
 		for (let nonce = 0; nonce < 500; nonce++) {
-			const { market, outcome } = rollRound("consistency", "check", nonce, v);
+			const rolled = rollRound("consistency", "check", nonce, v);
+			const { market, outcome } = rolled;
 			const { depth, fish, tier, multiplier } = outcome;
 			assert.equal(depthOf.get(fish), depth, `nonce ${nonce}: ${fish} not in ${depth}`);
 			assert.equal(tierOf.get(fish), tier, `nonce ${nonce}: ${fish} tier`);
-			assert.equal(multiplier, market.find(e => e.fish === fish)?.multiplier, `nonce ${nonce}: ${fish} price`);
+			const price = Number(market.find(e => e.fish === fish)!.multiplier);
+			const bonus = rolled.bonus.find(b => b.fish === fish);
+			assert.ok(
+				Math.abs(Number(multiplier) - price * Number(bonus?.multiplier ?? 1)) < 0.01,
+				`nonce ${nonce}: ${fish} pays ${multiplier}`
+			);
 		}
 	}
 });

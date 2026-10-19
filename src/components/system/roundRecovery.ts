@@ -41,6 +41,7 @@ function toSnapshot(detail: RoundDetailResponse): RoundSnapshot {
 		stake: detail.stake,
 		volatility: detail.volatility,
 		market: detail.market,
+		bonus: detail.bonus,
 		outcome: detail.outcome,
 		payout: detail.payout
 	};

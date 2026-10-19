@@ -67,11 +67,28 @@ export const RTP = 0.96;
  *  fish is worth the most rotates. Relative: only the ratios between entries and between zones matter — market.ts
  *  scales them. Each pool holds exactly as many entries as its zone has fish. */
 export const PRICE_POOLS: Record<Exclude<DepthId, "jackpot">, number[]> = {
-	shallow: [1, 1.2, 1.5, 1.8, 2.2, 2.6],
-	reef: [3, 3.5, 4, 4.8, 5.6, 6.8],
-	deep: [8, 10, 12, 15, 18, 22, 28],
-	abyss: [18, 24, 32, 44, 60, 90]
+	shallow: [1, 1.1, 1.2, 1.3, 1.4, 1.5],
+	reef: [1.5, 1.7, 1.9, 2.1, 2.3, 2.6],
+	deep: [2, 2.3, 2.6, 3, 3.4, 3.8, 4.2],
+	abyss: [3, 3.5, 4, 4.6, 5.2, 6]
 };
+
+/** Every round highlights 1 to this many fish, each carrying a bonus multiplier from `BONUS_MULTIPLIERS`. */
+export const BONUS_MAX_FISH = 5;
+
+/** One round in this many lands one of its highlighted fish, which then pays its bonus on top of its price.
+ *  The rest highlight fish that are not the catch. The bonus is paid on top of RTP, not scaled out of it. */
+export const BONUS_ODDS = 2000;
+
+/** What a highlighted fish's bonus can be. Integers, since the bonus multiplies a price held in whole cents. */
+export const BONUS_MULTIPLIERS: { value: number; weight: number }[] = [
+	{ value: 100, weight: 55 },
+	{ value: 200, weight: 25 },
+	{ value: 500, weight: 12 },
+	{ value: 888, weight: 5 },
+	{ value: 2000, weight: 2 },
+	{ value: 8888, weight: 1 }
+];
 
 export interface Level {
 	/** Relative chance the hook dives into each zone — the volatility. Integers, since they are drawn as weights. */
@@ -80,11 +97,11 @@ export interface Level {
 	jackpot: number;
 }
 
-/** Calmer water keeps the hook shallow; rougher water sends it deeper, and the jackpot grows with it. */
+/** Low volatility sends the hook deeper, so catches are steadier; high keeps it shallow and the Kraken pays far more. */
 export const LEVELS: Record<Volatility, Level> = {
-	low: { odds: { shallow: 5600, reef: 3300, deep: 900, abyss: 190, jackpot: 10 }, jackpot: 50 },
+	low: { odds: { shallow: 3300, reef: 3000, deep: 2500, abyss: 1190, jackpot: 10 }, jackpot: 50 },
 	medium: { odds: { shallow: 4300, reef: 3200, deep: 1750, abyss: 740, jackpot: 10 }, jackpot: 100 },
-	high: { odds: { shallow: 3300, reef: 3000, deep: 2500, abyss: 1190, jackpot: 10 }, jackpot: 200 }
+	high: { odds: { shallow: 5600, reef: 3300, deep: 900, abyss: 190, jackpot: 10 }, jackpot: 200 }
 };
 
 export const VOLATILITIES = Object.keys(LEVELS) as Volatility[];

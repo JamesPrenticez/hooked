@@ -120,7 +120,7 @@ test("start debits the stake, complete credits the payout, and both surface in r
 	await forceOutcome({}); // clear the pin for the rest of the file
 });
 
-test("the Kraken pays its fixed price whatever the market rotation, so the jackpot is exact", async () => {
+test("the Kraken pays its fixed price so the jackpot is exact", async () => {
 	const session = await newSession();
 	await forceOutcome({ fish: "kraken" });
 	const start = await call("POST", "/api/game/play", {

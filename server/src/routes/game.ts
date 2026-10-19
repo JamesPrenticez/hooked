@@ -6,6 +6,7 @@
 import { config } from "../config.ts";
 import { VOLATILITIES } from "../constants.ts";
 import { HttpError, route } from "../http.ts";
+import { rollMarket } from "../market.ts";
 import { toCents } from "../money.ts";
 import { hashSeed } from "../rng.ts";
 import {
@@ -51,6 +52,7 @@ function toRoundResult(round: Round) {
 		volatility: round.volatility,
 		stake: round.stake,
 		market: round.market,
+		bonus: round.bonus,
 		outcome: round.outcome,
 		payout: round.payout,
 		metadata: { balance: "0" }
@@ -132,6 +134,7 @@ route("GET", "/api/game/round/:id", ctx => {
 		volatility: round.volatility,
 		stake: round.stake,
 		market: round.market,
+		bonus: round.bonus,
 		outcome: round.outcome,
 		payout: round.payout,
 		seed: round.seed
@@ -186,4 +189,13 @@ route("GET", "/api/game/history", ctx => {
 		completedAt: new Date(r.completedAt ?? r.createdAt).toISOString()
 	}));
 	return { rounds };
+});
+
+// The fish market is fixed per volatility, so the idle screen can show it before any round exists.
+route("GET", "/api/game/market/:volatility", ctx => {
+	requireSession(ctx);
+	if (!isVolatility(ctx.params.volatility)) {
+		throw new HttpError(400, "invalid_volatility", `Unknown volatility: ${ctx.params.volatility}`);
+	}
+	return { market: rollMarket(ctx.params.volatility) };
 });

@@ -5,6 +5,15 @@ import { formatMultiplier } from "@utils/formatMultiplier";
 
 import { DROP_MS, FIRST_DROP_MS, type MarketZone, STAGGER_MS } from "./marketLayout";
 
+const pulse = keyframes`
+	from {
+		box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 0%, transparent);
+	}
+	to {
+		box-shadow: 0 0 0.8rem 0.2rem color-mix(in srgb, var(--color-primary) 80%, transparent);
+	}
+`;
+
 const drop = keyframes`
 	from {
 		opacity: 0;
@@ -70,6 +79,7 @@ const Fish = styled.ul`
 `;
 
 const Chip = styled.li<{ $animate: boolean }>`
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -86,6 +96,16 @@ const Chip = styled.li<{ $animate: boolean }>`
 	&[data-caught] {
 		outline: 0.2rem solid var(--color-primary-accent);
 		background: color-mix(in srgb, var(--zone-color) 55%, var(--color-black));
+	}
+
+	&[data-bonus] {
+		outline: 0.2rem solid var(--color-primary);
+		background: color-mix(in srgb, var(--color-primary) 35%, var(--color-black));
+		animation: ${pulse} 1s ease-in-out infinite alternate;
+
+		@media (prefers-reduced-motion: reduce) {
+			animation: none;
+		}
 	}
 
 	${({ $animate }) =>
@@ -117,6 +137,22 @@ const Name = styled.span`
 	line-height: 1;
 `;
 
+/* The bonus a highlighted fish pays on top of its price, riding its top edge. */
+const Bonus = styled.span`
+	position: absolute;
+	top: -0.6rem;
+	left: 50%;
+	transform: translateX(-50%);
+	padding: 0 0.3rem;
+	border-radius: var(--border-radius-sm);
+	background: var(--color-primary);
+	color: var(--color-black);
+	font: var(--font-text-legal);
+	font-weight: var(--font-weight-semibold);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+`;
+
 const Price = styled.span`
 	color: var(--color-white);
 	font: var(--price-font, var(--font-text-bold-xxs));
@@ -131,12 +167,14 @@ interface MarketTableProps {
 	zones: MarketZone[];
 	/** The fish the round landed, once it is over — ringed on the board. */
 	caught?: string;
+	/** The fish highlighted this round, and the bonus each pays on top of its price if it is the one landed. */
+	bonus?: Map<string, number>;
 	/** Deal the chips onto the board one after another, as the reveal pop-up does. */
 	animate?: boolean;
 }
 
 /** Every fish and what it pays this round, a row per depth zone — the one table the dock board and the reveal share. */
-export function MarketTable({ zones, caught, animate = false }: MarketTableProps) {
+export function MarketTable({ zones, caught, bonus, animate = false }: MarketTableProps) {
 	let dealt = 0;
 	return (
 		<>
@@ -151,8 +189,10 @@ export function MarketTable({ zones, caught, animate = false }: MarketTableProps
 								data-fish={fish.id}
 								data-best={fish.multiplier === zone.best ? "" : undefined}
 								data-caught={fish.id === caught ? "" : undefined}
+								data-bonus={bonus?.has(fish.id) ? "" : undefined}
 								style={{ "--i": dealt++ } as CSSProperties}
 							>
+								{bonus?.has(fish.id) && <Bonus>+{formatMultiplier(bonus.get(fish.id)!)}×</Bonus>}
 								{fish.image ? <Portrait src={fish.image} alt={fish.name} /> : <Name>{fish.name}</Name>}
 								<Price>×{formatMultiplier(fish.multiplier)}</Price>
 							</Chip>

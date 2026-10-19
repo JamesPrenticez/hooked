@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import type { FishingOutcome, MarketEntry, PayoutResult, RoundStatus, Volatility } from "@type/api";
+import type { BonusEntry, FishingOutcome, MarketEntry, PayoutResult, RoundStatus, Volatility } from "@type/api";
 
 // The authoritative round the client is presenting, mirrored from the server
 // (ARCHITECTURE §9, §12, §18). Every field arrives verbatim in a server
@@ -20,6 +20,8 @@ export interface RoundSnapshot {
 	volatility: Volatility;
 	/** What every fish pays this round — rolled with the catch, so it rotates round to round. */
 	market: MarketEntry[];
+	/** The fish highlighted this round and the bonus each pays if it is the one landed. */
+	bonus: BonusEntry[];
 	outcome: FishingOutcome;
 	payout: PayoutResult;
 }

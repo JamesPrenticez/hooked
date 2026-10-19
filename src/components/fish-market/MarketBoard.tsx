@@ -1,7 +1,10 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 
+import { getMarket } from "@api";
+import { useBetStore } from "@stores/betStore";
 import { useRoundStore } from "@stores/roundStore";
+import type { MarketEntry } from "@type/api";
 import { breakpoint } from "@utils/breakpoint";
 
 import { marketZones } from "./marketLayout";
@@ -105,14 +108,24 @@ interface MarketBoardProps {
  * is an empty sign. HTML overlay, a sibling of <Application> (§38).
  */
 export function MarketBoard({ hidden }: MarketBoardProps) {
-	const market = useRoundStore(s => s.round?.market);
+	const volatility = useBetStore(s => s.volatility);
+	const roundMarket = useRoundStore(s => s.round?.market);
+	// The market is fixed per volatility, so the idle sign is stocked before the first cast; the round's own list
+	// stands in until it arrives.
+	const [listed, setListed] = useState<MarketEntry[]>();
+	useEffect(() => {
+		getMarket(volatility).then(setListed, () => setListed(undefined));
+	}, [volatility]);
+	const market = listed ?? roundMarket;
+	const bonus = useRoundStore(s => s.round?.bonus);
+	const bonuses = useMemo(() => new Map(bonus?.map(b => [b.fish, Number(b.multiplier)])), [bonus]);
 	const caught = useRoundStore(s => (s.round?.status === "completed" ? s.round.outcome.fish : undefined));
 	const zones = useMemo(() => (market ? marketZones(market) : []), [market]);
 
 	return (
 		<Board aria-label="Fish market" data-market-board data-hidden={hidden ? "" : undefined}>
 			<Title>Fish market</Title>
-			{zones.length ? <MarketTable zones={zones} caught={caught} /> : <Hint>Prices are posted when you cast.</Hint>}
+			{zones.length ? <MarketTable zones={zones} caught={caught} bonus={bonuses} /> : <Hint>Loading prices…</Hint>}
 		</Board>
 	);
 }

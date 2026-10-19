@@ -13,6 +13,7 @@ import type {
 	ErrorBody,
 	ForcedOutcome,
 	HistoryResponse,
+	MarketEntry,
 	PlayMessage,
 	PlayResponse,
 	RevealedSeedResponse,
@@ -200,6 +201,11 @@ export function completeRound(roundId: string): Promise<RoundResult> {
 /** Full detail for one round — including a still-open one (§30; unlike getCurrent()). */
 export function getRound(roundId: string): Promise<RoundDetailResponse> {
 	return request<RoundDetailResponse>(`/api/game/round/${roundId}`);
+}
+
+/** The fish market of a volatility. It is fixed, so the idle screen can show it before any round exists. */
+export async function getMarket(volatility: Volatility): Promise<MarketEntry[]> {
+	return (await request<{ market: MarketEntry[] }>(`/api/game/market/${volatility}`)).market;
 }
 
 export function getHistory(): Promise<HistoryResponse> {

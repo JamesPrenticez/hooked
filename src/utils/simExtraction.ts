@@ -17,11 +17,11 @@ const GEAR_ORDER: readonly Gear[] = ["rod", "crane", "helicopter", "chinook"];
 export const MIN_MULTIPLIER = 1;
 export const MAX_MULTIPLIER = 500;
 
-/** The smallest multiplier that calls in each extra piece of gear. Placeholder cut-offs, set against the market's
- *  prices (server/src/constants.ts): the crane for the better deep and abyss catches, the helicopter for the best of
- *  the abyss, the Chinook for the Kraken. */
-export const CRANE_FROM = 4;
-export const HELICOPTER_FROM = 9;
+/** The smallest multiplier that calls in each extra piece of gear. Set against what a round pays (price × hidden size,
+ *  server/src/constants.ts): the crane for roughly 1 round in 15, the helicopter for 1 in 60, the Chinook for the
+ *  Kraken. */
+export const CRANE_FROM = 2.5;
+export const HELICOPTER_FROM = 5;
 export const CHINOOK_FROM = 40;
 
 /** Every gear this catch needs, in the order they take the strain. */
