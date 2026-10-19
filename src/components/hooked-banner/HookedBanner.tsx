@@ -17,13 +17,17 @@ const Splash = styled.div`
 `;
 
 /* Darkens the scene around the word so it reads against sky, water or fish. */
-const Dim = styled.div`
+const Dim = styled.div<{ $escaped?: boolean }>`
 	position: absolute;
 	inset: 0;
 	background: radial-gradient(
 		circle at center,
-		color-mix(in srgb, var(--color-black) 15%, transparent),
-		color-mix(in srgb, var(--color-black) 65%, transparent)
+		color-mix(
+			in srgb,
+			${({ $escaped }) => ($escaped ? "var(--color-depth-reef)" : "var(--color-black)")} 15%,
+			transparent
+		),
+		color-mix(in srgb, var(--color-black) ${({ $escaped }) => ($escaped ? 80 : 65)}%, transparent)
 	);
 `;
 
@@ -49,8 +53,19 @@ const Word = styled.div`
 	}
 `;
 
-const Species = styled.div`
-	color: var(--color-primary-accent);
+/* The escape word: cold and quiet where HOOKED! is loud, wide-set and level instead of slammed and tilted. */
+const EscapeWord = styled(Word)`
+	color: color-mix(in srgb, var(--color-white) 80%, var(--color-depth-reef));
+	letter-spacing: 0.2em;
+	text-align: center;
+	text-shadow:
+		0 0.3rem 0 color-mix(in srgb, var(--color-depth-reef) 60%, var(--color-black)),
+		0 1rem 2rem var(--color-black);
+`;
+
+const Species = styled.div<{ $escaped?: boolean }>`
+	color: ${({ $escaped }) =>
+		$escaped ? "color-mix(in srgb, var(--color-white) 60%, var(--color-depth-reef))" : "var(--color-primary-accent)"};
 	font: var(--font-display-lg);
 	letter-spacing: 0.1em;
 	text-align: center;
@@ -78,13 +93,28 @@ export function HookedBanner() {
 
 	const species = HOOKABLE_BY_ID.get(sim.world[sim.hooked]?.id ?? "")?.name;
 
+	if (sim.escapes) {
+		// No flash or slam: a cold wash, and the word sinks away like the fish.
+		return (
+			<Splash role="status">
+				<Dim $escaped style={{ opacity: fade }} />
+				<EscapeWord
+					style={{ opacity: fade * 0.9, transform: `translateY(${progress * 4}rem) scale(${1 - 0.08 * progress})` }}
+				>
+					{species && <Species $escaped>{species}</Species>}
+					{ESCAPE_PHRASES[sim.worldSeed % ESCAPE_PHRASES.length]}
+				</EscapeWord>
+			</Splash>
+		);
+	}
+
 	return (
 		<Splash role="status">
 			<Dim style={{ opacity: fade }} />
 			<Flash style={{ opacity: Math.max(0, 1 - progress / 0.1) * 0.5 }} />
 			<Word style={{ opacity: fade, transform: `rotate(-4deg) scale(${scale})` }}>
 				{species && <Species>{species}</Species>}
-				{sim.escapes ? ESCAPE_PHRASES[sim.worldSeed % ESCAPE_PHRASES.length] : "HOOKED!"}
+				HOOKED!
 			</Word>
 		</Splash>
 	);
