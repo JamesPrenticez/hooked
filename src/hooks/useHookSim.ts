@@ -4,6 +4,7 @@ import { useHookStore } from "@stores/hookStore";
 import { useRoundStore } from "@stores/roundStore";
 import { autopilotAxis } from "@utils/simAutopilot";
 import { SIM_VERSION, TICK_HZ } from "@utils/simConfig";
+import { MIN_MULTIPLIER } from "@utils/simExtraction";
 import { decodeInputs, encodeInputs } from "@utils/simRecording";
 import { createSim, step } from "@utils/simStep";
 
@@ -35,10 +36,11 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 		const manual = state.hookMode === "manual";
 		const round = manual || run ? undefined : useRoundStore.getState().round;
 		const target = round?.outcome.fish;
-		const multiplier = round ? Number(round.outcome.multiplier) : (run ?? state).multiplier;
+		const escapes = round?.outcome.escaped ?? false;
+		const multiplier = round ? Math.max(Number(round.outcome.multiplier), MIN_MULTIPLIER) : (run ?? state).multiplier;
 		// A fresh world each cast; the debug panel's seed only pins it for manual runs and replays.
 		const worldSeed = run?.worldSeed ?? (manual ? state.worldSeed : Math.floor(Math.random() * 2 ** 31));
-		const sim = createSim(worldSeed, multiplier, target);
+		const sim = createSim(worldSeed, multiplier, target, escapes);
 		const axes: number[] = [];
 		let accumulator = 0;
 		let last = performance.now();

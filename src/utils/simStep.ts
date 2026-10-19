@@ -58,6 +58,8 @@ export interface Sim {
 	/** The roster id the hook is after: only a fish of that kind will take it, so a run can end in the fish the server
 	 *  chose. Unset, any fish will (the debug sandbox). The Kraken isn't in the world — the hook runs to the bottom. */
 	target?: string;
+	/** The fish gets away: after the announce the run ends at once, with no ascent or landing. */
+	escapes: boolean;
 	/** The hook's depth when the fish took it: where the ascent and the landing start from. */
 	catchM: number;
 	/** Every fish, fixed by `worldSeed`. */
@@ -72,10 +74,11 @@ export interface Sim {
 	result?: SimResult;
 }
 
-export function createSim(worldSeed: number, multiplier = MIN_MULTIPLIER, target?: string): Sim {
+export function createSim(worldSeed: number, multiplier = MIN_MULTIPLIER, target?: string, escapes = false): Sim {
 	return {
 		worldSeed,
 		target,
+		escapes,
 		tick: 0,
 		x: SIM_WIDTH / 2,
 		vx: 0,
@@ -124,7 +127,12 @@ export function step(sim: Sim, axis: number): void {
 		return;
 	}
 	if (sim.phase === "announce") {
-		if (sim.tick - sim.phaseTick >= ANNOUNCE_TICKS) enter(sim, "ascend");
+		if (sim.tick - sim.phaseTick >= ANNOUNCE_TICKS) {
+			if (sim.escapes) {
+				sim.cameraM = 0;
+				surface(sim);
+			} else enter(sim, "ascend");
+		}
 		return;
 	}
 	if (sim.phase === "ascend") {

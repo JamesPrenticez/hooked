@@ -1,5 +1,6 @@
 import styled from "styled-components";
 
+import { ESCAPE_PHRASES } from "@constants/escapePhrases";
 import { HOOKABLE_BY_ID } from "@constants/fish";
 import { useHookStore } from "@stores/hookStore";
 import { breakpoint } from "@utils/breakpoint";
@@ -83,7 +84,7 @@ export function HookedBanner() {
 			<Flash style={{ opacity: Math.max(0, 1 - progress / 0.1) * 0.5 }} />
 			<Word style={{ opacity: fade, transform: `rotate(-4deg) scale(${scale})` }}>
 				{species && <Species>{species}</Species>}
-				HOOKED!
+				{sim.escapes ? ESCAPE_PHRASES[sim.worldSeed % ESCAPE_PHRASES.length] : "HOOKED!"}
 			</Word>
 		</Splash>
 	);

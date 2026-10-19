@@ -58,6 +58,8 @@ export interface FishingOutcome {
 	depth: DepthId;
 	fish: string;
 	tier: FishTier;
+	/** The fish took the hook but got away: nothing is landed and `multiplier` is "0.00". */
+	escaped: boolean;
 	/** Decimal string — what the landed fish pays this round: its price on the market, times its bonus if it was highlighted. */
 	multiplier: string;
 }

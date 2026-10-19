@@ -49,6 +49,10 @@ test("every rolled outcome is roster-consistent: fish sits in its depth, tier ma
 			const { depth, fish, tier, multiplier } = outcome;
 			assert.equal(depthOf.get(fish), depth, `nonce ${nonce}: ${fish} not in ${depth}`);
 			assert.equal(tierOf.get(fish), tier, `nonce ${nonce}: ${fish} tier`);
+			if (outcome.escaped) {
+				assert.equal(Number(multiplier), 0, `nonce ${nonce}: an escaped ${fish} pays nothing`);
+				continue;
+			}
 			const price = Number(market.find(e => e.fish === fish)!.multiplier);
 			const bonus = rolled.bonus.find(b => b.fish === fish);
 			assert.ok(

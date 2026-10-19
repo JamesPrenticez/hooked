@@ -97,7 +97,9 @@ it("replay mode plays a stored run without the keys and reproduces its catch", (
 it("goes after the fish the server chose, and weighs the catch what its market says it pays", () => {
 	useHookStore.setState({ hookMode: "auto", timeScale: 8 });
 	useRoundStore.setState({
-		round: roundSnapshot({ outcome: { depth: "deep", fish: "shark", tier: "epic", multiplier: "6.35" } })
+		round: roundSnapshot({
+			outcome: { depth: "deep", fish: "shark", tier: "epic", escaped: false, multiplier: "6.35" }
+		})
 	});
 
 	const onSurfaced = vi.fn();
@@ -113,7 +115,9 @@ it("goes after the fish the server chose, and weighs the catch what its market s
 it("runs the hook to the Kraken when the server's catch is the Kraken", () => {
 	useHookStore.setState({ hookMode: "auto", timeScale: 8 });
 	useRoundStore.setState({
-		round: roundSnapshot({ outcome: { depth: "jackpot", fish: "kraken", tier: "jackpot", multiplier: "100.00" } })
+		round: roundSnapshot({
+			outcome: { depth: "jackpot", fish: "kraken", tier: "jackpot", escaped: false, multiplier: "100.00" }
+		})
 	});
 
 	const onSurfaced = vi.fn();

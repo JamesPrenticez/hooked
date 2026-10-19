@@ -32,7 +32,7 @@ const pZone = (v: Volatility, d: DepthId) => LEVELS[v].odds[d] / oddsTotal(v);
 
 /** What a volatility returns per unit staked, given what each zone's fish are listed at on average (bonus aside). */
 const returnOf = (v: Volatility, zoneMean: (d: DepthId) => number) =>
-	DEPTHS.reduce((sum, d) => sum + pZone(v, d) * zoneMean(d), 0);
+	DEPTHS.reduce((sum, d) => sum + pZone(v, d) * zoneMean(d) * (d === "jackpot" ? 1 : 1 - LEVELS[v].escape), 0);
 
 // ===========================================================================
 // 1. Tables — the pools fit the roster
@@ -221,4 +221,21 @@ test("a highlighted catch pays its bonus on top; an ordinary one is never highli
 		assert.ok(Math.abs(Number(outcome.multiplier) - price * Number(hit.multiplier)) < 0.01);
 	}
 	assert.ok(hits > 5 && hits < 80, `${hits} hits in 60000 rounds`);
+});
+
+test("a hooked fish gets away at the volatility's escape chance, pays nothing, and is never the Kraken or highlighted", () => {
+	for (const v of VOLATILITIES) {
+		let escapes = 0;
+		let landed = 0;
+		for (let nonce = 0; nonce < 20_000; nonce++) {
+			const { outcome, bonus } = rollRound("escape", "check", nonce, v);
+			if (outcome.depth !== "jackpot") landed++;
+			if (!outcome.escaped) continue;
+			escapes++;
+			assert.equal(Number(outcome.multiplier), 0);
+			assert.notEqual(outcome.depth, "jackpot");
+			assert.ok(!bonus.some(b => b.fish === outcome.fish), "an escaped fish is never highlighted");
+		}
+		assert.ok(Math.abs(escapes / landed - LEVELS[v].escape) < 0.02, `${v}: ${escapes}/${landed}`);
+	}
 });

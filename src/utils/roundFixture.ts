@@ -14,7 +14,7 @@ export function roundSnapshot(overrides: Partial<RoundSnapshot> = {}): RoundSnap
 		volatility: "medium",
 		market: MARKET,
 		bonus: [],
-		outcome: { depth: "shallow", fish: "sardine", tier: "small", multiplier: "0.25" },
+		outcome: { depth: "shallow", fish: "sardine", tier: "small", escaped: false, multiplier: "0.25" },
 		payout: { total: "0.25", wagered: "1.00", net: "-0.75" },
 		...overrides
 	};

@@ -194,3 +194,15 @@ it("a Kraken target runs the hook to the bottom, through every fish, to fight it
 	expect(sim.phase).toBe("kraken");
 	expect(sim.hooked).toBe(-1);
 });
+
+it("ends the run at the surface right after the splash when the fish gets away", () => {
+	const sim = hookedSim(1);
+	sim.escapes = true;
+	const phases = [sim.phase];
+	while (sim.phase !== "surfaced") {
+		step(sim, 1);
+		if (sim.phase !== phases[phases.length - 1]) phases.push(sim.phase);
+	}
+	expect(phases).toEqual(["hooked", "announce", "surfaced"]);
+	expect(sim.cameraM).toBe(0);
+});

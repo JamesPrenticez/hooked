@@ -40,6 +40,8 @@ export interface FishingOutcome {
 	depth: DepthId;
 	fish: string;
 	tier: FishTier;
+	/** The fish took the hook but got away: nothing is landed and `multiplier` is 0. */
+	escaped: boolean;
 	/** What the landed fish pays this round: its price on the market, times its bonus if it was highlighted. */
 	multiplier: string;
 }
@@ -91,7 +93,7 @@ export function rollRound(serverSeed: string, clientSeed: string, nonce: number,
 	const stream = byteStream(serverSeed, clientSeed, nonce);
 	const market = rollMarket(volatility);
 	const caught = rollCatch(stream, volatility, market);
-	const bonus = rollBonus(stream, caught.fish);
+	const bonus = rollBonus(stream, caught.fish, caught.escaped);
 	return { market, bonus, outcome: applyBonus(caught, bonus) };
 }
 

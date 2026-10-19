@@ -74,6 +74,7 @@ test("force-outcome pins the catch on the next round, and {} clears it", async (
 		depth: "jackpot",
 		fish: "kraken",
 		tier: "jackpot",
+		escaped: false,
 		multiplier: "100.00"
 	});
 

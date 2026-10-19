@@ -678,9 +678,12 @@ components:
       items: { $ref: "#/components/schemas/MarketEntry" }
     FishingOutcome:
       type: object
-      required: [depth, fish, tier, multiplier]
+      required: [depth, fish, tier, escaped, multiplier]
       properties:
         depth: { type: string, enum: [shallow, reef, deep, abyss, jackpot] }
+        escaped:
+          type: boolean
+          description: The fish took the hook but got away. Nothing is landed and `multiplier` is "0.00". Never the Kraken.
         fish:
           type: string
           description: >

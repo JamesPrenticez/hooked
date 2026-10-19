@@ -119,7 +119,9 @@ export function MarketBoard({ hidden }: MarketBoardProps) {
 	const market = listed ?? roundMarket;
 	const bonus = useRoundStore(s => s.round?.bonus);
 	const bonuses = useMemo(() => new Map(bonus?.map(b => [b.fish, Number(b.multiplier)])), [bonus]);
-	const caught = useRoundStore(s => (s.round?.status === "completed" ? s.round.outcome.fish : undefined));
+	const caught = useRoundStore(s =>
+		s.round?.status === "completed" && !s.round.outcome.escaped ? s.round.outcome.fish : undefined
+	);
 	const zones = useMemo(() => (market ? marketZones(market) : []), [market]);
 
 	return (

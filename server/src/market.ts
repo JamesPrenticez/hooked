@@ -25,6 +25,9 @@ const PRICED: PricedDepth[] = ["shallow", "reef", "deep", "abyss"];
 
 const mean = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / values.length;
 
+/** Granularity of the escape roll. */
+const ESCAPE_RESOLUTION = 10_000;
+
 const BONUS_WEIGHTS = BONUS_MULTIPLIERS.map(b => b.weight);
 const MEAN_BONUS =
 	BONUS_MULTIPLIERS.reduce((sum, b) => sum + b.value * b.weight, 0) / BONUS_WEIGHTS.reduce((a, b) => a + b, 0);
@@ -34,12 +37,13 @@ const MEAN_BONUS =
 export const BONUS_FACTOR = 1 + (MEAN_BONUS - 1) / BONUS_ODDS;
 
 /** A volatility's prices for every zone, as multiples of the stake: `PRICE_POOLS` scaled so the volatility returns
- *  RTP once the Kraken has taken its fixed share. Whole cents, since that is what a round pays out in. */
-function priceZones({ odds, jackpot }: Level): Record<DepthId, number[]> {
+ *  RTP once the Kraken has taken its fixed share and the escapes have paid nothing. Whole cents, since that is what a round pays out in. */
+function priceZones({ odds, escape, jackpot }: Level): Record<DepthId, number[]> {
 	const total = DEPTHS.reduce((sum, d) => sum + odds[d], 0);
 	const chance = (depth: DepthId) => odds[depth] / total;
 	const scale =
-		(RTP - chance("jackpot") * jackpot) / PRICED.reduce((sum, d) => sum + chance(d) * mean(PRICE_POOLS[d]), 0);
+		(RTP - chance("jackpot") * jackpot) /
+		((1 - escape) * PRICED.reduce((sum, d) => sum + chance(d) * mean(PRICE_POOLS[d]), 0));
 	const zones = Object.fromEntries(PRICED.map(d => [d, PRICE_POOLS[d].map(p => Math.round(p * scale * 100) / 100)]));
 	return { ...zones, jackpot: [jackpot] } as Record<DepthId, number[]>;
 }
@@ -67,7 +71,7 @@ export function rollMarket(volatility: Volatility): MarketEntry[] {
 /** The catch of `fish` on `market`: the fish, where it lives and what it pays this round — its price. */
 export function outcomeFor(fish: FishDef, market: MarketEntry[]): FishingOutcome {
 	const { multiplier } = market.find(entry => entry.fish === fish.id)!;
-	return { depth: fish.depth, fish: fish.id, tier: fish.tier, multiplier };
+	return { depth: fish.depth, fish: fish.id, tier: fish.tier, multiplier, escaped: false };
 }
 
 /** Where the hook dives, then which fish in that zone it lands. Every fish in a zone is as likely as any other, so
@@ -77,14 +81,17 @@ export function rollCatch(stream: Generator<number>, volatility: Volatility, mar
 	const depth = DEPTHS[rollWeighted(stream, odds)];
 	const roster = rosterOf(depth);
 	const fish = roster[rollInt(stream, roster.length)];
-	return outcomeFor(fish, market);
+	const outcome = outcomeFor(fish, market);
+	// Drawn for every catch so the stream stays aligned; the Kraken is exempt.
+	const escaped = rollInt(stream, ESCAPE_RESOLUTION) < LEVELS[volatility].escape * ESCAPE_RESOLUTION;
+	return escaped && depth !== "jackpot" ? { ...outcome, multiplier: fromCents(0), escaped: true } : outcome;
 }
 
 /** The round's highlighted fish, 1 to `BONUS_MAX_FISH` of them in roster order, each with a bonus. The catch is one of
- *  them only on the one round in `BONUS_ODDS` that hits; otherwise it is left out, so a highlight never sits on a
+ *  them only on the one round in `BONUS_ODDS` that hits (and the fish does not get away); otherwise it is left out, so a highlight never sits on a
  *  fish that paid. */
-export function rollBonus(stream: Generator<number>, caught: string): BonusEntry[] {
-	const hit = rollInt(stream, BONUS_ODDS) === 0;
+export function rollBonus(stream: Generator<number>, caught: string, escaped: boolean): BonusEntry[] {
+	const hit = rollInt(stream, BONUS_ODDS) === 0 && !escaped;
 	const count = 1 + rollInt(stream, BONUS_MAX_FISH);
 	const pool = FISH.map(f => f.id).filter(id => id !== caught);
 	const picked = hit ? [caught] : [];
