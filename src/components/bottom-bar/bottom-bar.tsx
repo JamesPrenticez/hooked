@@ -80,8 +80,6 @@ const Bar = styled.div`
 
 interface BottomBarProps {
 	descending: boolean;
-	/** A round is open but the hook has not gone down: its fish market is still being dealt. Locks the bar like a cast. */
-	revealing?: boolean;
 	onCast: () => void;
 }
 
@@ -95,11 +93,10 @@ interface BottomBarProps {
  * Cast opens a round on the server and deals its fish market (App.tsx); the
  * stake, volatility and bonuses lock from then until the catch is landed.
  */
-export const BottomBar = ({ descending, revealing = false, onCast }: BottomBarProps) => {
+export const BottomBar = ({ descending, onCast }: BottomBarProps) => {
 	const [volatilityOpen, setVolatilityOpen] = useState(false);
 	const [marketOpen, setMarketOpen] = useState(false);
 	const [bonusOpen, setBonusOpen] = useState(false);
-	const locked = descending || revealing;
 
 	return (
 		<>
@@ -107,13 +104,13 @@ export const BottomBar = ({ descending, revealing = false, onCast }: BottomBarPr
 			<TotalSection />
 			<Container>
 				<Bar>
-					<BonusSection disabled={locked} onOpen={() => setBonusOpen(true)} />
+					<BonusSection disabled={descending} onOpen={() => setBonusOpen(true)} />
 					<Balance />
-					<BetSection disabled={locked} />
-					<CallToActionSection descending={descending} disabled={revealing} onCast={onCast} />
+					<BetSection disabled={descending} />
+					<CallToActionSection descending={descending} onCast={onCast} />
 					<SideButtons>
 						<MarketSection onOpen={() => setMarketOpen(true)} />
-						<VolatilitySection disabled={locked} onOpen={() => setVolatilityOpen(true)} />
+						<VolatilitySection disabled={descending} onOpen={() => setVolatilityOpen(true)} />
 					</SideButtons>
 				</Bar>
 

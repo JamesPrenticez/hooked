@@ -43,14 +43,6 @@ it("reads Surface and is pressed while descending", () => {
 	expect(button).toHaveAttribute("aria-pressed", "true");
 });
 
-it("holds the cast button while the fish market is being dealt", () => {
-	render(<BottomBar descending={false} revealing onCast={() => {}} />);
-
-	expect(screen.getByRole("button", { name: /cast line/i })).toBeDisabled();
-	expect(volatilityButton()).toBeDisabled();
-	expect(screen.getByRole("button", { name: "Bonus" })).toBeDisabled();
-});
-
 it("names the volatility the next cast is made at", () => {
 	render(<BottomBar descending={false} onCast={() => {}} />);
 	expect(volatilityButton()).toHaveAccessibleName("Volatility, Medium");

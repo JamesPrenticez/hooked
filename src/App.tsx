@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Mesh, Sprite, Text, TilingSprite } from "pixi.js";
 import styled from "styled-components";
@@ -67,9 +67,6 @@ const SkipTutorial = styled.div`
 	font: var(--font-display-xs);
 `;
 
-/** How long the cast holds on the highlighted bonus fish before the hook goes down. */
-const BONUS_REVEAL_MS = 2500;
-
 // Registers the Pixi classes used as JSX tags (pixiContainer, pixiGraphics,
 // pixiText) below and in every scene component — @pixi/react doesn't bundle
 // these by default.
@@ -91,16 +88,6 @@ export function App() {
 	const setIsDebugOpen = useDebugStore(state => state.setIsDebugOpen);
 
 	const [descending, setDescending] = useState(false);
-	// A cast first lights the round's bonus fish on the market board; the hook goes down once they have been seen.
-	const [revealing, setRevealing] = useState(false);
-	useEffect(() => {
-		if (!revealing) return;
-		const id = window.setTimeout(() => {
-			setRevealing(false);
-			setDescending(true);
-		}, BONUS_REVEAL_MS);
-		return () => window.clearTimeout(id);
-	}, [revealing]);
 	// Every cast runs the sim: arrow keys in manual (debug), an autopilot to the server's fish otherwise.
 	const land = () => {
 		setDescending(false);
@@ -142,13 +129,12 @@ export function App() {
 			{phase === "game" && (
 				<BottomBar
 					descending={underwater}
-					revealing={revealing}
 					onCast={async () => {
 						setForceTrench(false);
 						if (underwater) return land();
 						try {
 							await openRound();
-							setRevealing(true);
+							setDescending(true);
 						} catch (err) {
 							console.error(err);
 						}

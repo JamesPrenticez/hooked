@@ -62,14 +62,12 @@ const SurfaceLabel = styled.span`
 
 interface CallToActionSectionProps {
 	descending: boolean;
-	/** The fish market is being dealt: there is nothing to cast or surface yet. */
-	disabled?: boolean;
 	onCast: () => void;
 }
 
-export const CallToActionSection = ({ descending, disabled = false, onCast }: CallToActionSectionProps) => {
+export const CallToActionSection = ({ descending, onCast }: CallToActionSectionProps) => {
 	return (
-		<CastButton type="button" aria-pressed={descending} disabled={disabled} onClick={onCast}>
+		<CastButton type="button" aria-pressed={descending} onClick={onCast}>
 			{descending ? <SurfaceLabel>Surface</SurfaceLabel> : <CastLabel src={castLineText} alt="Cast Line" />}
 		</CastButton>
 	);
