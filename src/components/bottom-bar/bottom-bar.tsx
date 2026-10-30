@@ -17,7 +17,7 @@ const Container = styled.div`
 	left: 0;
 	right: 0;
 	bottom: 0;
-
+	border: red 1px solid;
 	display: flex;
 	align-items: center;
 	gap: var(--spacing-sm);
@@ -27,7 +27,7 @@ const Container = styled.div`
 	}
 
 	@media ${breakpoint.tablet} {
-		bottom: var(--spacing-lg);
+		bottom: var(--spacing-xxl);
 		left: 50%;
 		right: auto;
 		transform: translateX(-50%);
@@ -35,18 +35,14 @@ const Container = styled.div`
 	}
 `;
 
-/* never-give-up's shape: a full-bleed, square-cornered column stack on a
- * portrait phone, laid flat into one edge-to-edge row on a landscape phone,
- * and only pulled into an inset, bordered, rounded pill at tablet+. */
 const Bar = styled.div`
 	box-sizing: border-box;
-	/* Only the controls are interactive; the bar itself never blocks taps to whatever's behind it. */
 	pointer-events: none;
 	display: flex;
 	flex-direction: column;
 	flex-grow: 1;
 	gap: var(--spacing-sm);
-	padding: var(--spacing-sm);
+	/* padding: var(--spacing-sm); */
 	background: color-mix(in srgb, var(--color-black) 72%, transparent);
 
 	@media ${breakpoint.landscape} {
@@ -62,7 +58,7 @@ const Bar = styled.div`
 		align-items: center;
 		justify-content: space-between;
 		flex-grow: 0;
-		padding: var(--spacing-md);
+		/* padding: var(--spacing-md); */
 		border: var(--border-thickness) solid color-mix(in srgb, var(--color-primary) 40%, transparent);
 		border-radius: 1.2rem;
 	}
@@ -99,8 +95,8 @@ export const BottomBar = ({ descending, revealing = false, onCast }: BottomBarPr
 					<BonusSection disabled={locked} onOpen={() => setBonusOpen(true)} />
 					<Balance />
 					<BetSection disabled={locked} />
-					<CallToActionSection descending={descending} disabled={revealing} onCast={onCast} />
 					<VolatilitySection disabled={locked} onOpen={() => setVolatilityOpen(true)} />
+					<CallToActionSection descending={descending} disabled={revealing} onCast={onCast} />
 				</Bar>
 
 				{volatilityOpen && <VolatilityModal onClose={() => setVolatilityOpen(false)} />}

@@ -1,9 +1,9 @@
 import styled from "styled-components";
 
+import castButton from "@assets/bottom-bar/cast-button.png";
+import castButtonHover from "@assets/bottom-bar/cast-button-hover.png";
+import castButtonPressed from "@assets/bottom-bar/cast-button-pressed.png";
 import castLineText from "@assets/bottom-bar/cast-line-text.png";
-import mainButton from "@assets/bottom-bar/main-button.png";
-import mainButtonHover from "@assets/bottom-bar/main-button-hover.png";
-import mainButtonPressed from "@assets/bottom-bar/main-button-pressed.png";
 import { breakpoint } from "@utils/breakpoint";
 
 const CastButton = styled.button`
@@ -11,18 +11,22 @@ const CastButton = styled.button`
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	flex-shrink: 0;
 	width: 12rem;
-	aspect-ratio: 1983 / 793;
+	aspect-ratio: 1;
+	/* Taller than the bar: negative margins let the wheel overhang it without growing it. */
+	margin-top: -3rem;
+	padding: 0;
 	border: none;
-	background: url(${mainButton}) center / contain no-repeat;
+	background: url(${castButton}) center / contain no-repeat;
 	cursor: pointer;
 
 	&:hover:not(:disabled) {
-		background-image: url(${mainButtonHover});
+		background-image: url(${castButtonHover});
 	}
 
 	&:active:not(:disabled) {
-		background-image: url(${mainButtonPressed});
+		background-image: url(${castButtonPressed});
 	}
 
 	&:disabled {
@@ -36,12 +40,15 @@ const CastButton = styled.button`
 	}
 
 	@media ${breakpoint.tablet} {
-		width: 15rem;
+		width: 18rem;
+		margin-top: -3.8rem;
+		margin-bottom: -3.8rem;
+		margin-right: -7rem;
 	}
 `;
 
 const CastLabel = styled.img`
-	width: 64%;
+	width: 48%;
 	height: auto;
 	pointer-events: none;
 `;
