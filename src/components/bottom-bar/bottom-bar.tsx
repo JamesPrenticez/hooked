@@ -8,6 +8,8 @@ import { BetSection } from "./bet-section";
 import { BonusModal } from "./bonus-modal";
 import { BonusSection } from "./bonus-section";
 import { CallToActionSection } from "./call-to-action-section";
+import { MarketModal } from "./market-modal";
+import { MarketSection } from "./market-section";
 import { TotalSection } from "./total-section";
 import { VolatilityModal } from "./volatility-modal";
 import { VolatilitySection } from "./volatility-section";
@@ -32,6 +34,18 @@ const Container = styled.div`
 		right: auto;
 		transform: translateX(-50%);
 		height: var(--size-control-double);
+	}
+`;
+
+/* Phones: transparent, so each button keeps its own place against the bar. Desktop: the two stack inside the bar's right end. */
+const SideButtons = styled.div`
+	display: contents;
+
+	@media ${breakpoint.tablet} {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+		margin-right: var(--spacing-sm);
 	}
 `;
 
@@ -83,6 +97,7 @@ interface BottomBarProps {
  */
 export const BottomBar = ({ descending, revealing = false, onCast }: BottomBarProps) => {
 	const [volatilityOpen, setVolatilityOpen] = useState(false);
+	const [marketOpen, setMarketOpen] = useState(false);
 	const [bonusOpen, setBonusOpen] = useState(false);
 	const locked = descending || revealing;
 
@@ -95,11 +110,15 @@ export const BottomBar = ({ descending, revealing = false, onCast }: BottomBarPr
 					<BonusSection disabled={locked} onOpen={() => setBonusOpen(true)} />
 					<Balance />
 					<BetSection disabled={locked} />
-					<VolatilitySection disabled={locked} onOpen={() => setVolatilityOpen(true)} />
 					<CallToActionSection descending={descending} disabled={revealing} onCast={onCast} />
+					<SideButtons>
+						<MarketSection onOpen={() => setMarketOpen(true)} />
+						<VolatilitySection disabled={locked} onOpen={() => setVolatilityOpen(true)} />
+					</SideButtons>
 				</Bar>
 
 				{volatilityOpen && <VolatilityModal onClose={() => setVolatilityOpen(false)} />}
+				{marketOpen && <MarketModal onClose={() => setMarketOpen(false)} />}
 				{bonusOpen && <BonusModal onClose={() => setBonusOpen(false)} />}
 			</Container>
 		</>

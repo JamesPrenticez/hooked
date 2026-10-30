@@ -7,7 +7,6 @@ import styled from "styled-components";
 import { BottomBar } from "@components/bottom-bar";
 import { DebugModal } from "@components/debug";
 import { DepthIndicator } from "@components/depth-indicator";
-import { MarketBoard } from "@components/fish-market";
 import { HarbourDebug } from "@components/harbour-debug";
 import { HarbourScene } from "@components/harbour-scene";
 import { HookedBanner } from "@components/hooked-banner";
@@ -139,7 +138,6 @@ export function App() {
 			{phase === "loading" && <LoadingScreen progress={progress} />}
 
 			{phase === "game" && underwater && <DepthIndicator depth={depth} />}
-			{phase === "game" && <MarketBoard hidden={underwater} />}
 			{phase === "game" && <HookedBanner />}
 			{phase === "game" && (
 				<BottomBar

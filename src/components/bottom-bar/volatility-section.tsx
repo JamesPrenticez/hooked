@@ -27,13 +27,10 @@ const Trigger = styled(IconButton)`
 	}
 
 	@media ${breakpoint.tablet} {
-		position: absolute;
-		top: 50%;
-		right: auto;
-		left: calc(100% + var(--spacing-sm));
-		transform: translateY(-50%);
-		width: calc(var(--size-control) * 1.25);
-		height: calc(var(--size-control) * 1.25);
+		position: static;
+		transform: none;
+		width: var(--size-control);
+		height: var(--size-control);
 	}
 `;
 

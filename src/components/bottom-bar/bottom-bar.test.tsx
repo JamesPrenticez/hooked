@@ -26,6 +26,16 @@ it("calls onCast when the button is tapped", () => {
 	expect(onCast).toHaveBeenCalledOnce();
 });
 
+it("opens the fish market from its button, even mid-cast, and closes it again", () => {
+	render(<BottomBar descending onCast={() => {}} />);
+
+	fireEvent.click(screen.getByRole("button", { name: "Fish market" }));
+	expect(screen.getByRole("dialog", { name: "Fish market" })).toBeInTheDocument();
+
+	fireEvent.keyDown(document, { key: "Escape" });
+	expect(screen.queryByRole("dialog", { name: "Fish market" })).not.toBeInTheDocument();
+});
+
 it("reads Surface and is pressed while descending", () => {
 	render(<BottomBar descending onCast={() => {}} />);
 

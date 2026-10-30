@@ -15,7 +15,7 @@ beforeEach(() => {
 });
 
 it("is an empty sign until the market arrives", () => {
-	render(<MarketBoard hidden={false} />);
+	render(<MarketBoard />);
 
 	expect(screen.getByRole("region", { name: "Fish market" })).toBeInTheDocument();
 	expect(screen.getByText("Loading prices…")).toBeInTheDocument();
@@ -24,7 +24,7 @@ it("is an empty sign until the market arrives", () => {
 
 it("lists every fish and its price, a row per depth zone", () => {
 	useRoundStore.setState({ round: roundSnapshot() });
-	render(<MarketBoard hidden={false} />);
+	render(<MarketBoard />);
 
 	for (const zone of ["Shallow", "Reef", "Deep", "Abyss", "Jackpot"]) {
 		expect(screen.getByRole("region", { name: zone })).toBeInTheDocument();
@@ -39,7 +39,7 @@ it("lists every fish and its price, a row per depth zone", () => {
 
 it("rings the fish the round landed once it is over, and not before", () => {
 	useRoundStore.setState({ round: roundSnapshot({ status: "open" }) });
-	const { container } = render(<MarketBoard hidden={false} />);
+	const { container } = render(<MarketBoard />);
 	expect(container.querySelector("[data-caught]")).toBeNull();
 
 	act(() => useRoundStore.setState({ round: roundSnapshot({ status: "completed" }) }));
@@ -48,7 +48,7 @@ it("rings the fish the round landed once it is over, and not before", () => {
 
 it("keeps showing the last round's prices after it, and swaps them for the next round's", () => {
 	useRoundStore.setState({ round: roundSnapshot({ status: "completed" }) });
-	const { container } = render(<MarketBoard hidden={false} />);
+	const { container } = render(<MarketBoard />);
 	expect(container.querySelector('[data-fish="sardine"]')).toHaveTextContent("×0.25");
 
 	const market = roundSnapshot().market.map(e => (e.fish === "sardine" ? { ...e, multiplier: "12.35" } : e));
@@ -56,18 +56,9 @@ it("keeps showing the last round's prices after it, and swaps them for the next 
 	expect(container.querySelector('[data-fish="sardine"]')).toHaveTextContent("×12.35");
 });
 
-it("is present but hidden while the hook is down or the prices are being dealt", () => {
-	useRoundStore.setState({ round: roundSnapshot() });
-	const { container, rerender } = render(<MarketBoard hidden />);
-	expect(container.querySelector("[data-market-board]")).toHaveAttribute("data-hidden");
-
-	rerender(<MarketBoard hidden={false} />);
-	expect(container.querySelector("[data-market-board]")).not.toHaveAttribute("data-hidden");
-});
-
 it("stocks the idle sign from the fixed market, before any round", async () => {
 	vi.mocked(getMarket).mockResolvedValue(roundSnapshot().market);
-	render(<MarketBoard hidden={false} />);
+	render(<MarketBoard />);
 
 	expect(await screen.findByRole("region", { name: "Reef" })).toBeInTheDocument();
 	expect(getMarket).toHaveBeenCalledWith("medium");
@@ -75,7 +66,7 @@ it("stocks the idle sign from the fixed market, before any round", async () => {
 
 it("lights the round's bonus fish with what they pay on top, and no others", () => {
 	useRoundStore.setState({ round: roundSnapshot({ bonus: [{ fish: "shrimp", multiplier: "888.00" }] }) });
-	const { container } = render(<MarketBoard hidden={false} />);
+	const { container } = render(<MarketBoard />);
 
 	const lit = container.querySelectorAll("[data-bonus]");
 	expect(lit).toHaveLength(1);

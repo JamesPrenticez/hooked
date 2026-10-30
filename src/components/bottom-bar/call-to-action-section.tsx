@@ -43,7 +43,7 @@ const CastButton = styled.button`
 		width: 18rem;
 		margin-top: -3.8rem;
 		margin-bottom: -3.8rem;
-		margin-right: -7rem;
+		margin-left: auto;
 	}
 `;
 
