@@ -13,9 +13,9 @@ import { useHookSim } from "./useHookSim";
 beforeEach(() => {
 	vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame", "performance"] });
 	useHookStore.setState({
-		hookMode: "manual",
+		hookMode: "control",
 		worldSeed: 1,
-		multiplier: 1,
+		multiplier: undefined,
 		timeScale: 8,
 		sim: undefined,
 		recording: undefined
@@ -112,6 +112,18 @@ it("goes after the fish the server chose, and weighs the catch what its market s
 	expect(useHookStore.getState().recording).toBeUndefined();
 });
 
+it("lets the debug multiplier override the round's own", () => {
+	useHookStore.setState({ hookMode: "auto", multiplier: 500 });
+	useRoundStore.setState({
+		round: roundSnapshot({
+			outcome: { depth: "deep", fish: "shark", tier: "epic", escaped: false, multiplier: "6.35" }
+		})
+	});
+
+	renderHook(() => useHookSim(true));
+	expect(useHookStore.getState().sim).toMatchObject({ target: "shark", multiplier: 500 });
+});
+
 it("runs the hook to the Kraken when the server's catch is the Kraken", () => {
 	useHookStore.setState({ hookMode: "auto", timeScale: 8 });
 	useRoundStore.setState({
@@ -127,7 +139,7 @@ it("runs the hook to the Kraken when the server's catch is the Kraken", () => {
 	expect(useHookStore.getState().sim?.result?.fish).toBe("kraken");
 });
 
-it("leaves the debug sandbox alone: a manual run ignores the round and takes whatever it touches", () => {
+it("leaves the debug sandbox alone: a control run ignores the round and takes whatever it touches", () => {
 	useRoundStore.setState({ round: roundSnapshot() });
 	renderHook(() => useHookSim(true));
 

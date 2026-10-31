@@ -88,13 +88,15 @@ export function App() {
 	const setIsDebugOpen = useDebugStore(state => state.setIsDebugOpen);
 
 	const [descending, setDescending] = useState(false);
-	// Every cast runs the sim: arrow keys in manual (debug), an autopilot to the server's fish otherwise.
+	// Every cast runs the sim: arrow keys in control mode (debug), an autopilot to the server's fish otherwise.
 	const land = () => {
 		setDescending(false);
 		closeRound().catch(console.error);
 	};
 	useHookSim(descending, land);
 	// The camera's depth, not the hook's: after a fish bites the camera returns to the surface alone.
+	const hookMode = useHookStore(state => state.hookMode);
+	const setHookMode = useHookStore(state => state.setHookMode);
 	const simDepth = useHookStore(state => state.sim?.cameraM ?? 0);
 
 	// DEBUG panel's Kraken toggle: the hook is parked at the bottom of the trench
@@ -162,6 +164,9 @@ export function App() {
 					<DebugDock>
 						<Button title="debug" onClick={() => setIsDebugOpen(true)}>
 							DEBUG
+						</Button>
+						<Button title="control mode" onClick={() => setHookMode(hookMode === "control" ? "auto" : "control")}>
+							CONTROL {hookMode === "control" ? "ON" : "OFF"}
 						</Button>
 						<HarbourDebug />
 					</DebugDock>

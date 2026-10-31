@@ -1,13 +1,12 @@
 import { create } from "zustand";
 
 import { DEBUG } from "@constants/config";
-import { MIN_MULTIPLIER } from "@utils/simExtraction";
 import type { Recording } from "@utils/simRecording";
 import type { Sim } from "@utils/simStep";
 
-/** `auto` is today's scripted descent; `manual` (debug only) steers the sim with
+/** `auto` is today's scripted descent; `control` (debug only) steers the sim with
  *  the arrow keys; `replay` (debug) plays `replay` back instead of reading the keys. */
-export type HookMode = "auto" | "manual" | "replay";
+export type HookMode = "auto" | "control" | "replay";
 
 /** What a replay needs to play a run again: its world, its weight and its steering. */
 export type ReplayRun = Pick<Recording, "worldSeed" | "multiplier" | "inputs">;
@@ -19,10 +18,10 @@ interface HookStore {
 	setHookMode: (mode: HookMode) => void;
 	worldSeed: number;
 	setWorldSeed: (seed: number) => void;
-	/** How heavy the next catch is. The server doesn't send one yet, so the debug panel sets it — it picks the
-	 *  gear that lands the fish (rod, crane, helicopter) and how big the fish is once it is out of the water. */
-	multiplier: number;
-	setMultiplier: (multiplier: number) => void;
+	/** Debug override of how heavy the next catch is; unset, the round's own multiplier applies. It picks the gear
+	 *  that lands the fish (rod, crane, helicopter) and how big the fish is once it is out of the water. */
+	multiplier: number | undefined;
+	setMultiplier: (multiplier: number | undefined) => void;
 	/** Sim ticks per real tick — fast-forwards a run without changing it. */
 	timeScale: number;
 	setTimeScale: (scale: number) => void;
@@ -43,7 +42,7 @@ export const useHookStore = create<HookStore>(set => ({
 	setHookMode: hookMode => set({ hookMode }),
 	worldSeed: 1,
 	setWorldSeed: worldSeed => set({ worldSeed }),
-	multiplier: MIN_MULTIPLIER,
+	multiplier: undefined,
 	setMultiplier: multiplier => set({ multiplier }),
 	timeScale: 1,
 	setTimeScale: timeScale => set({ timeScale }),
@@ -55,7 +54,7 @@ export const useHookStore = create<HookStore>(set => ({
 	setReplay: replay => set({ replay })
 }));
 
-/** Sim-driven hook control (manual or replay) only exists in debug builds, whatever `hookMode` says. */
+/** Sim-driven hook control (control or replay) only exists in debug builds, whatever `hookMode` says. */
 export function useSimHook(): boolean {
 	return useHookStore(state => DEBUG && state.hookMode !== "auto");
 }

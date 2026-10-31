@@ -6,7 +6,7 @@ import { HARBOUR_LAYOUT, type Tweak, TWEAK_KEYS, type TweakKey, useHarbourDebugS
 import { useHookStore } from "@stores/hookStore";
 import { useRoundStore } from "@stores/roundStore";
 import { viewBreakpoint } from "@utils/breakpoint";
-import { extractionAt, extractionTicks, gearsFor } from "@utils/simExtraction";
+import { extractionAt, extractionTicks, gearsFor, MIN_MULTIPLIER } from "@utils/simExtraction";
 import { createSim, type Sim } from "@utils/simStep";
 
 const Trigger = styled(Button)`
@@ -110,7 +110,7 @@ function stageStarts(multiplier: number): [string, number][] {
 /** Parks a fabricated run mid-landing, so any moment of the extraction can be looked at without playing a run. */
 function previewExtraction(multiplier: number, tick: number) {
 	const sim = createSim(useHookStore.getState().worldSeed, multiplier);
-	const elapsed = extractionAt(gearsFor(multiplier), PREVIEW_CATCH_M, tick);
+	const elapsed = extractionAt(gearsFor(multiplier ?? MIN_MULTIPLIER), PREVIEW_CATCH_M, tick);
 	useHookStore.setState({
 		sim: {
 			...sim,
@@ -215,9 +215,9 @@ function TweakGroup({ name }: { name: TweakKey }) {
 export function HarbourDebug() {
 	const [open, setOpen] = useState(false);
 	const reset = useHarbourDebugStore(state => state.reset);
-	const multiplier = useHookStore(state => state.multiplier);
+	const multiplier = useHookStore(state => state.multiplier ?? MIN_MULTIPLIER);
 	const sim = useHookStore(state => state.sim);
-	const total = extractionTicks(gearsFor(multiplier), PREVIEW_CATCH_M);
+	const total = extractionTicks(gearsFor(multiplier ?? MIN_MULTIPLIER), PREVIEW_CATCH_M);
 	const previewing = sim?.phase === "extract" && sim.catchM === PREVIEW_CATCH_M;
 
 	return (
