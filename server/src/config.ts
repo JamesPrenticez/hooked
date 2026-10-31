@@ -22,6 +22,8 @@ export const config = {
 	// /api/debug/* controls (forced outcomes, resets, latency/error injection).
 	// Never registered in production — the routes simply don't exist there.
 	debugControls: process.env.NODE_ENV !== "production",
+	// Origin of the deployed client (no trailing slash). Dev allows any origin; production allows only this one.
+	corsOrigin: process.env.CORS_ORIGIN ?? (process.env.NODE_ENV !== "production" ? "*" : undefined),
 	// The recording library (docs/SIMULATION.md §6). A file next to src/, whatever the cwd; tests use ":memory:".
 	dbPath: process.env.DB_PATH ?? fileURLToPath(new URL("../data/library.sqlite", import.meta.url))
 };

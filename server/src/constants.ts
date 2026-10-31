@@ -67,7 +67,7 @@ export const RTP = 0.96;
 export const PRICE_POOLS: Record<Exclude<DepthId, "jackpot">, number[]> = {
 	shallow: [1, 1.1, 1.2, 1.3, 1.4, 1.5],
 	reef: [1.5, 1.7, 1.9, 2.1, 2.3, 2.6],
-	deep: [2, 2.3, 2.6, 3, 3.4, 3.8, 4.2],
+	deep: [2, 2.3, 2.6, 3, 3.8, 4.2],
 	abyss: [3, 3.5, 4, 4.6, 5.2, 6]
 };
 

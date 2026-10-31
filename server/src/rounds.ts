@@ -102,10 +102,11 @@ function generateRound(serverSeed: string, clientSeed: string, nonce: number, vo
 	// Dev override (§16/§17) — an alternative to the seed, not part of it, so
 	// a forced round intentionally will not match POST /api/game/verify.
 	// routes/debug.ts has already validated these against the roster. A forced
-	// depth lands that zone's first fish.
+	// depth lands that zone's first fish. The bonus was rolled for a different catch, so a forced fish that happens
+	// to be highlighted as a decoy must not pay it.
 	const { fish, depth } = getForcedOutcome();
 	const forced = fish ? FISH.find(f => f.id === fish) : depth ? FISH.find(f => f.depth === depth) : undefined;
-	return forced ? { ...rolled, outcome: applyBonus(outcomeFor(forced, rolled.market), rolled.bonus) } : rolled;
+	return forced ? { ...rolled, outcome: outcomeFor(forced, rolled.market) } : rolled;
 }
 
 /** What `stakeCents` pays at `multiplier` (a decimal string), in whole cents, halves rounding up. Integer arithmetic
