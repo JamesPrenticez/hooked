@@ -1,6 +1,7 @@
 import styled from "styled-components";
 
 import { ExtractionMultiplier } from "@components/extraction-multiplier";
+import { BonusMultipliers } from "@components/fish-market";
 import { useLandingMultiplier } from "@hooks/useLandingMultiplier";
 import { useBalanceStore } from "@stores/balanceStore";
 import { useBetStore } from "@stores/betStore";
@@ -15,6 +16,13 @@ const Corner = styled.div`
 	display: flex;
 	align-items: center;
 	gap: var(--spacing-sm);
+	pointer-events: none;
+`;
+
+const Bonuses = styled.div`
+	position: absolute;
+	bottom: 18rem;
+	left: 0;
 	pointer-events: none;
 `;
 
@@ -59,12 +67,17 @@ export const TotalSection = () => {
 	const payout = payoutCents * ((landing?.value ?? 0) / simMultiplier);
 
 	return (
-		<Corner>
-			<Total>
-				<TotalLabel>{landingPhase ? "Payout" : "Total bet"}</TotalLabel>
-				<TotalAmount>{formatMoney(landingPhase ? payout : total, currency)}</TotalAmount>
-			</Total>
-			<ExtractionMultiplier />
-		</Corner>
+		<>
+			<Bonuses>
+				<BonusMultipliers />
+			</Bonuses>
+			<Corner>
+				<Total>
+					<TotalLabel>{landingPhase ? "Payout" : "Total bet"}</TotalLabel>
+					<TotalAmount>{formatMoney(landingPhase ? payout : total, currency)}</TotalAmount>
+				</Total>
+				<ExtractionMultiplier />
+			</Corner>
+		</>
 	);
 };

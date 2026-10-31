@@ -9,6 +9,7 @@ export { CloseButton } from "./components/close-button";
 export { IconButton, type IconButtonProps } from "./components/icon-button";
 export { IncrementSelector, type IncrementSelectorProps } from "./components/increment-selector";
 export { Input, type InputProps } from "./components/input";
+export { type MultiplierItem, MultiplierList, type MultiplierListProps } from "./components/multiplier-list";
 export { Overlay } from "./components/overlay";
 export { Stepper, type StepperProps } from "./components/stepper";
 export { StepperPopup, type StepperPopupProps } from "./components/stepper-popup";
