@@ -43,7 +43,7 @@ interface BonusSectionProps {
 	onOpen: () => void;
 }
 
-/** Opens `BonusModal` — the mirror of `SelectTargetsSection` on the bar's left. */
+/** Opens `BonusModal` — the mirror of `VolatilitySection` on the bar's left. */
 export const BonusSection = ({ disabled, onOpen }: BonusSectionProps) => {
 	return <Trigger disabled={disabled} onClick={onOpen} aria-haspopup="dialog" aria-label="Bonus" title="Bonus" />;
 };

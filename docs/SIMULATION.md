@@ -331,6 +331,14 @@ only from, the outcome; it can't move RTP. The library is committed before play,
 the visual wasn't cherry-picked either. Forced debug outcomes still won't verify, as
 today.
 
+**Today's real rounds (BUILD_PLAN §30) use a live bot instead of the library.** `createSim(worldSeed, multiplier, target)` takes
+the roster id the server chose: `hookFish` and `autopilotAxis` only see fish of that kind, so the same pure autopilot
+that used to take whatever was nearest now steers for the server's fish and nothing else can take the hook; the Kraken
+(not in the world) is the run to the bottom. The catch's `multiplier` is the fish's price on the round's market, not a debug
+setting. The autopilot never missed in 15,600 runs (every fish, 600 world seeds each), and `simAutopilot.test.ts` keeps a
+smaller version of that check. A run aimed at a fish has no replay (the server's re-simulation has no target), so it
+leaves no `Recording`. The library below is still the plan for a replayable, provably-fair visual.
+
 **Fallback.** No recording for the outcome → `replay: null` → the client plays
 today's `auto` descent, logged and counted. Presentation can never block or alter a
 round.
@@ -411,7 +419,7 @@ outcome X" button that runs the same pick.
 
 **Open questions** (default in bold):
 
-1. Stand-in art for roster ids with no sheet (blue-cod, starfish, barracuda-epic; and
+1. Stand-in art for roster ids with no sheet (blue-cod, starfish; and
    swordfish, sardine, king-crab whose names don't match a file):
    **mackerel→sardine, crab→king-crab, pike→swordfish; the rest reuse the nearest
    sheet until the manifest's marlin / blue-reef-fish / starfish / parrotfish PNGs land**.

@@ -8,12 +8,12 @@
 import { API_BASE_URL, DEBUG } from "@constants/config";
 import type {
 	BalanceResponse,
-	Bet,
 	CurrentResponse,
 	DebugStateResponse,
 	ErrorBody,
 	ForcedOutcome,
 	HistoryResponse,
+	MarketEntry,
 	PlayMessage,
 	PlayResponse,
 	RevealedSeedResponse,
@@ -23,11 +23,13 @@ import type {
 	SaveRecordingRequest,
 	SeedResponse,
 	SessionResponse,
+	StartMessage,
 	StoredRecording,
 	StoredRecordingDetail,
 	UpcomingSeedResponse,
 	VerifyRecordingResponse,
-	VerifyResponse
+	VerifyResponse,
+	Volatility
 } from "@type/api";
 import { type Recording, toBase64 } from "@utils/simRecording";
 
@@ -187,8 +189,9 @@ async function play(message: PlayMessage): Promise<RoundResult> {
 	}
 }
 
-export function startRound(bets: Bet[]): Promise<RoundResult> {
-	return play({ start: { bets } });
+/** Opens a round at a stake and a volatility — the server rolls the market and the catch, and takes the stake. */
+export function startRound(start: StartMessage): Promise<RoundResult> {
+	return play({ start });
 }
 
 export function completeRound(roundId: string): Promise<RoundResult> {
@@ -198,6 +201,11 @@ export function completeRound(roundId: string): Promise<RoundResult> {
 /** Full detail for one round — including a still-open one (§30; unlike getCurrent()). */
 export function getRound(roundId: string): Promise<RoundDetailResponse> {
 	return request<RoundDetailResponse>(`/api/game/round/${roundId}`);
+}
+
+/** The fish market of a volatility. It is fixed, so the idle screen can show it before any round exists. */
+export async function getMarket(volatility: Volatility): Promise<MarketEntry[]> {
+	return (await request<{ market: MarketEntry[] }>(`/api/game/market/${volatility}`)).market;
 }
 
 export function getHistory(): Promise<HistoryResponse> {
@@ -233,12 +241,13 @@ export function revealSeed(): Promise<RevealedSeedResponse> {
 	return request<RevealedSeedResponse>("/api/seed/reveal", { method: "POST" });
 }
 
-/** Recompute a past outcome from its seed triple — compare to the round's
- *  stored outcome. Same inputs → same outcome, every time. */
+/** Recompute a past round from its seed triple and volatility — compare to the
+ *  round's stored market and outcome. Same inputs → same round, every time. */
 export function verifyOutcome(seed: {
 	serverSeed: string;
 	clientSeed: string;
 	nonce: number;
+	volatility: Volatility;
 }): Promise<VerifyResponse> {
 	return request<VerifyResponse>("/api/game/verify", {
 		method: "POST",
@@ -255,8 +264,8 @@ function debugRequest<T>(path: string, body?: unknown): Promise<T> {
 	return request<T>(path, { method: "POST", body: JSON.stringify(body ?? {}) }, false);
 }
 
-/** Pin any subset of the next outcome; `{}` clears the override. "Force Kraken"
- *  is `forceOutcome({ depth: "jackpot", fish: "kraken", tier: "jackpot" })`. */
+/** Pin the next round's catch to a fish or a depth zone; `{}` clears the override. "Force Kraken"
+ *  is `forceOutcome({ fish: "kraken" })`. */
 export function forceOutcome(outcome: ForcedOutcome): Promise<DebugStateResponse> {
 	return debugRequest<DebugStateResponse>("/api/debug/force-outcome", outcome);
 }

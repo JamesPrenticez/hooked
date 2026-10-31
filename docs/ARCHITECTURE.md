@@ -12,7 +12,7 @@ The architecture must support:
 - Server-side RNG
 - Server-side outcome generation
 - Server-side payout calculation
-- Multiple simultaneous bets
+- A stake and a volatility per round, with a fixed fish market
 - Deterministic/reproducible development outcomes
 - Reusable fishing presentation
 - Modular scenes
@@ -144,7 +144,7 @@ src/                        thin presentation client (Animo standard layout)
 ├── components/             one PascalCase directory per component, tests colocated
 │   ├── Ocean/  Fishing/  Fish/  Extraction/     Pixi scene content
 │   ├── LoadingScreen/  TutorialScreen/  HarbourScreen/  PayoutScreen/
-│   ├── BettingBoard/  Hud/  RoundHistory/  GameInfo/  …modals
+│   ├── FishMarket/  Hud/  RoundHistory/  GameInfo/  …modals
 │   ├── StoreSync/                                 cross-store effects (§39)
 │   ├── AutoplayController/  AutoBetController/     headless, render null (§39)
 │   └── DebugToolbar/                              forced outcomes, gated by VITE_DEBUG
@@ -191,7 +191,7 @@ is `{ "message": { <oneVariant>: {...} } }` and the response is
 set exactly one variant. Variants for Deep Catch:
 
 ```text
-start       place bets + open the round (server generates the outcome now)
+start       stake + volatility: open the round (server rolls the market and the catch now)
 complete    acknowledge presentation finished, settle the round
 ```
 
@@ -224,20 +224,17 @@ Example shapes:
 
 ```ts
 interface StartMessage {
-	bets: Bet[]; // Bet.amount is a decimal string
-}
-
-interface Bet {
-	type: "depth" | "fish";
-	selection: string;
-	amount: string;
+	stake: string; // decimal string
+	volatility: "low" | "medium" | "high" | "extreme";
 }
 
 interface RoundResult {
 	roundId: string;
-	outcome: FishingOutcome; // { depth, fish, tier }
-	bets: BetResult[];
-	payout: PayoutResult; // decimal strings
+	volatility: Volatility;
+	stake: string;
+	market: MarketEntry[]; // { fish, multiplier } for every fish — what each pays THIS round
+	outcome: FishingOutcome; // { depth, fish, tier, multiplier } — multiplier is the caught fish's market price
+	payout: PayoutResult; // stake × outcome.multiplier — decimal strings
 	metadata: { balance: string }; // NOT authoritative on multi-action responses — see §14
 }
 ```
@@ -292,7 +289,7 @@ no controller — sees a wire shape. That file owns:
 ```ts
 api.createSession();
 api.getBalance();
-api.startRound(bets); // wraps { message: { start: { bets } } }
+api.startRound({ stake, volatility }); // wraps { message: { start: { stake, volatility } } }
 api.completeRound(roundId); // wraps { message: { complete: { roundId } } }
 api.getCurrent(); // resume on boot
 api.getHistory();
@@ -305,7 +302,7 @@ UI components and controllers call these helpers; they never call `fetch`, and
 they never construct or read a `message` envelope.
 
 ```text
-Betting UI → Betting controller → api.startRound() → [envelope] → Server
+Cast button → round controller → api.startRound() → [envelope] → Server
 ```
 
 Add any wire-level change in `src/api/index.ts`, not in the stores or components.
@@ -406,9 +403,12 @@ The result may be:
 {
     depth: "deep",
     fish: "shark",
-    tier: "epic"
+    tier: "epic",
+    multiplier: "6.35"   // the shark's price on this round's market
 }
 ```
+
+It is rolled together with the round's **market** — the price of every fish for this round — from one provably-fair stream (§36): the market first, then the catch.
 
 The client receives this result from the server.
 
@@ -457,16 +457,18 @@ The presentation sequence cannot change the outcome.
 
 # 13. Betting Architecture
 
-The client owns the **betting interface**.
+The player chooses two things: a **stake** and a **volatility** (low / medium / high / extreme). There is no depth or species to pick — the fish are the server's to roll.
 
-The server owns **bet validation**.
+The client owns the **betting interface** (the stake input and the volatility picker).
+
+The server owns **stake and volatility validation**.
 
 Flow:
 
 ```text
 PLAYER
   ↓
-Betting UI
+Stake + volatility
   ↓
 Client validation
   ↓
@@ -474,8 +476,10 @@ API request
   ↓
 Server validation
   ↓
-Bets accepted/rejected
+Round opened (market + catch rolled) / rejected
 ```
+
+The stake and volatility are committed **before** the round's market is dealt — the market comes back in the `start` response — so nothing the player sees can inform them.
 
 Client-side validation exists for responsiveness and UX.
 
@@ -485,9 +489,8 @@ The server must independently verify:
 
 - Session
 - Balance
-- Bet amount
-- Bet type
-- Selection
+- Stake amount
+- Volatility
 - Round state
 - Currency
 - Maximum/minimum limits
@@ -545,18 +548,16 @@ Payout calculation occurs exclusively on the server.
 The server receives:
 
 ```text
-Bets
+Stake
 +
-Authoritative outcome
+Authoritative outcome (the caught fish and its price on this round's market)
 ```
 
 and produces:
 
 ```text
-Winning bets
-Losing bets
-Individual returns
-Total payout
+Total payout (stake × price, rounded to the cent)
+Net result (negative when the catch pays less than the stake)
 Final balance
 ```
 
@@ -1155,35 +1156,36 @@ CLIENT
 
 # 36. Provably-Fair RNG
 
-The outcome derives deterministically from a **server seed** (committed as a hash
-before play, revealed after rotation), a **client seed**, and a **nonce** that
-increments per round.
+The round derives deterministically from a **server seed** (committed as a hash
+before play, revealed after rotation), a **client seed**, a **nonce** that
+increments per round, and the round's **volatility**.
 
 ```text
 server/src/rng.ts:  HMAC-SHA256 byte stream over (serverSeed, clientSeed, nonce)
-                    → consumed to roll depth, then fish, then tier
+                    → consumed to roll the depth zone,
+                      then the fish in it, then its size
 ```
 
 - `POST /api/seed/rotate { clientSeed }` — player-set, blocked while a round is open.
 - `POST /api/seed/reveal` — reveals the previous server seed for auditing.
-- `POST /api/game/verify { seed, message }` — recomputes a past outcome from its
-  seed triple. Same inputs → same outcome, every time. That is the proof.
+- `POST /api/game/verify { serverSeed, clientSeed, nonce, volatility }` — recomputes a
+  past round's market and outcome. Same inputs → same round, every time. That is
+  the proof.
 
 The client never runs this RNG. It has no hidden development RNG (§17).
 
 ---
 
-# 37. Deliberate Payout-Table Duplication
+# 37. No Payout-Table Duplication
 
-`src/utils/game-math.ts` **intentionally mirrors** the payout multipliers in
-`server/src/constants.ts` (the fish/tier → multiplier table). The client needs
-its own copy to render the paytable and the fish guide before any round is
-played.
+The client holds **no** copy of the odds or the prices. What a fish pays changes
+every round, so the price list is part of the round itself: `start` returns the
+**market** (`{ fish, multiplier }` for every fish) with the catch, and the fish
+market board and its reveal pop-up draw from that. The server's odds, relative
+prices and jackpots (`server/src/constants.ts`) never cross the wire (§20).
 
-- Duplicate **only the payout table**. Never duplicate the probability tables —
-  those stay server-only (§20).
-- **Change one file and you must change the other.** A divergence here means the
-  displayed paytable lies.
+What the client does mirror, by hand, is the **fish roster** (ids, names, art,
+depth zone). `server/src/rounds.test.ts` fails if the two rosters drift apart.
 
 ---
 
@@ -1191,8 +1193,8 @@ played.
 
 `App.tsx` mounts exactly **one** `<Application>` (`@pixi/react`). It holds the
 scene graph — ocean, hook, fish, harbour, extraction. **Every HTML overlay**
-(betting board, HUD, pop-ups, modals, debug toolbar) is a **sibling of the
-canvas, not a child of it**.
+(fish market board and reveal pop-up, HUD, modals, debug toolbar) is a **sibling
+of the canvas, not a child of it**.
 
 `App.tsx` runs a phase machine — `loading → tutorial → game` — that advances to
 `game` only after **both** the asset load has finished **and** Pixi has rendered
@@ -1244,8 +1246,8 @@ Money crosses the wire as a decimal string, never a float.
 
 ### Rule 6c
 
-Duplicate the payout table if the paytable UI needs it; never duplicate the
-probability tables. If duplicated, change both copies together.
+Never duplicate the odds or the prices on the client. The price list arrives with
+each round (§37); only the fish roster is mirrored, and a test keeps it in step.
 
 ### Rule 7
 

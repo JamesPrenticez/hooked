@@ -55,6 +55,11 @@ export interface Sim {
 	phaseTick: number;
 	/** How heavy the catch is (`MIN_MULTIPLIER`..`MAX_MULTIPLIER`) — sets its size and the gear that lands it. */
 	multiplier: number;
+	/** The roster id the hook is after: only a fish of that kind will take it, so a run can end in the fish the server
+	 *  chose. Unset, any fish will (the debug sandbox). The Kraken isn't in the world — the hook runs to the bottom. */
+	target?: string;
+	/** The fish gets away: after the announce the run ends at once, with no ascent or landing. */
+	escapes: boolean;
 	/** The hook's depth when the fish took it: where the ascent and the landing start from. */
 	catchM: number;
 	/** Every fish, fixed by `worldSeed`. */
@@ -69,9 +74,11 @@ export interface Sim {
 	result?: SimResult;
 }
 
-export function createSim(worldSeed: number, multiplier = MIN_MULTIPLIER): Sim {
+export function createSim(worldSeed: number, multiplier = MIN_MULTIPLIER, target?: string, escapes = false): Sim {
 	return {
 		worldSeed,
+		target,
+		escapes,
 		tick: 0,
 		x: SIM_WIDTH / 2,
 		vx: 0,
@@ -111,8 +118,9 @@ function surface(sim: Sim): void {
 	};
 }
 
-/** Advances `sim` one tick in place. `axis` is the steering input, −1 / 0 / +1. */
-export function step(sim: Sim, axis: number): void {
+/** Advances `sim` one tick in place. `axis` is the steering input, −1 / 0 / +1; `rate` scales the descent speed
+ *  (debug only — a run that uses it can't be recorded, since recordings hold the steering alone). */
+export function step(sim: Sim, axis: number, rate = 1): void {
 	sim.tick += 1;
 	if (sim.phase === "surfaced") return;
 	if (sim.phase === "hooked") {
@@ -120,7 +128,12 @@ export function step(sim: Sim, axis: number): void {
 		return;
 	}
 	if (sim.phase === "announce") {
-		if (sim.tick - sim.phaseTick >= ANNOUNCE_TICKS) enter(sim, "ascend");
+		if (sim.tick - sim.phaseTick >= ANNOUNCE_TICKS) {
+			if (sim.escapes) {
+				sim.cameraM = 0;
+				surface(sim);
+			} else enter(sim, "ascend");
+		}
 		return;
 	}
 	if (sim.phase === "ascend") {
@@ -157,7 +170,7 @@ export function step(sim: Sim, axis: number): void {
 	const decelStart = MAX_DEPTH_METERS * (1 - DECEL_FRACTION);
 	const factor =
 		sim.depthM > decelStart ? Math.max(0, (MAX_DEPTH_METERS - sim.depthM) / (MAX_DEPTH_METERS - decelStart)) : 1;
-	const effective = Math.max(speed * factor, Math.min(speed, MIN_DESCENT_METERS_PER_SECOND));
+	const effective = Math.max(speed * factor, Math.min(speed, MIN_DESCENT_METERS_PER_SECOND)) * rate;
 	sim.depthM = Math.min(MAX_DEPTH_METERS, sim.depthM + effective / TICK_HZ);
 	sim.cameraM = sim.depthM;
 	if (sim.depthM >= MAX_DEPTH_METERS) {
@@ -166,10 +179,11 @@ export function step(sim: Sim, axis: number): void {
 	} else if (sim.depthM >= CAST_METERS) hookFish(sim);
 }
 
-/** The first mouth (lowest index) the hook tip touches, if any, goes on the hook. */
+/** The first mouth (lowest index) the hook tip touches, if any, goes on the hook — of the target's kind, when it has one. */
 function hookFish(sim: Sim): void {
 	const tipY = sim.depthM * PX_PER_METER + HOOK_TIP_DY;
 	for (let i = 0; i < sim.world.length; i++) {
+		if (sim.target && sim.world[i].id !== sim.target) continue;
 		const mouth = mouthAt(sim.world[i], sim.tick);
 		const dx = sim.x - mouth.x;
 		const dy = tipY - mouth.y;

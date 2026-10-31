@@ -1,18 +1,20 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Mesh, Sprite, Text, TilingSprite } from "pixi.js";
 import styled from "styled-components";
 
 import { BottomBar } from "@components/bottom-bar";
 import { DebugModal } from "@components/debug";
+import { DebugControls } from "@components/debug-controls";
 import { DepthIndicator } from "@components/depth-indicator";
-import { ExtractionMultiplier } from "@components/extraction-multiplier";
 import { HarbourDebug } from "@components/harbour-debug";
 import { HarbourScene } from "@components/harbour-scene";
 import { HookedBanner } from "@components/hooked-banner";
 import { LoadingScreen } from "@components/loading-screen";
+import { type ManualCatch, PayoutModal } from "@components/payout-modal";
 import { SceneManager } from "@components/scene-manager/SceneManager";
+import { closeRound, openRound } from "@components/system/roundController";
 import { StoreSync } from "@components/system/StoreSync";
 import { DEBUG } from "@constants/config";
 import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
@@ -23,6 +25,7 @@ import { useDebugStore } from "@stores/debugStore";
 import { type GamePhase, useGameStore } from "@stores/gameStore";
 import { useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
+import { useRoundStore } from "@stores/roundStore";
 
 const Root = styled.div`
 	position: relative;
@@ -88,8 +91,20 @@ export function App() {
 	const setIsDebugOpen = useDebugStore(state => state.setIsDebugOpen);
 
 	const [descending, setDescending] = useState(false);
-	// Every cast runs the sim: arrow keys in manual (debug), an autopilot otherwise, so a fish is always caught.
-	useHookSim(descending, () => setDescending(false));
+	// Every cast runs the sim: arrow keys in manual mode (debug), an autopilot to the server's fish otherwise.
+	const [showPayout, setShowPayout] = useState(false);
+	const [manualCatch, setManualCatch] = useState<ManualCatch>();
+	const closePayout = useCallback(() => setShowPayout(false), []);
+	const land = () => {
+		// A manual run ignores the server's outcome, so the card shows what the run caught. Read before the sim clears.
+		const { hookMode, sim } = useHookStore.getState();
+		setManualCatch(hookMode === "manual" && sim?.result ? sim.result : undefined);
+		setDescending(false);
+		closeRound()
+			.then(() => setShowPayout(useRoundStore.getState().round?.status === "completed"))
+			.catch(console.error);
+	};
+	useHookSim(descending, land);
 	// The camera's depth, not the hook's: after a fish bites the camera returns to the surface alone.
 	const simDepth = useHookStore(state => state.sim?.cameraM ?? 0);
 
@@ -122,13 +137,19 @@ export function App() {
 
 			{phase === "game" && underwater && <DepthIndicator depth={depth} />}
 			{phase === "game" && <HookedBanner />}
-			{phase === "game" && <ExtractionMultiplier />}
+			{phase === "game" && showPayout && <PayoutModal onClose={closePayout} manual={manualCatch} />}
 			{phase === "game" && (
 				<BottomBar
 					descending={underwater}
-					onCast={() => {
+					onCast={async () => {
 						setForceTrench(false);
-						setDescending(!underwater);
+						if (underwater) return land();
+						try {
+							await openRound();
+							setDescending(true);
+						} catch (err) {
+							console.error(err);
+						}
 					}}
 				/>
 			)}
@@ -154,6 +175,7 @@ export function App() {
 						<Button title="debug" onClick={() => setIsDebugOpen(true)}>
 							DEBUG
 						</Button>
+						<DebugControls />
 						<HarbourDebug />
 					</DebugDock>
 					{isDebugOpen && <DebugModal />}

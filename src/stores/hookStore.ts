@@ -1,11 +1,10 @@
 import { create } from "zustand";
 
 import { DEBUG } from "@constants/config";
-import { MIN_MULTIPLIER } from "@utils/simExtraction";
 import type { Recording } from "@utils/simRecording";
 import type { Sim } from "@utils/simStep";
 
-/** `auto` is today's scripted descent; `manual` (debug only) steers the sim with
+/** `auto` plays out the server's round; `manual` (debug only) ignores it and steers the sim with
  *  the arrow keys; `replay` (debug) plays `replay` back instead of reading the keys. */
 export type HookMode = "auto" | "manual" | "replay";
 
@@ -19,16 +18,18 @@ interface HookStore {
 	setHookMode: (mode: HookMode) => void;
 	worldSeed: number;
 	setWorldSeed: (seed: number) => void;
-	/** How heavy the next catch is. The server doesn't send one yet, so the debug panel sets it — it picks the
-	 *  gear that lands the fish (rod, crane, helicopter) and how big the fish is once it is out of the water. */
-	multiplier: number;
-	setMultiplier: (multiplier: number) => void;
+	/** Debug override of how heavy the next manual catch is; auto runs always use the round's own multiplier. It picks the gear
+	 *  that lands the fish (rod, crane, helicopter) and how big the fish is once it is out of the water. */
+	multiplier: number | undefined;
+	setMultiplier: (multiplier: number | undefined) => void;
 	/** Sim ticks per real tick — fast-forwards a run without changing it. */
 	timeScale: number;
 	setTimeScale: (scale: number) => void;
 	/** Debug overlay: mouth circles and the hook tip. */
 	showHitboxes: boolean;
 	setShowHitboxes: (show: boolean) => void;
+	/** Arrow keys currently held (manual mode) — drives the debug key pad. */
+	heldKeys: string[];
 	/** The run `replay` mode plays. Set by the debug Recordings list. */
 	replay: ReplayRun | undefined;
 	setReplay: (run: ReplayRun | undefined) => void;
@@ -43,12 +44,13 @@ export const useHookStore = create<HookStore>(set => ({
 	setHookMode: hookMode => set({ hookMode }),
 	worldSeed: 1,
 	setWorldSeed: worldSeed => set({ worldSeed }),
-	multiplier: MIN_MULTIPLIER,
+	multiplier: undefined,
 	setMultiplier: multiplier => set({ multiplier }),
 	timeScale: 1,
 	setTimeScale: timeScale => set({ timeScale }),
 	showHitboxes: false,
 	setShowHitboxes: showHitboxes => set({ showHitboxes }),
+	heldKeys: [],
 	sim: undefined,
 	recording: undefined,
 	replay: undefined,

@@ -21,7 +21,7 @@ export const BONUSES: BonusItem[] = [
 		image: reCast,
 		color: "var(--color-bonus-recast)",
 		description:
-			"Junk or an escape on your first cast earns one more cast on the same targets, with no extra wager. The retry can lose too, and a landed fish that misses your bet isn't covered."
+			"Junk or an escape on your first cast earns one more cast at the same bet and volatility, with no extra wager. The retry can lose too, and a landed fish isn't covered, even one worth less than your bet."
 	},
 	{
 		id: "lucky-bait",
@@ -37,7 +37,7 @@ export const BONUSES: BonusItem[] = [
 		image: feedingFrenzy,
 		color: "var(--color-bonus-frenzy)",
 		description:
-			"Five automatic casts on your chosen targets, with a running feature total. Each cast can land a fish, pull up junk or lose a fish, so it isn't five guaranteed wins."
+			"Five automatic casts at your bet and volatility, with a running feature total. Each cast can land a fish, pull up junk or lose a fish, so it isn't five guaranteed wins."
 	},
 	{
 		id: "monster-hunt",

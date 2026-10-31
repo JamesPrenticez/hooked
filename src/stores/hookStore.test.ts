@@ -9,9 +9,9 @@ it("defaults to auto and switches mode", () => {
 	useHookStore.getState().setHookMode("auto");
 });
 
-it("catches a 1× fish by default and takes another multiplier for the next one", () => {
-	expect(useHookStore.getState().multiplier).toBe(1);
+it("leaves the multiplier to the round until the debug panel sets one", () => {
+	expect(useHookStore.getState().multiplier).toBeUndefined();
 	useHookStore.getState().setMultiplier(250);
 	expect(useHookStore.getState().multiplier).toBe(250);
-	useHookStore.getState().setMultiplier(1);
+	useHookStore.getState().setMultiplier(undefined);
 });

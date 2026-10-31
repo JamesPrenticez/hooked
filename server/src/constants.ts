@@ -1,92 +1,108 @@
 // Authoritative gambling-math configuration (ARCHITECTURE.md §4, §10, §20).
-// Server-only — the probability tables never cross the wire (§37). The payout
-// multiplier table (DEPTH_MULTIPLIERS + FishDef.multiplier) is the one part the
-// client may mirror for its paytable UI (§37) — never the weights.
+// Server-only — the odds never cross the wire (§37). What does cross it is each round's market: the
+// price list market.ts rolls for that round.
 //
-// The fish roster is docs/GDD.md FISH_GUIDE. The GDD tags each fish with one of
-// eight fine-grained tierIds; the wire contract (src/types/api.ts) carries five.
-// They fold — junk→small, medium→large, rare→epic (small/large/epic/legendary/
-// jackpot pass straight through) — so `tier` here is already the wire value.
-// `image` / `wide` from the GDD are client presentation and are not mirrored.
+// A round pays stake × the price of the fish the hook lands. The player picks a volatility, which sets
+// how likely the hook is to dive into each depth zone (LEVELS); a fish in that zone is landed at random;
+// and its price comes off the round's market, where every zone's pool of prices (PRICE_POOLS) is shuffled
+// across the zone's fish. Nothing here is a final multiplier: market.ts scales each volatility's pools
+// until it returns RTP, so retuning an odds or a price can't take a volatility off its target.
+//
+// A hooked fish can also get away (`Level.escape`): it pays 0, and market.ts scales every price up to compensate.
+// That chance is the lever for RTP — raise it and the prices (and the volatility of a landed fish) rise with it.
 
-import type { DepthId, FishTier } from "./rounds.ts";
+import type { DepthId, FishTier, Volatility } from "./rounds.ts";
+
+export const DEPTHS: DepthId[] = ["shallow", "reef", "deep", "abyss", "jackpot"];
 
 export interface FishDef {
 	id: string;
 	depth: DepthId;
 	tier: FishTier;
-	/** Relative draw weight *within its depth*. First-pass — see the note below. */
-	weight: number;
-	/** Payout multiplier for a winning `fish` bet on this id. First-pass — see the note. */
-	multiplier: number;
 }
 
-// Structure — weighted depth, then a weighted fish within that depth, each
-// selection paying a fixed table multiplier — is final. Weights are relative,
-// not percentages; the roller sums and normalises them. A weight of 0 disables
-// a branch without deleting it.
-//
-// Multipliers are tuned (BUILD_PLAN 3.5): each is 0.96 / P(selection) rounded
-// to 2dp, so every single selection returns ~96% (the GDD RTP target) on its
-// own, and any mix of bets does too — bets resolve independently against the
-// one outcome, so the blended RTP is just the stake-weighted average. Change a
-// weight and its selection's multiplier must be re-derived (server/src/math.test.ts
-// asserts the 96% band). Weights alone set hit-frequency / volatility, not RTP.
-
-/** P(depth) for the first roll. Shallow common, jackpot rare. */
-export const DEPTH_WEIGHTS: Record<DepthId, number> = {
-	shallow: 45,
-	reef: 30,
-	deep: 17,
-	abyss: 7,
-	jackpot: 1
-};
-
-/** Payout multiplier for a winning `depth` bet — 0.96 / P(depth), 2dp. Rarer
- *  depth pays more. Mirrors the fish multipliers below. */
-export const DEPTH_MULTIPLIERS: Record<DepthId, number> = {
-	shallow: 2.13,
-	reef: 3.2,
-	deep: 5.65,
-	abyss: 13.71,
-	jackpot: 96
-};
-
-/** Every catchable fish, grouped by depth. A round outcome always names one;
- *  its tier is looked up here, not rolled separately. */
+/** Every catchable fish, grouped by depth. A round outcome always names one; its tier is looked up here, not rolled. */
 export const FISH: FishDef[] = [
 	// Shallow — common, low value
-	{ id: "shrimp", depth: "shallow", tier: "small", weight: 30, multiplier: 9.96 },
-	{ id: "sardine", depth: "shallow", tier: "small", weight: 25, multiplier: 11.95 },
-	{ id: "blue-cod", depth: "shallow", tier: "small", weight: 20, multiplier: 14.93 },
-	{ id: "barracuda", depth: "shallow", tier: "small", weight: 15, multiplier: 19.91 },
-	{ id: "guppy", depth: "shallow", tier: "small", weight: 28, multiplier: 10.67 },
-	{ id: "clown", depth: "shallow", tier: "small", weight: 22, multiplier: 13.58 },
+	{ id: "shrimp", depth: "shallow", tier: "small" },
+	{ id: "sardine", depth: "shallow", tier: "small" },
+	{ id: "blue-cod", depth: "shallow", tier: "small" },
+	{ id: "barracuda", depth: "shallow", tier: "small" },
+	{ id: "guppy", depth: "shallow", tier: "small" },
+	{ id: "clown", depth: "shallow", tier: "small" },
 	// Reef — mid value
-	{ id: "napoleon", depth: "reef", tier: "large", weight: 35, multiplier: 14.63 },
-	{ id: "turtle", depth: "reef", tier: "large", weight: 30, multiplier: 17.07 },
-	{ id: "king-crab", depth: "reef", tier: "large", weight: 15, multiplier: 34.13 },
-	{ id: "snapper", depth: "reef", tier: "large", weight: 25, multiplier: 20.48 },
-	{ id: "grouper", depth: "reef", tier: "large", weight: 20, multiplier: 25.6 },
-	{ id: "trevelly", depth: "reef", tier: "large", weight: 15, multiplier: 34.13 },
+	{ id: "napoleon", depth: "reef", tier: "large" },
+	{ id: "turtle", depth: "reef", tier: "large" },
+	{ id: "king-crab", depth: "reef", tier: "large" },
+	{ id: "snapper", depth: "reef", tier: "large" },
+	{ id: "grouper", depth: "reef", tier: "large" },
+	{ id: "trevelly", depth: "reef", tier: "large" },
 	// Deep — rare, high value
-	{ id: "sting-ray", depth: "deep", tier: "epic", weight: 35, multiplier: 20.97 },
-	{ id: "bluefin-tuna", depth: "deep", tier: "epic", weight: 30, multiplier: 24.47 },
-	{ id: "shark", depth: "deep", tier: "epic", weight: 20, multiplier: 36.71 },
-	{ id: "barracuda-epic", depth: "deep", tier: "epic", weight: 15, multiplier: 48.94 },
-	{ id: "puffer", depth: "deep", tier: "epic", weight: 10, multiplier: 73.41 },
-	{ id: "swordfish", depth: "deep", tier: "epic", weight: 12, multiplier: 61.18 },
-	{ id: "sting", depth: "deep", tier: "epic", weight: 8, multiplier: 91.76 },
+	{ id: "sting-ray", depth: "deep", tier: "epic" },
+	{ id: "bluefin-tuna", depth: "deep", tier: "epic" },
+	{ id: "shark", depth: "deep", tier: "epic" },
+	{ id: "puffer", depth: "deep", tier: "epic" },
+	{ id: "swordfish", depth: "deep", tier: "epic" },
+	{ id: "sting", depth: "deep", tier: "epic" },
 	// Abyss — legendary, plus the whale jackpot
-	{ id: "lanternfish", depth: "abyss", tier: "legendary", weight: 40, multiplier: 46.29 },
-	{ id: "jellyfish", depth: "abyss", tier: "legendary", weight: 30, multiplier: 61.71 },
-	{ id: "starfish", depth: "abyss", tier: "legendary", weight: 22, multiplier: 84.16 },
-	{ id: "whale", depth: "abyss", tier: "jackpot", weight: 8, multiplier: 231.43 },
-	{ id: "squid", depth: "abyss", tier: "legendary", weight: 25, multiplier: 74.06 },
-	{ id: "dragon", depth: "abyss", tier: "legendary", weight: 10, multiplier: 185.14 },
+	{ id: "lanternfish", depth: "abyss", tier: "legendary" },
+	{ id: "jellyfish", depth: "abyss", tier: "legendary" },
+	{ id: "starfish", depth: "abyss", tier: "legendary" },
+	{ id: "whale", depth: "abyss", tier: "jackpot" },
+	{ id: "squid", depth: "abyss", tier: "legendary" },
+	{ id: "dragon", depth: "abyss", tier: "legendary" },
 	// Jackpot — the thin layer at the very bottom, the Kraken and nothing else
-	{ id: "kraken", depth: "jackpot", tier: "jackpot", weight: 100, multiplier: 96 }
+	{ id: "kraken", depth: "jackpot", tier: "jackpot" }
 ];
 
-/** Valid `selection` values for a `fish` bet — every roster id (§13 bet validation). */
+/** Valid ids for a forced fish (debug) — every roster id. */
 export const FISH_IDS: ReadonlySet<string> = new Set(FISH.map(f => f.id));
+
+/** The return to player (GDD: 96%) every volatility is scaled to. */
+export const RTP = 0.96;
+
+/** What the fish in each zone are worth, one entry per fish. Shuffled across the zone's fish every round, so which
+ *  fish is worth the most rotates. Relative: only the ratios between entries and between zones matter — market.ts
+ *  scales them. Each pool holds exactly as many entries as its zone has fish. */
+export const PRICE_POOLS: Record<Exclude<DepthId, "jackpot">, number[]> = {
+	shallow: [1, 1.1, 1.2, 1.3, 1.4, 1.5],
+	reef: [1.5, 1.7, 1.9, 2.1, 2.3, 2.6],
+	deep: [2, 2.3, 2.6, 3, 3.4, 3.8, 4.2],
+	abyss: [3, 3.5, 4, 4.6, 5.2, 6]
+};
+
+/** Every round highlights 1 to this many fish, each carrying a bonus multiplier from `BONUS_MULTIPLIERS`. */
+export const BONUS_MAX_FISH = 5;
+
+/** One round in this many lands one of its highlighted fish, which then pays its bonus on top of its price.
+ *  The rest highlight fish that are not the catch. The bonus is paid on top of RTP, not scaled out of it. */
+export const BONUS_ODDS = 2000;
+
+/** What a highlighted fish's bonus can be. Integers, since the bonus multiplies a price held in whole cents. */
+export const BONUS_MULTIPLIERS: { value: number; weight: number }[] = [
+	{ value: 100, weight: 55 },
+	{ value: 200, weight: 25 },
+	{ value: 500, weight: 12 },
+	{ value: 888, weight: 5 },
+	{ value: 2000, weight: 2 },
+	{ value: 8888, weight: 1 }
+];
+
+export interface Level {
+	/** Relative chance the hook dives into each zone — the volatility. Integers, since they are drawn as weights. */
+	odds: Record<DepthId, number>;
+	/** Chance (0 to 1) that a hooked fish gets away and pays nothing. Not the Kraken, which is always landed. */
+	escape: number;
+	/** What the Kraken pays. Fixed rather than scaled, so the top prize rises with the volatility. */
+	jackpot: number;
+}
+
+/** Low volatility sends the hook deeper, so catches are steadier; high keeps it shallow and the Kraken pays far more. */
+export const LEVELS: Record<Volatility, Level> = {
+	low: { odds: { shallow: 3300, reef: 3000, deep: 2500, abyss: 1190, jackpot: 10 }, escape: 0.2, jackpot: 50 },
+	medium: { odds: { shallow: 4300, reef: 3200, deep: 1750, abyss: 740, jackpot: 10 }, escape: 0.2, jackpot: 100 },
+	high: { odds: { shallow: 5600, reef: 3300, deep: 900, abyss: 190, jackpot: 10 }, escape: 0.2, jackpot: 200 },
+	extreme: { odds: { shallow: 6800, reef: 2800, deep: 330, abyss: 60, jackpot: 10 }, escape: 0.2, jackpot: 400 }
+};
+
+export const VOLATILITIES = Object.keys(LEVELS) as Volatility[];

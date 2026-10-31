@@ -10,38 +10,46 @@
 
 import { randomUUID } from "node:crypto";
 
-import { DEPTH_MULTIPLIERS, DEPTH_WEIGHTS, FISH } from "./constants.ts";
+import { FISH } from "./constants.ts";
 import { getForcedOutcome } from "./debug-state.ts";
+import { applyBonus, outcomeFor, rollBonus, rollCatch, rollMarket } from "./market.ts";
 import { fromCents, toCents } from "./money.ts";
-import { byteStream, rollWeighted } from "./rng.ts";
+import { byteStream } from "./rng.ts";
 import { consumeNonce } from "./seeds.ts";
 
 export type DepthId = "shallow" | "reef" | "deep" | "abyss" | "jackpot";
 export type FishTier = "small" | "large" | "epic" | "legendary" | "jackpot";
+export type Volatility = "low" | "medium" | "high" | "extreme";
 export type RoundStatus = "open" | "completed";
 
-export interface Bet {
-	type: "depth" | "fish";
-	selection: string;
-	amount: string;
+/** One line of a round's fish market: what the fish pays if it is the one landed this round. */
+export interface MarketEntry {
+	fish: string;
+	/** Decimal string, in multiples of the stake. */
+	multiplier: string;
+}
+
+/** A highlighted fish: if it is the one landed this round, its payout is multiplied by this. */
+export interface BonusEntry {
+	fish: string;
+	/** Decimal string, a whole multiple of the stake (100 to 8888). */
+	multiplier: string;
 }
 
 export interface FishingOutcome {
 	depth: DepthId;
 	fish: string;
 	tier: FishTier;
-}
-
-export interface BetResult extends Bet {
-	won: boolean;
+	/** The fish took the hook but got away: nothing is landed and `multiplier` is 0. */
+	escaped: boolean;
+	/** What the landed fish pays this round: its price on the market, times its bonus if it was highlighted. */
 	multiplier: string;
-	payout: string;
 }
 
 export interface PayoutResult {
 	total: string;
 	wagered: string;
-	/** total − wagered; negative on a losing round. */
+	/** total − wagered; negative when the catch pays less than the stake. */
 	net: string;
 }
 
@@ -57,9 +65,13 @@ export interface Round {
 	roundId: string;
 	playerId: string;
 	status: RoundStatus;
-	bets: Bet[];
+	/** Decimal string. */
+	stake: string;
+	volatility: Volatility;
+	market: MarketEntry[];
+	/** The 1 to 5 fish highlighted this round, each with the bonus it pays if landed. */
+	bonus: BonusEntry[];
 	outcome: FishingOutcome;
-	betResults: BetResult[];
 	payout: PayoutResult;
 	seed: RoundSeed;
 	createdAt: number;
@@ -69,68 +81,37 @@ export interface Round {
 const byId = new Map<string, Round>();
 const openByPlayer = new Map<string, string>(); // playerId -> roundId
 
-const DEPTHS: DepthId[] = ["shallow", "reef", "deep", "abyss", "jackpot"];
-
-const multiplierByFish = new Map(FISH.map(f => [f.id, f.multiplier]));
-
-/** Table payout multiplier for a bet's selection (§15, §37) — depth bets read
- *  DEPTH_MULTIPLIERS, fish bets the roster. Independent of whether it won, so a
- *  losing bet still reports what it would have paid. 0 for a selection off the
- *  tables (validateBets rejects those before a real round; keeps unit-tested
- *  resolveBet from returning NaN into the wallet). */
-function multiplierFor(bet: Bet): number {
-	const table =
-		bet.type === "depth" ? DEPTH_MULTIPLIERS[bet.selection as DepthId] : multiplierByFish.get(bet.selection);
-	return table ?? 0;
-}
-
 /**
  * The pure provably-fair roll (§11, §36) — deterministic in
- * (serverSeed, clientSeed, nonce) and nothing else. POST /api/game/verify
- * recomputes exactly this, so it must never consult debug/force state.
+ * (serverSeed, clientSeed, nonce, volatility) and nothing else. POST
+ * /api/game/verify recomputes exactly this, so it must never consult
+ * debug/force state.
  *
- * Hierarchy: weighted depth, then a weighted fish from that depth's roster,
- * then tier is that fish's roster tier (a lookup, not a third roll). Both
- * rolls pull from the same byte stream, depth first.
+ * One stream, in order: where the hook dives, which fish it lands, then the highlighted fish.
  */
-export function rollOutcome(serverSeed: string, clientSeed: string, nonce: number): FishingOutcome {
+export function rollRound(serverSeed: string, clientSeed: string, nonce: number, volatility: Volatility) {
 	const stream = byteStream(serverSeed, clientSeed, nonce);
-
-	const depthWeights = DEPTHS.map(d => DEPTH_WEIGHTS[d]);
-	const depth = DEPTHS[rollWeighted(stream, depthWeights)];
-
-	const roster = FISH.filter(f => f.depth === depth);
-	const fishWeights = roster.map(f => f.weight);
-	const fish = roster[rollWeighted(stream, fishWeights)];
-
-	return { depth, fish: fish.id, tier: fish.tier };
+	const market = rollMarket(volatility);
+	const caught = rollCatch(stream, volatility, market);
+	const bonus = rollBonus(stream, caught.fish, caught.escaped);
+	return { market, bonus, outcome: applyBonus(caught, bonus) };
 }
 
-function generateOutcome(serverSeed: string, clientSeed: string, nonce: number): FishingOutcome {
-	const rolled = rollOutcome(serverSeed, clientSeed, nonce);
+function generateRound(serverSeed: string, clientSeed: string, nonce: number, volatility: Volatility) {
+	const rolled = rollRound(serverSeed, clientSeed, nonce, volatility);
 	// Dev override (§16/§17) — an alternative to the seed, not part of it, so
 	// a forced round intentionally will not match POST /api/game/verify.
-	// routes/debug.ts has already validated these against the depth/tier enums.
-	const forced = getForcedOutcome();
-	return {
-		depth: (forced.depth as DepthId) ?? rolled.depth,
-		fish: forced.fish ?? rolled.fish,
-		tier: (forced.tier as FishTier) ?? rolled.tier
-	};
+	// routes/debug.ts has already validated these against the roster. A forced
+	// depth lands that zone's first fish.
+	const { fish, depth } = getForcedOutcome();
+	const forced = fish ? FISH.find(f => f.id === fish) : depth ? FISH.find(f => f.depth === depth) : undefined;
+	return forced ? { ...rolled, outcome: applyBonus(outcomeFor(forced, rolled.market), rolled.bonus) } : rolled;
 }
 
-/** Resolve one bet against the authoritative outcome (§15). Pure — exported for
- *  unit tests; the round path calls it via openRound. */
-export function resolveBet(bet: Bet, outcome: FishingOutcome): BetResult {
-	const won = bet.type === "depth" ? bet.selection === outcome.depth : bet.selection === outcome.fish;
-	const multiplier = multiplierFor(bet);
-	const payoutCents = won ? Math.round(toCents(bet.amount) * multiplier) : 0;
-	return {
-		...bet,
-		won,
-		multiplier: fromCents(Math.round(multiplier * 100)),
-		payout: fromCents(payoutCents)
-	};
+/** What `stakeCents` pays at `multiplier` (a decimal string), in whole cents, halves rounding up. Integer arithmetic
+ *  until the last divide, so no float error can tip a half cent. */
+export function payoutCents(stakeCents: number, multiplier: string): number {
+	return Math.round((stakeCents * toCents(multiplier)) / 100);
 }
 
 export function hasOpenRound(playerId: string): boolean {
@@ -146,20 +127,21 @@ export function getRound(roundId: string): Round | undefined {
 	return byId.get(roundId);
 }
 
-/** Caller (routes/game.ts) has already validated the bets and the balance. */
-export function openRound(playerId: string, bets: Bet[]): Round {
+/** Caller (routes/game.ts) has already validated the stake, the volatility and the balance. */
+export function openRound(playerId: string, stake: string, volatility: Volatility): Round {
 	const seed = consumeNonce(playerId);
-	const outcome = generateOutcome(seed.serverSeed, seed.clientSeed, seed.nonce);
-	const betResults = bets.map(b => resolveBet(b, outcome));
-	const wagered = bets.reduce((sum, b) => sum + toCents(b.amount), 0);
-	const total = betResults.reduce((sum, b) => sum + toCents(b.payout), 0);
+	const { market, bonus, outcome } = generateRound(seed.serverSeed, seed.clientSeed, seed.nonce, volatility);
+	const wagered = toCents(stake);
+	const total = payoutCents(wagered, outcome.multiplier);
 	const round: Round = {
 		roundId: randomUUID(),
 		playerId,
 		status: "open",
-		bets,
+		stake,
+		volatility,
+		market,
+		bonus,
 		outcome,
-		betResults,
 		payout: {
 			total: fromCents(total),
 			wagered: fromCents(wagered),

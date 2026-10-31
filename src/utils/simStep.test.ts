@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 
 import { HOOKED_TICKS, KRAKEN_FIGHT_TICKS, SIM_WIDTH, TICK_HZ } from "./simConfig";
-import { ANNOUNCE_TICKS } from "./simExtraction";
+import { ANNOUNCE_TICKS, CHINOOK_FROM, CRANE_FROM, HELICOPTER_FROM } from "./simExtraction";
 import { createSim, type Sim, type SimPhase, step } from "./simStep";
 
 /** A sim over an empty sea, so nothing gets hooked. */
@@ -153,9 +153,9 @@ it("takes longer to land a heavier catch, since it needs more gear", () => {
 		runUntil(sim, "surfaced");
 		return sim.tick;
 	};
-	expect(roundTicks(30)).toBeGreaterThan(roundTicks(1));
-	expect(roundTicks(100)).toBeGreaterThan(roundTicks(30));
-	expect(roundTicks(500)).toBeGreaterThan(roundTicks(100));
+	expect(roundTicks(CRANE_FROM)).toBeGreaterThan(roundTicks(1));
+	expect(roundTicks(HELICOPTER_FROM)).toBeGreaterThan(roundTicks(CRANE_FROM));
+	expect(roundTicks(CHINOOK_FROM)).toBeGreaterThan(roundTicks(HELICOPTER_FROM));
 });
 
 it("fights the Kraken at the bottom, then reels it in with the camera on the hook", () => {
@@ -170,4 +170,49 @@ it("fights the Kraken at the bottom, then reels it in with the camera on the hoo
 		expect(sim.cameraM).toBe(sim.depthM);
 	}
 	expect(sim.result?.fish).toBe("kraken");
+});
+
+// A round's catch is the server's: the hook may only take the fish it chose.
+it("only a fish of the target's kind takes the hook, whatever else it passes through", () => {
+	const hookedOn = (target: string | undefined) => {
+		const sim = createSim(1, 1, target);
+		// Sit still over the centre line for a long dive, as the sandbox's "sitting still takes a guppy" run does.
+		while (sim.phase === "descend") step(sim, 0);
+		return sim.world[sim.hooked]?.id;
+	};
+	const untargeted = hookedOn(undefined);
+	expect(untargeted).toBeDefined();
+	// Aimed at something else, the very same dive goes through that fish's mouth without a bite.
+	const other = createSim(1).world.find(f => f.id !== untargeted)!.id;
+	expect(hookedOn(other)).not.toBe(untargeted);
+	expect(hookedOn(untargeted)).toBe(untargeted);
+});
+
+it("a Kraken target runs the hook to the bottom, through every fish, to fight it", () => {
+	const sim = createSim(1, 1, "kraken");
+	while (sim.phase === "descend") step(sim, 0);
+	expect(sim.phase).toBe("kraken");
+	expect(sim.hooked).toBe(-1);
+});
+
+it("ends the run at the surface right after the splash when the fish gets away", () => {
+	const sim = hookedSim(1);
+	sim.escapes = true;
+	const phases = [sim.phase];
+	while (sim.phase !== "surfaced") {
+		step(sim, 1);
+		if (sim.phase !== phases[phases.length - 1]) phases.push(sim.phase);
+	}
+	expect(phases).toEqual(["hooked", "announce", "surfaced"]);
+	expect(sim.cameraM).toBe(0);
+});
+
+it("scales the descent speed by rate", () => {
+	const slow = createSim(1);
+	const fast = createSim(1);
+	for (let i = 0; i < 60; i++) {
+		step(slow, 0, 0.5);
+		step(fast, 0, 2);
+	}
+	expect(fast.depthM / slow.depthM).toBeCloseTo(4);
 });

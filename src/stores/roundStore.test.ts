@@ -1,24 +1,10 @@
 import { beforeEach, expect, it } from "vitest";
 
-import type { RoundSnapshot } from "./roundStore";
+import { roundSnapshot } from "@utils/roundFixture";
+
 import { useRoundStore } from "./roundStore";
 
-const OPEN: RoundSnapshot = {
-	roundId: "r1",
-	status: "open",
-	bets: [
-		{
-			type: "depth",
-			selection: "shallow",
-			amount: "1.00",
-			won: false,
-			multiplier: "0.00",
-			payout: "0.00"
-		}
-	],
-	outcome: { depth: "deep", fish: "shark", tier: "epic" },
-	payout: { total: "0.00", wagered: "1.00", net: "-1.00" }
-};
+const OPEN = roundSnapshot();
 
 beforeEach(() => {
 	useRoundStore.setState({ round: null });
@@ -28,19 +14,15 @@ it("starts empty — nothing to present until the server opens a round", () => {
 	expect(useRoundStore.getState().round).toBeNull();
 });
 
-it("setRound mirrors the server's round verbatim", () => {
+it("setRound mirrors the server's round verbatim, market and all", () => {
 	useRoundStore.getState().setRound(OPEN);
 	expect(useRoundStore.getState().round).toBe(OPEN);
+	expect(useRoundStore.getState().round?.market).toBe(OPEN.market);
 });
 
 it("setRound replaces wholesale — start then settle, no merge", () => {
 	useRoundStore.getState().setRound(OPEN);
-	const settled: RoundSnapshot = {
-		...OPEN,
-		status: "completed",
-		bets: [{ ...OPEN.bets[0], won: true, multiplier: "2.00", payout: "2.00" }],
-		payout: { total: "2.00", wagered: "1.00", net: "1.00" }
-	};
+	const settled = roundSnapshot({ status: "completed", payout: { total: "0.25", wagered: "1.00", net: "-0.75" } });
 	useRoundStore.getState().setRound(settled);
 	expect(useRoundStore.getState().round).toBe(settled);
 });

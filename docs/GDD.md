@@ -1,30 +1,36 @@
 # 🎣 HOOKED - Game Design Document
 
-_Pick your target. Drop the hook. Discover how big your catch really is._
+_Read the market. Pick your water. Discover what you've hooked._
 
 # Overview
 
-**Genre:** Burst Game - Target Selection
+**Genre:** Burst Game - Fishing Market
+
+You never choose a fish. You choose **how much to bet** and **how deep the hook is likely to dive** (the _volatility_). The fish do the rest: every round the harbour's **fish market** posts a fresh price for every fish, the hook goes down, and whatever it lands pays **your bet × that fish's price**.
 
 **Game Flow:**
 
-1. **Place Your Bets**
-   - The player is presented with a betting board where they have the option to select a `depth range` or a `individual fish species` or `both` - similar to roulettes `1st/2nd/3rds/red/black` or `1-36`.
-   - A player might choose a conservative bet on `shallow`, while also placing a smaller high-risk bet on `shark`. Once bets are confirmed, the outcome is locked in pre-determinic fashion.
-2. **Cast the line / Drop the hook**
-   - The fishing line is cast and the hook begins its descent. The player watches as it travels through increasingly deep underwater environments, passing schools of fish, obstacles and environmental events. `The journey is fully automated`, but designed to create the feeling that the hook is actively navigating toward the player's chosen targets.
-3. **The Encounter**
-   - As the hook reaches the seeds pre-determined depth, the target fish appears. The pace slows. The fish approaches. The hook strikes. The line goes tight. **HOOKED!!!**. The Fish pulls. The Camera shakes.
-4. **The Accent Back to the Surface**
-   - The camera rapidly follows the line back to the surface (potentially the camera looks upwards toward the surface first). Camera splashes out of the water and the player is watching the fisherman struggling with his rod/boat. We don't immediately show the fish.
-5. **The Extraction**
-   - The fisherman attempts to retrieve the catch. Depending on the `size/multipler` of the outcome, increasingly powerful equipment is deployed:
+1. **Set Your Bet**
+   - The player sets a **bet** (the stake) and a **volatility** (Low / Medium / High). That is all there is to choose - there is no depth or species to pick.
+   - Volatility is how likely the hook is to dive into the deep. It is explained in [Volatility](#volatility).
+2. **Cast the line / The market is posted**
+   - Pressing Cast takes the bet and, in the same moment, the server rolls the round: the **market** (what every fish pays this round) and **the catch** (which fish the hook will land). Both are decided before anything is shown.
+   - A **pop-up** deals the new market onto a board: every fish drops into place with its price. Then it shrinks onto the **fish market board on the docks** and the hook goes down. A tap skips the wait.
+3. **The Descent**
+   - The hook travels through increasingly deep underwater environments, passing schools of fish. The journey is automated, but it is built to look like the hook is _hunting_ one particular fish - because it is: it steers for the fish the server chose, and only that fish will take it.
+4. **The Encounter**
+   - The hook reaches the fish. The pace slows. The fish takes the hook. **HOOKED!!!** The fish pulls. The camera shakes. The splash names the fish. The board is hidden while the hook is down, so the player has to remember what it pays.
+5. **The Ascent Back to the Surface**
+   - The camera rapidly follows the line back to the surface and splashes out of the water. The fisherman struggles with his rod. We don't show the full fish yet.
+6. **The Extraction**
+   - The fisherman retrieves the catch, and the heavier the payout, the bigger the machinery:
      - **Small** = rod
-     - **Medium** = winch
-     - **Large** = crane
-     - **Huge** = helicopter (similar to _Ice Fishing_)
-   - The player now discovers exactly how large the catch really is.
-6. **Payout Screen**
+     - **Medium** = crane
+     - **Large** = helicopter
+     - **Huge** = Chinook (tandem-rotor helicopter, similar to _Ice Fishing_)
+   - A multiplier counts up as the fish comes out of the water and the payout counts with it.
+7. **Payout**
+   - The server's payout is credited. The board on the dock keeps the round's prices with the catch ringed, until the next cast posts a new market.
 
 ---
 
@@ -32,13 +38,15 @@ _Pick your target. Drop the hook. Discover how big your catch really is._
 
 The game is deliberately structured around two suspense moments:
 
-1. "Will I catch what I bet on?"
+1. "How deep will it go - and what will it take?"
 
 followed by:
 
-2. "How big will it be?"
+2. "What was that worth, and how much machinery will it take to land?"
 
-This creates a continuous narrative from bet placement through to payout, rather than presenting the player with a single instantaneous result.
+The market makes the second question _answerable_ rather than a secret: the prices are posted before the hook goes down. The suspense moves from "will I get a big one?" to "will the fish I'm watching be the one the hook finds, and did I remember what it pays?". The landing still builds, gear by gear, and the final multiplier still counts up - the player just has a good idea where it is heading.
+
+A catch can be **worth less than the bet**. When it is, the fisherman looks let down instead of cheering and the payout shows less than the stake from the first moment of the landing - there is nothing to count up to. That is a loss, shown honestly.
 
 # 🎨 Theme
 
@@ -64,65 +72,166 @@ The harbour is a living industrial environment filled with fishing vessels, dock
 
 The underwater world extends directly beneath the harbour, progressing from busy coastal waters and reefs into deeper offshore waters and ultimately the mysterious ocean abyss.
 
-The environment provides a natural progression for the game's extraction mechanic. Small catches can be handled by hand, while increasingly enormous catches require progressively more powerful equipment — from fishing rods and winches to cranes, heavy machinery and helicopters.
+The environment provides a natural progression for the game's extraction mechanic. Small catches can be handled by hand, while increasingly enormous catches require progressively more powerful equipment - from fishing rods and cranes to helicopters.
 
 The harbour should feel busy, competitive and constantly in motion, creating the impression that the player is part of a much larger fishing industry.
 
 The overall tone is cinematic, energetic and slightly exaggerated, allowing the game to transition naturally from authentic fishing operations into spectacular, larger-than-life extraction sequences.
 
-There's one particularly cool design opportunity: the harbour itself could be our persistent "hub" screen, with the betting board integrated into the environment, while the underwater world is essentially the second half of the same scene. That would give the whole game a much stronger identity than the typical menu → spin → animation → win casino flow.
+The harbour itself is the persistent "hub" screen, with the **fish market board** standing on the left-hand dock, while the underwater world is the second half of the same scene. That gives the whole game a much stronger identity than the typical menu → spin → animation → win casino flow.
 
-# The Betting Table
+# The Fish Market
 
-```json
-export const FISH_GUIDE: FishGuideEntry[] = [
-	// Shallow — common / low-value catches
-	{ id: "shrimp", name: "Shrimp", depth: "shallow", tierId: "junk", image: FISH.shrimp },
-	{ id: "sardine", name: "Sardine", depth: "shallow", tierId: "small", image: FISH.sardine },
-	{ id: "blue-cod", name: "Blue Cod", depth: "shallow", tierId: "small", image: FISH.blueCod },
-	{ id: "barracuda", name: "Barracuda", depth: "shallow", tierId: "small", image: FISH.barracuda },
+Every fish has a price - a multiplier on your bet - and **the prices change every round**.
 
-	// Reef — medium / valuable catches
-	{ id: "napoleon", name: "Napoleon Wrasse", depth: "reef", tierId: "medium", image: FISH.napoleon },
-	{ id: "turtle", name: "Turtle", depth: "reef", tierId: "medium", image: FISH.turtle },
-	{ id: "swordfish", name: "Swordfish", depth: "reef", tierId: "large", image: FISH.swordfish },
-	{ id: "king-crab", name: "King Crab", depth: "reef", tierId: "large", image: FISH.kingCrab },
+## The board
 
-	// Deep — rare / high-value catches
-	{ id: "manta-ray", name: "Manta Ray", depth: "deep", tierId: "rare", image: FISH.mantaRay },
-	{ id: "bluefin-tuna", name: "Bluefin Tuna", depth: "deep", tierId: "rare", image: FISH.blueTuna, wide: true },
-	{ id: "shark", name: "Shark", depth: "deep", tierId: "epic", image: FISH.shark, wide: true },
-	{ id: "barracuda-epic", name: "Barracuda", depth: "deep", tierId: "epic", image: FISH.barracudaEpic },
-	{ id: "puffer", name: "Pufferfish", depth: "deep", tierId: "epic", image: FISH.puffer },
+A sign on the left-hand dock lists every fish with the price it pays this round, one row per depth zone, shallowest first:
 
-	// Abyss — legendary / jackpot catches
-	{ id: "lanternfish", name: "Lanternfish", depth: "abyss", tierId: "legendary", image: FISH.lanternfish },
-	{ id: "jellyfish", name: "Jellyfish", depth: "abyss", tierId: "legendary", image: FISH.jellyfish },
-	{ id: "starfish", name: "Starfish", depth: "abyss", tierId: "legendary", image: FISH.starfish },
-	{ id: "whale", name: "Whale", depth: "abyss", tierId: "jackpot", image: FISH.whale, wide: true },
+| Row     | Fish                                                                                     |
+| ------- | ---------------------------------------------------------------------------------------- |
+| Shallow | Shrimp, Sardine, Blue Cod, Barracuda, Guppy, Clownfish                                   |
+| Reef    | Napoleon Wrasse, Turtle, King Crab, Snapper, Grouper, Trevally                           |
+| Deep    | Sting Ray, Bluefin Tuna, Shark, Barracuda (the big one), Pufferfish, Swordfish, Stingray |
+| Abyss   | Lanternfish, Jellyfish, Starfish, Whale, Squid, Sea Dragon                               |
+| Jackpot | The Kraken                                                                               |
 
-	// Jackpot — ultra-rare / ultimate catch
-	{ id: "kraken", name: "Kraken", depth: "jackpot", tierId: "jackpot", image: FISH.kraken, wide: true },
-];
-```
+- Each fish keeps its place on the board; only its price changes.
+- The dearest price in each row is picked out in gold.
+- Before the first cast the board is an empty sign. After a round it keeps that round's prices, with the fish the hook landed ringed, until the next cast. It is hidden while the hook is down.
+- On a phone the board is smaller; on a landscape phone the zone names give way to coloured stripes.
+
+## The prices
+
+Each depth zone has a fixed **pool of prices**, one per fish, listed in ascending order down the zone's roster. The market is the same every round for a volatility; only the volatility changes the prices.
+
+Which fish the hook lands within a zone is random, and every fish in the zone is equally likely. Prices are fixed; luck isn't.
+
+## The reveal
+
+Pressing Cast opens the round, then a pop-up deals the market: each fish drops onto the board with a small bounce, one after another (about two seconds for the whole deal), the prices hold for a moment, and the board shrinks away onto the dock. It takes about 3.5 seconds; a tap or a key skips straight to the hook going down. Players who ask for reduced motion get the prices without the bouncing.
+
+The bet and the volatility are locked in _before_ the market is dealt, so a player can't choose them to suit a market they've seen. (They couldn't gain from it anyway - see [why rotating prices can't break the RTP](#why-rotating-prices-cant-break-the-rtp).)
+
+# Volatility
+
+Volatility replaces the old target-selection button. It does one thing: it sets **how likely the hook is to dive into each depth zone**.
+
+| Level  | The hook                     | In the game                               |
+| ------ | ---------------------------- | ----------------------------------------- |
+| Low    | mostly stays in the shallows | smaller swings, a smaller jackpot (×50)   |
+| Medium | dives to a mix of depths     | the default (jackpot ×100)                |
+| High   | dives deep more often        | bigger swings, the biggest jackpot (×200) |
+
+A button in the bottom bar (where the Targets button used to be) shows the current level - its name and one to three chevrons for how deep the hook tends to dive. It opens a picker with all three levels and a line on what each does; picking one applies it and closes the picker. The bet, the volatility and the Bonus button lock from the moment the cast is pressed until the catch is landed.
+
+Every volatility has the **same 96% RTP**. They differ in how the return is spread: where the hook goes, how much the fish in each zone are worth, and how big the jackpot is.
+
+# What the Hook Lands
+
+The Kraken lives in the jackpot zone at the very bottom of the world and is the only fish there; the hook goes all the way down only when the Kraken is the catch. Every other fish is an ordinary fish in one of the four zones above it.
+
+Nothing is selected, so there is no "win" or "miss" against a target. **Every cast lands exactly one fish** and pays `bet × price`. If the price is under 1 the cast returns less than the bet.
 
 # Mathematical Model & RTP
 
-`Hooked` uses a single predetermined outcome per round, with players able to distribute their wager across different depth zones and individual fish. Depth bets provide broader coverage and higher hit frequency, while specific fish bets offer lower probability and higher potential payouts. Players can combine multiple bets to create their preferred risk profile — for example, placing a larger bet on Shallow as a safer cover while placing a smaller bet on Shark for greater upside.
+`Hooked` uses a single predetermined outcome per round: the server rolls the market and the catch together when the round opens, from one provably-fair stream, and the presentation only depicts them.
 
-The game will target a 96% theoretical RTP, meaning that over a very large number of rounds, approximately $96 of every $100 wagered is expected to be returned to players, with the remaining 4% representing the theoretical house edge. Individual rounds and player sessions can vary significantly due to the game's volatility.
+The game targets a **96% theoretical RTP**: over a very large number of rounds, about $96 of every $100 bet is returned, with 4% the house edge. This holds for **every volatility**. Individual rounds and sessions vary significantly.
 
-The underlying outcome is generated once per round and all active bets are evaluated against that result. A specific fish also belongs to a depth zone, meaning a player can potentially win both a broad depth bet and a specific fish bet when the outcome matches both selections. The probability and payout of each selection will be balanced to maintain the target RTP while allowing players to choose between safer, more frequent catches and high-risk, high-value targets.
+## How a round pays
 
-## 22 Bonus concepts for evaluation
+1. **The market is dealt.** Each zone's price pool is shuffled across the zone's fish.
+2. **The hook dives.** The volatility's odds pick a depth zone.
+3. **The fish is landed.** A fish in that zone is picked, all equally likely.
+4. **The payout is `bet × that fish's price` on this round's market**, rounded to the cent.
+
+## Where the 96% comes from
+
+The server never stores final prices. It stores, per volatility, the **odds** of each zone and the Kraken's **jackpot**, plus one shared set of **relative prices** per zone; it then scales each volatility's prices so that the whole thing returns exactly the RTP target. So the RTP is a constant of the code, not a property of hand-entered numbers: change an odds or a relative price and the prices rescale, and a test fails if any volatility lands outside 0.1 percentage points of 96% (rounding prices to the cent is the only slack).
+
+The current tables (first-pass values; tune them in `server/src/constants.ts`):
+
+**Low** - RTP 95.96%, pays at least the bet on 22% of casts
+
+| Zone    | Chance | Prices (× bet) |
+| ------- | ------ | -------------- |
+| Shallow | 56.00% | 0.19 - 0.49    |
+| Reef    | 33.00% | 0.57 - 1.29    |
+| Deep    | 9.00%  | 1.52 - 5.32    |
+| Abyss   | 1.90%  | 3.42 - 17.11   |
+| Jackpot | 0.10%  | 50             |
+
+**Medium** - RTP 95.96%, pays at least the bet on 22.5% of casts
+
+| Zone    | Chance | Prices (× bet) |
+| ------- | ------ | -------------- |
+| Shallow | 43.00% | 0.10 - 0.27    |
+| Reef    | 32.00% | 0.31 - 0.70    |
+| Deep    | 17.50% | 0.82 - 2.89    |
+| Abyss   | 7.40%  | 1.85 - 9.27    |
+| Jackpot | 0.10%  | 100            |
+
+**High** - RTP 96.01%, pays at least the bet on 26.3% of casts
+
+| Zone    | Chance | Prices (× bet) |
+| ------- | ------ | -------------- |
+| Shallow | 33.00% | 0.07 - 0.17    |
+| Reef    | 30.00% | 0.20 - 0.46    |
+| Deep    | 25.00% | 0.54 - 1.88    |
+| Abyss   | 11.90% | 1.21 - 6.05    |
+| Jackpot | 0.10%  | 200            |
+
+Each zone's prices are a pool of one price per fish; the range above is the pool's lowest and highest.
+
+## Why rotating prices can't break the RTP
+
+Every fish in a zone is equally likely, and a shuffle deals a zone the same prices whichever fish gets which. So whatever the arrangement on the board, the expected return of a round is the same number - the average price of each zone, weighted by the volatility's odds. A player who sees a market they like gains nothing: the bet and volatility are fixed before it is dealt, and it can't change the expected return even if they weren't.
+
+## Fairness
+
+The market and the catch both come from the round's seed triple (server seed, client seed, nonce) and the volatility. After the server seed is revealed, `POST /api/game/verify` re-derives both from those inputs; a match is the proof. The client never rolls anything: it presents what the server dealt.
+
+## Known limit: there is no dud outcome yet
+
+Holding 96% with no losing cast forces most prices below 1×, and it caps the variance - even at High volatility most casts land a fish worth well under the bet, with a rare fat one. That is why volatility today changes the _spread_ more than it changes the feel, and why the shallow prices are so low. [Junk](#junk-the-next-step) is the fix.
+
+# Junk (the next step)
+
+_Not built yet. The art is in `src/assets/junk/`._
+
+Junk objects are things a hook can land instead of a fish: a tyre, an old boot, a tin can, a trolley, a toilet seat, a road cone, an e-scooter, a bra, undies, flip-flops, a wok, a noodle packet. They pay nothing. They are the game's **losing cast**, and they are the main RTP lever:
+
+- Junk takes a share of the odds at 0×, so the prices of the _fish_ rise to compensate - shallow fish can finally pay 1× or more.
+- Volatility becomes what it says: high volatility dives deep more often _and_ comes up with junk more often, so most casts lose and the rest can be huge.
+- The server's normaliser already supports it: junk is one more row in a volatility's odds with a price of 0, and every other price rescales to hold 96%.
+
+Questions to settle when the step is built, none decided: how junk shows in the world (static, drifting, sinking); which gear lands it (probably the rod, with a different reaction); how the "HOOKED!" splash names it; how often each volatility lands it; and whether the board lists a junk row at 0×.
+
+# Extraction
+
+Extraction is a presentation system driven by the server's payout multiplier:
+
+| Gear       | Called in from | In the harbour                                             |
+| ---------- | -------------- | ---------------------------------------------------------- |
+| Rod        | always         | the fisherman on his boat; the only gear for most catches  |
+| Crane      | ×4             | the dock crane swings out over the hook                    |
+| Helicopter | ×9             | called in over the crane                                   |
+| Chinook    | ×40            | the heaviest lift - the Kraken's jackpot, and nothing else |
+
+The thresholds are placeholders sized to the market's price range (the crane for the better deep and abyss catches, the helicopter for the best of the abyss, the Chinook for the Kraken), found in `simExtraction.ts`. Each gear takes the strain in turn: the fish stays stuck while a gear pulls, then gives, and the next gear is needed. The multiplier counts up as the fish rises, holds while a gear strains, and lands on the catch's real price. The size of the landed fish follows the multiplier, not the species.
+
+A catch worth less than the bet is landed by the rod alone, with the multiplier shown from the start, and the fisherman reacts with disappointment instead of a cheer.
+
+# Bonus concepts for evaluation
 
 These are design proposals, not approved game rules. No purchase prices, trigger odds, payout multipliers, feature RTP or maximum wins are committed. Environmental events remain ambient; multiplier events reveal a payout effect; bonus features add a named ruleset, recovery step or multi-cast sequence.
 
 ### Re-Cast
 
-Proposed one-round add-on: the first junk catch or escaped fish grants exactly one recovery cast using the original selections, with no additional wager debit. The retry can lose and cannot trigger another retry. A landed fish that misses the wager is not covered in this initial proposal, and the feature card must say so.
+Proposed one-round add-on: the first junk catch or escaped fish grants exactly one recovery cast at the original bet and volatility, with no additional wager debit. The retry can lose and cannot trigger another retry. A landed fish is not covered in this initial proposal, even one worth less than the bet, and the feature card must say so.
 
-The accepted feature round contains both the first attempt and any recovery result. Only the resolved payout is credited once. This is not a refund or a guaranteed win. Price, eligibility and mathematical distribution remain to be determined.
+The accepted feature round contains both the first attempt and any recovery result. Only the resolved payout is credited once. This is not a refund or a guaranteed win. Price, eligibility and mathematical distribution remain to be determined. (It needs junk, which is not built yet.)
 
 UI: a spare-hook icon and SECOND CAST READY before play. On an eligible loss show JUNK CAUGHT or GOT AWAY, followed by SECOND CAST ACTIVATED. Cross out one spare-hook indicator and show RECOVERY CAST. If the first attempt lands a fish, the one-round feature ends unused; disclose this in the rules. No purchase offer appears after the loss.
 
@@ -136,7 +245,7 @@ UI: glowing bait icon, LUCKY BAIT ACTIVE, and a feature cost shown before castin
 
 Proposed distinct bonus round: a short sequence of five automatic casts with a running feature total. Five is a prototype count, not a final mathematical commitment. Each cast can land a fish, retrieve junk or lose a fish. The feature is not five guaranteed wins.
 
-For a first prototype, keep the accepted target selections fixed throughout and disallow mid-feature wager changes. Outcomes and awards come from the accepted feature record. Choose natural triggering or direct purchase as the initial entry method before production; if both are supported, show their different entry rules explicitly.
+For a first prototype, keep the accepted bet and volatility fixed throughout and disallow mid-feature changes. Outcomes and awards come from the accepted feature record. Choose natural triggering or direct purchase as the initial entry method before production; if both are supported, show their different entry rules explicitly.
 
 UI: a school-of-fish icon, FEEDING FRENZY introduction, CAST 1 OF 5 and FEATURE TOTAL. Use brief sub-results; show one final summary and reconcile all credits exactly once. Wager controls return when the feature completes.
 
@@ -147,3 +256,12 @@ Proposed premium feature focused on one giant-creature encounter and a bespoke e
 Define a dedicated outcome table and eligible creature pool. Entry guarantees the feature encounter only; success, escape probability and any minimum award remain unresolved and must be stated in the final rules. Do not label it a guaranteed jackpot.
 
 UI: giant-creature silhouette, a clear feature introduction, preparation and extraction states, and one final result. Equipment changes communicate the spectacle without implying that timing or player input improves the payout.
+
+# Open questions
+
+- **Junk** - see above; it settles most of the questions below.
+- **The numbers** - every odds, price and jackpot here is a first pass. Tuning them is the point of the next step.
+- **Seeing the market before casting** - today the market is dealt on Cast, so the bet and volatility can't depend on it. Showing the _next_ market in advance would not change the RTP (see above) and would let a player read the board while choosing, but it would take the reveal away. Not decided.
+- **Reading the market during the dive** - the board scrolls away with the dock while the hook is down. Price tags on the swimming fish, or a compact legend on screen, would keep the prices in view. Not built.
+- **The Kraken's landing** - it is reeled in whole at the bottom, with its multiplier shown but no crane or helicopter sequence; its bespoke extraction is still to come (`docs/JACKPOT.md`).
+- **Portraits** - King Crab and Starfish have no portrait yet and show their name on the board.

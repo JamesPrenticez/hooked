@@ -11,14 +11,18 @@ import { TICK_HZ } from "./simConfig.ts";
 export type Gear = "rod" | "crane" | "helicopter" | "chinook";
 const GEAR_ORDER: readonly Gear[] = ["rod", "crane", "helicopter", "chinook"];
 
-/** What the catch weighs, as a multiplier: 1× is a plain reel-in, 500× is the biggest fish there is. */
+/** What the catch weighs, as a multiplier: 1× is a plain reel-in, 500× is the biggest fish there is. A round's catch
+ *  pays what the market says — from a few cents on the dollar up to the Kraken's jackpot — and the fish is landed at
+ *  that weight, the readout starting from `MIN_MULTIPLIER` (or the catch's own, if it is worth less). */
 export const MIN_MULTIPLIER = 1;
 export const MAX_MULTIPLIER = 500;
 
-/** The smallest multiplier that calls in each extra piece of gear. Placeholder cut-offs. */
-export const CRANE_FROM = 20;
-export const HELICOPTER_FROM = 60;
-export const CHINOOK_FROM = 150;
+/** The smallest multiplier that calls in each extra piece of gear. Set against what a round pays (price × hidden size,
+ *  server/src/constants.ts): the crane for roughly 1 round in 15, the helicopter for 1 in 60, the Chinook for the
+ *  Kraken. */
+export const CRANE_FROM = 2.5;
+export const HELICOPTER_FROM = 5;
+export const CHINOOK_FROM = 40;
 
 /** Every gear this catch needs, in the order they take the strain. */
 export function gearsFor(multiplier: number): Gear[] {
@@ -164,7 +168,10 @@ export function extractionAt(gears: readonly Gear[], catchM: number, tick: numbe
 	return { stage: "hold", depthM: 0, reveal: 1, arrival, strain: 0 };
 }
 
-/** The multiplier the readout shows: it climbs as the fish comes out of the water, holds while a gear strains against
- *  it, and lands on the catch's real multiplier once it is all out. */
-export const shownMultiplier = (multiplier: number, reveal: number) =>
-	Math.round(MIN_MULTIPLIER + (multiplier - MIN_MULTIPLIER) * reveal);
+/** The multiplier the readout shows: it climbs from 1× as the fish comes out of the water, holds while a gear strains
+ *  against it, and lands on the catch's real multiplier once it is all out. A catch worth less than 1× has nowhere to
+ *  climb to — it shows its own the whole way. Two decimal places, like the market's prices. */
+export const shownMultiplier = (multiplier: number, reveal: number) => {
+	const from = Math.min(MIN_MULTIPLIER, multiplier);
+	return Math.round((from + (multiplier - from) * reveal) * 100) / 100;
+};

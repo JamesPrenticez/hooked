@@ -8,7 +8,7 @@ import { breakpoint } from "@utils/breakpoint";
 
 import { BonusCard } from "./bonus-card";
 
-// ponytail: the overlay and Escape handling repeat SelectTargetsModal's — pull a shared Modal out when a third one lands.
+// ponytail: the overlay and Escape handling repeat VolatilityModal's — pull a shared Modal out when a third one lands.
 const Overlay = styled.div`
 	position: fixed;
 	inset: 0;

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import type { BetResult, FishingOutcome, PayoutResult, RoundStatus } from "@type/api";
+import type { BonusEntry, FishingOutcome, MarketEntry, PayoutResult, RoundStatus, Volatility } from "@type/api";
 
 // The authoritative round the client is presenting, mirrored from the server
 // (ARCHITECTURE §9, §12, §18). Every field arrives verbatim in a server
@@ -15,8 +15,13 @@ export interface RoundSnapshot {
 	roundId: string;
 	/** The server's word — "open" after start, "completed" after settle. */
 	status: RoundStatus;
-	/** Bets as locked and resolved by the server (§9 LOCK BETS → RESOLVE BETS). */
-	bets: BetResult[];
+	/** The stake the round took and the volatility it was cast at, as the server locked them (§9 LOCK BETS). */
+	stake: string;
+	volatility: Volatility;
+	/** What every fish pays this round — rolled with the catch, so it rotates round to round. */
+	market: MarketEntry[];
+	/** The fish highlighted this round and the bonus each pays if it is the one landed. */
+	bonus: BonusEntry[];
 	outcome: FishingOutcome;
 	payout: PayoutResult;
 }

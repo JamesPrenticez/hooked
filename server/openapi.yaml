@@ -125,14 +125,18 @@ paths:
                     type: boolean
                     description: True when a round is open and resumable.
                   roundId: { type: string }
-                  bets:
-                    type: array
+                  stake:
+                    type: string
                     description: >
-                      The open round's bets — present only when active.
-                      Outcome/payout are deliberately withheld here; call
-                      GET /api/game/round/{id} for the full result to
-                      resume presentation from.
-                    items: { $ref: "#/components/schemas/Bet" }
+                      The open round's stake — present only when active. The
+                      market, outcome and payout are deliberately withheld
+                      here; call GET /api/game/round/{id} for the full result
+                      to resume presentation from.
+                    example: "1.00"
+                  volatility:
+                    allOf:
+                      - { $ref: "#/components/schemas/Volatility" }
+                    description: The open round's volatility — present only when active.
         "401":
           $ref: "#/components/responses/Error"
 
@@ -141,10 +145,11 @@ paths:
       tags: [game]
       summary: The single game-action envelope — start a round or complete one
       description: >
-        message must contain exactly one of start|complete. start places
-        bets and opens the round (the outcome is generated now, and the
-        wager is debited immediately). complete settles an open round (the
-        payout is credited now).
+        message must contain exactly one of start|complete. start opens a
+        round at a stake and a volatility: the server rolls the round's fish
+        market and the catch now, and the stake is debited immediately. The
+        catch pays stake × its price on the market. complete settles an open
+        round (the payout is credited now).
       security:
         - bearerAuth: []
       requestBody:
@@ -162,11 +167,13 @@ paths:
                       properties:
                         start:
                           type: object
-                          required: [bets]
+                          required: [stake, volatility]
                           properties:
-                            bets:
-                              type: array
-                              items: { $ref: "#/components/schemas/Bet" }
+                            stake:
+                              type: string
+                              description: Decimal string within the server's stake limits.
+                              example: "1.00"
+                            volatility: { $ref: "#/components/schemas/Volatility" }
                     - type: object
                       required: [complete]
                       properties:
@@ -216,14 +223,14 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [roundId, status, outcome, bets, payout, seed]
+                required: [roundId, status, volatility, stake, market, outcome, payout, seed]
                 properties:
                   roundId: { type: string }
                   status: { type: string, enum: [open, completed] }
+                  volatility: { $ref: "#/components/schemas/Volatility" }
+                  stake: { type: string, example: "1.00" }
+                  market: { $ref: "#/components/schemas/Market" }
                   outcome: { $ref: "#/components/schemas/FishingOutcome" }
-                  bets:
-                    type: array
-                    items: { $ref: "#/components/schemas/BetResult" }
                   payout: { $ref: "#/components/schemas/PayoutResult" }
                   seed: { $ref: "#/components/schemas/RoundSeed" }
         "401":
@@ -234,13 +241,13 @@ paths:
   /api/game/verify:
     post:
       tags: [game]
-      summary: Recompute a past outcome from its seed triple (provably fair)
+      summary: Recompute a past round from its seed triple (provably fair)
       description: >
         Stateless. Supply the revealed serverSeed (from POST /api/seed/reveal)
-        plus the clientSeed and nonce recorded with the round, and compare the
-        returned outcome to what that round paid out. Same inputs always yield
-        the same outcome — that is the proof. Rounds pinned with a forced
-        outcome (dev only) will not match by design.
+        plus the clientSeed, nonce and volatility recorded with the round, and
+        compare the returned market and outcome to what that round paid out.
+        Same inputs always yield the same round — that is the proof. Rounds
+        pinned with a forced outcome (dev only) will not match by design.
       security:
         - bearerAuth: []
       requestBody:
@@ -249,23 +256,26 @@ paths:
           application/json:
             schema:
               type: object
-              required: [serverSeed, clientSeed, nonce]
+              required: [serverSeed, clientSeed, nonce, volatility]
               properties:
                 serverSeed: { type: string }
                 clientSeed: { type: string }
                 nonce: { type: integer, minimum: 0 }
+                volatility: { $ref: "#/components/schemas/Volatility" }
       responses:
         "200":
-          description: Recomputed outcome
+          description: Recomputed market and outcome
           content:
             application/json:
               schema:
                 type: object
-                required: [serverSeedHash, clientSeed, nonce, outcome]
+                required: [serverSeedHash, clientSeed, nonce, volatility, market, outcome]
                 properties:
                   serverSeedHash: { type: string, description: SHA-256 of the supplied serverSeed. }
                   clientSeed: { type: string }
                   nonce: { type: integer }
+                  volatility: { $ref: "#/components/schemas/Volatility" }
+                  market: { $ref: "#/components/schemas/Market" }
                   outcome: { $ref: "#/components/schemas/FishingOutcome" }
         "400":
           $ref: "#/components/responses/Error" # invalid_verify_request
@@ -410,11 +420,12 @@ paths:
   /api/debug/force-outcome:
     post:
       tags: [debug]
-      summary: Pin the next round's outcome (dev only)
+      summary: Pin the next round's catch (dev only)
       description: >
-        Any provided field is forced; omit a field to leave it rolled. An empty
-        body clears the override. "Force Kraken" is just
-        { depth: jackpot, fish: kraken, tier: jackpot }.
+        A fish pins the catch; a depth pins the zone and lands its first fish
+        (a fish wins when both are given). The round's market is still rolled,
+        so the forced fish pays its price on it. An empty body clears the
+        override. "Force Kraken" is just { fish: kraken }.
       requestBody:
         content:
           application/json:
@@ -422,8 +433,7 @@ paths:
               type: object
               properties:
                 depth: { type: string, enum: [shallow, reef, deep, abyss, jackpot] }
-                fish: { type: string, example: kraken }
-                tier: { type: string, enum: [small, large, epic, legendary, jackpot] }
+                fish: { type: string, description: A fish id from the server roster., example: kraken }
       responses:
         "200":
           description: Updated debug state
@@ -637,30 +647,43 @@ paths:
 
 components:
   schemas:
-    Bet:
+    Volatility:
+      type: string
+      enum: [low, medium, high]
+      description: >
+        How likely the hook is to dive deep. Low keeps it in the shallows,
+        high sends it deeper more often (and carries the bigger jackpot).
+        Every volatility returns the same 96% to the player over time.
+      example: medium
+    MarketEntry:
       type: object
-      required: [type, selection, amount]
+      required: [fish, multiplier]
       properties:
-        type: { type: string, enum: [depth, fish] }
-        selection:
+        fish: { type: string, description: A fish id from the server roster., example: shark }
+        multiplier:
           type: string
           description: >
-            A depth id (shallow|reef|deep|abyss|jackpot) for a `depth` bet, or a
-            fish id from the server roster (server/src/constants.ts) for a `fish`
-            bet. Any other value is rejected as invalid_bet.
-          example: shallow
-        amount:
-          type: string
-          description: >
-            Decimal string, never a float. Must be within the server's per-bet
-            stake limits (dev defaults 0.10–500.00, DEV_MIN_BET / DEV_MAX_BET);
-            outside that range is rejected as invalid_bet.
-          example: "10.00"
+            What the fish pays this round, as a multiple of the stake. Decimal
+            string, two places; may be below 1.00 (a catch worth less than the
+            stake).
+          example: "6.35"
+    Market:
+      type: array
+      description: >
+        The round's fish market, rolled with the catch: every fish on the
+        roster once, in roster order, with the price it pays this round. Each
+        depth zone's prices are a shuffle of the same pool, so which fish is
+        worth most rotates from round to round; the Kraken is the only fish in
+        its zone and always pays the volatility's fixed jackpot.
+      items: { $ref: "#/components/schemas/MarketEntry" }
     FishingOutcome:
       type: object
-      required: [depth, fish, tier]
+      required: [depth, fish, tier, escaped, multiplier]
       properties:
         depth: { type: string, enum: [shallow, reef, deep, abyss, jackpot] }
+        escaped:
+          type: boolean
+          description: The fish took the hook but got away. Nothing is landed and `multiplier` is "0.00". Never the Kraken.
         fish:
           type: string
           description: >
@@ -669,49 +692,35 @@ components:
             roster tier, not an independent roll.
           example: shark
         tier: { type: string, enum: [small, large, epic, legendary, jackpot] }
-    BetResult:
-      allOf:
-        - $ref: "#/components/schemas/Bet"
-        - type: object
-          required: [won, multiplier, payout]
-          properties:
-            won: { type: boolean }
-            multiplier:
-              type: string
-              description: >
-                The selection's fixed table multiplier (depth bets from
-                DEPTH_MULTIPLIERS, fish bets from the roster). Reported even when
-                the bet lost — it is what the bet would have paid.
-              example: "28.24"
-            payout:
-              type: string
-              description: amount × multiplier on a win; zero (emitted, not omitted) on a loss.
-              example: "0.00"
+        multiplier:
+          type: string
+          description: What the landed fish pays this round — its price on the round's market.
+          example: "6.35"
     PayoutResult:
       type: object
       required: [total, wagered, net]
       properties:
         total:
           type: string
-          description: Sum of winning bets' payouts — what complete credits to balance.
-          example: "282.40"
+          description: stake × the catch's multiplier — what complete credits to balance.
+          example: "63.50"
         wagered:
           type: string
-          description: Sum of bet amounts — what start already debited.
+          description: The stake — what start already debited.
           example: "10.00"
         net:
           type: string
-          description: total − wagered; negative (leading "-") on a losing round.
-          example: "272.40"
+          description: total − wagered; negative (leading "-") when the catch pays less than the stake.
+          example: "53.50"
     RoundResult:
       type: object
-      required: [roundId, outcome, bets, payout, metadata]
+      required: [roundId, volatility, stake, market, outcome, payout, metadata]
       properties:
         roundId: { type: string }
+        volatility: { $ref: "#/components/schemas/Volatility" }
+        stake: { type: string, example: "10.00" }
+        market: { $ref: "#/components/schemas/Market" }
         outcome: { $ref: "#/components/schemas/FishingOutcome" }
-        bets:
-          type: array
-          items: { $ref: "#/components/schemas/BetResult" }
         payout: { $ref: "#/components/schemas/PayoutResult" }
         metadata:
           type: object
@@ -723,13 +732,12 @@ components:
             balance: { type: string, example: "0" }
     HistoryEntry:
       type: object
-      required: [roundId, outcome, bets, payout, seed, completedAt]
+      required: [roundId, volatility, stake, outcome, payout, seed, completedAt]
       properties:
         roundId: { type: string }
+        volatility: { $ref: "#/components/schemas/Volatility" }
+        stake: { type: string, example: "10.00" }
         outcome: { $ref: "#/components/schemas/FishingOutcome" }
-        bets:
-          type: array
-          items: { $ref: "#/components/schemas/BetResult" }
         payout: { $ref: "#/components/schemas/PayoutResult" }
         seed: { $ref: "#/components/schemas/RoundSeed" }
         completedAt: { type: string, format: date-time }
@@ -760,7 +768,6 @@ components:
           properties:
             depth: { type: string }
             fish: { type: string }
-            tier: { type: string }
         simulation:
           type: object
           required: [latencyMs, errorRate]

@@ -56,14 +56,9 @@ async function newSession(): Promise<string> {
 	return json.sessionToken as string;
 }
 
-const startBody = (bets: unknown[]) => ({ message: { start: { bets } } });
+const startBody = (stake: string, volatility = "medium") => ({ message: { start: { stake, volatility } } });
 const completeBody = (roundId: string) => ({
 	message: { complete: { roundId } }
-});
-const fishBet = (selection: string, amount: string) => ({
-	type: "fish",
-	selection,
-	amount
 });
 
 test("current exposes the hashed server seed, a client seed and nonce 0", async () => {
@@ -89,7 +84,7 @@ test("each round consumes the next nonce and records the seed context", async ()
 	const r1 = (
 		await call("POST", "/api/game/play", {
 			token,
-			body: startBody([fishBet("shark", "1.00")])
+			body: startBody("1.00")
 		})
 	).json;
 	await call("POST", "/api/game/play", {
@@ -103,7 +98,7 @@ test("each round consumes the next nonce and records the seed context", async ()
 	const r2 = (
 		await call("POST", "/api/game/play", {
 			token,
-			body: startBody([fishBet("shark", "1.00")])
+			body: startBody("1.00")
 		})
 	).json;
 	await call("POST", "/api/game/play", {
@@ -147,7 +142,7 @@ test("rotate is blocked while a round is open", async () => {
 	const round = (
 		await call("POST", "/api/game/play", {
 			token,
-			body: startBody([fishBet("shark", "1.00")])
+			body: startBody("1.00")
 		})
 	).json;
 
@@ -162,13 +157,13 @@ test("rotate is blocked while a round is open", async () => {
 	assert.equal((await call("POST", "/api/seed/rotate", { token })).status, 200);
 });
 
-test("verify re-derives a past round's outcome from its revealed seed triple", async () => {
+test("verify re-derives a past round's market and outcome from its revealed seed triple", async () => {
 	const token = await newSession();
 
 	const round = (
 		await call("POST", "/api/game/play", {
 			token,
-			body: startBody([fishBet("shark", "1.00")])
+			body: startBody("1.00", "high")
 		})
 	).json;
 	await call("POST", "/api/game/play", {
@@ -186,20 +181,25 @@ test("verify re-derives a past round's outcome from its revealed seed triple", a
 		body: {
 			serverSeed: revealed.serverSeed,
 			clientSeed: detail.seed.clientSeed,
-			nonce: detail.seed.nonce
+			nonce: detail.seed.nonce,
+			volatility: detail.volatility
 		}
 	});
 	assert.equal(verified.status, 200);
 	assert.equal(verified.json.serverSeedHash, detail.seed.serverSeedHash);
+	assert.deepEqual(verified.json.market, detail.market);
 	assert.deepEqual(verified.json.outcome, detail.outcome);
 });
 
-test("verify rejects a malformed seed triple", async () => {
+test("verify rejects a malformed seed triple, or a volatility it can't replay", async () => {
 	const token = await newSession();
-	const bad = await call("POST", "/api/game/verify", {
-		token,
-		body: { serverSeed: "abc", clientSeed: "x", nonce: -1 }
-	});
-	assert.equal(bad.status, 400);
-	assert.equal(bad.json.error.code, "invalid_verify_request");
+	for (const body of [
+		{ serverSeed: "abc", clientSeed: "x", nonce: -1, volatility: "low" },
+		{ serverSeed: "abc", clientSeed: "x", nonce: 0 },
+		{ serverSeed: "abc", clientSeed: "x", nonce: 0, volatility: "wild" }
+	]) {
+		const bad = await call("POST", "/api/game/verify", { token, body });
+		assert.equal(bad.status, 400, JSON.stringify(body));
+		assert.equal(bad.json.error.code, "invalid_verify_request");
+	}
 });

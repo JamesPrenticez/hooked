@@ -6,13 +6,14 @@ import { test } from "node:test";
 import { config } from "./config.ts";
 import { getDb } from "./db.ts";
 import { saveRecording } from "./recordings.ts";
+import { HOOKABLE_BY_ID } from "../../src/constants/fish.ts";
 import { MAX_DEPTH_METERS, SIM_VERSION } from "../../src/utils/simConfig.ts";
 import { encodeInputs, MAX_RECORDING_TICKS, toBase64 } from "../../src/utils/simRecording.ts";
 import { createSim, step } from "../../src/utils/simStep.ts";
 
 config.dbPath = ":memory:";
 
-/** What the client does: steer `axisAt` per tick until the hook surfaces. Seed 1 sitting still takes a sardine. */
+/** What the client does: steer `axisAt` per tick until the hook surfaces. */
 function play(worldSeed: number, axisAt: (tick: number) => number, multiplier = 1) {
 	const sim = createSim(worldSeed, multiplier);
 	const axes: number[] = [];
@@ -42,8 +43,10 @@ test("saves what the sim caught, with its summary columns", () => {
 	const { sim, axes } = play(1, () => 0);
 	const saved = saveRecording(wire(1, axes));
 
-	assert.equal(saved.fish, "sardine");
-	assert.equal(saved.depth, "shallow");
+	// Whatever the world's fish happen to be, the server's re-simulation must agree with the client's.
+	const caught = sim.world[sim.hooked].id;
+	assert.equal(saved.fish, caught);
+	assert.equal(saved.depth, HOOKABLE_BY_ID.get(caught)!.depth);
 	assert.equal(saved.ticks, sim.tick);
 	assert.equal(saved.duplicate, false);
 	assert.match(saved.sha256, /^[0-9a-f]{64}$/);
@@ -65,9 +68,11 @@ test("the path length is how far the hook travelled", () => {
 });
 
 test("the Kraken at the bottom is a run like any other", () => {
-	const { sim, axes } = play(5, () => 1);
-	assert.equal(sim.result?.fish, "kraken");
-	const saved = saveRecording(wire(5, axes));
+	// A world the hook, pinned to the right wall, passes through without touching a mouth.
+	const seed = Array.from({ length: 200 }, (_, i) => i + 1).find(n => play(n, () => 1).sim.result?.fish === "kraken");
+	assert.ok(seed, "no seed in 1..200 lets the hook through to the bottom");
+	const { sim, axes } = play(seed, () => 1);
+	const saved = saveRecording(wire(seed, axes));
 	assert.deepEqual([saved.fish, saved.depth], ["kraken", "jackpot"]);
 
 	const row = getDb().prepare("SELECT catch_tick, catch_meters FROM recordings WHERE id = ?").get(saved.id);
@@ -75,11 +80,12 @@ test("the Kraken at the bottom is a run like any other", () => {
 });
 
 test("a client's own account of what it caught is never read", () => {
-	const { axes } = play(1, () => 0);
+	const { sim, axes } = play(1, () => 0);
 	const honest = saveRecording(wire(1, axes));
 	const lying = saveRecording(wire(1, axes, { result: { fish: "whale", depthM: 0, ticks: 1 } }));
 	assert.deepEqual(lying, { ...honest, duplicate: true });
-	assert.equal(lying.fish, "sardine");
+	assert.equal(lying.fish, sim.world[sim.hooked].id);
+	assert.notEqual(lying.fish, "whale");
 });
 
 test("saving the same run twice stores it once", () => {

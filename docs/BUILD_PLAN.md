@@ -221,6 +221,9 @@ The client can connect to the Mock Game Server and complete a full round without
 
 # 3. Authoritative Server Mathematics
 
+> **Superseded by §30.** The depth/fish bets, the per-selection payout table and the per-fish weights described in
+> 3.1–3.5 were replaced by a stake, a volatility and a rotating fish market. The notes are kept as history.
+
 ### Goal
 
 Implement the actual mathematical model on the server.
@@ -617,6 +620,9 @@ The harbour provides the game's primary visual identity and acts as the home sta
 ---
 
 # 8. Betting Board
+
+> **Superseded by §30.** There is no depth/species board any more: the player sets a stake and a volatility, and the
+> fish market board on the dock only displays the round's prices. The unchecked items below are no longer planned.
 
 ### Goal
 
@@ -1490,3 +1496,64 @@ Design and decisions: `docs/SIMULATION.md`. Built alongside §13–16 (descent, 
 ### Acceptance Criteria
 
 A round's presentation is a recorded run of the sim that ends with the server-selected fish on the hook, replayable and verifiable from the round's seeds — while production play is unchanged: the player never steers and the outcome comes only from the server's RNG.
+
+---
+
+# 30. Fish Market & Volatility
+
+### Goal
+
+Replace depth/species betting with a **stake**, a **volatility** and a **rotating fish market**: every round the server
+deals a price to every fish, the hook dives where the volatility sends it and lands one fish, and it pays stake × that
+fish's price. Design and maths: `docs/GDD.md` (The Fish Market, Volatility, Mathematical Model & RTP).
+
+### 30.1 Server
+
+- [x] Roster without per-fish weights or multipliers; per-zone price pools, per-volatility zone odds and jackpot
+      (`server/src/constants.ts`)
+- [x] Each volatility's prices are scaled so it returns the 96% target (`server/src/market.ts` `PRICES`), to the cent —
+      retuning an odds or a relative price can't take a volatility off target
+- [x] `rollRound` — one provably-fair stream: the market (each zone's pool shuffled across its fish), then the zone the
+      hook dives to, then the fish in it, every fish in a zone equally likely (so the arrangement can't move the RTP)
+- [x] `payoutCents`: stake × price in integer cents, half up
+- [x] `start { stake, volatility }`; `start`, round detail, `current` and history carry stake, volatility, market and
+      `outcome.multiplier`; `verify` takes the volatility and returns the market
+- [x] Debug `force-outcome` takes a fish or a depth zone (the tier override is gone)
+- [x] `server/openapi.yaml` updated
+- [x] Tests: `math.test.ts` rewritten (pools fit the roster, 96% per volatility, arrangement-invariant return, 150k-round
+      simulations, rounding), `rounds.test.ts`, `game.test.ts`, `debug.test.ts`, `seed.test.ts`, `shuffle` in `rng.test.ts`, and a
+      client/server roster parity check
+
+### 30.2 Client
+
+- [x] `betStore`: stake + volatility; the Select Targets button, modal and `BettingBoard` are gone
+- [x] Volatility button in the Targets slot (name + 1–3 chevrons) and a picker (`bottom-bar/volatility-*.tsx`)
+- [x] Fish market board on the left dock (`components/fish-market/MarketBoard.tsx`) — last round's prices, catch ringed,
+      hidden while the hook is down; phone and landscape-phone layouts
+- [x] Reveal pop-up (`MarketReveal.tsx`): deals the market onto a board, then shrinks onto the dock; tap/key skips
+- [x] Cast flow: `openRound` → reveal → dive; the bar locks while the market is dealt
+- [x] The hook goes after the server's fish: `Sim.target`, `hookFish` and `autopilotAxis` only see that species
+      (15,600 runs — every fish, 600 seeds each — never missed); the Kraken is the run to the bottom
+- [x] Catches worth less than the bet: the readout starts at its own multiplier, the fisherman is disappointed
+- [x] Gear thresholds rescaled to the market's prices (crane 4×, helicopter 9×, Chinook 40×); `SIM_VERSION` 8
+- [x] e2e: `market.spec.ts`; `app`, `bonus`, `betting` and `hook-control` updated for the pop-up and the removed targets
+
+### 30.3 Junk (next — not started)
+
+Art is in `src/assets/junk/`. A 0× catch, and the real RTP lever: with it, shallow fish can pay above 1× and volatility can
+mean "dive deep, usually come up with junk". The server side is one more odds row at price 0 (the normaliser rescales every
+other price); the client needs junk objects in the sim's world, a landing for them and a name for the splash. Open questions
+are in the GDD.
+
+- [ ] Junk in the odds, per volatility
+- [ ] Junk objects in the sim world, hookable, targetable
+- [ ] Landing, splash and reaction for a junk catch
+- [ ] Retune the price pools; revisit the extraction thresholds
+
+### Notes
+
+- Every number in `LEVELS` and `PRICE_POOLS` is a first pass. Without junk the only way to hold 96% is cheap shallow fish.
+- Two e2e specs were already broken before this milestone: `e2e/hook-control.spec.ts` reads the debug readout from a
+  dialog that is no longer in the DOM when closed, and the debug-panel Kraken test looks for its buttons in a `fieldset`
+  the panel no longer has. They are updated for the new cast flow (and to close the debug dialog by its Close button, as
+  Escape no longer closes it) but not re-verified.

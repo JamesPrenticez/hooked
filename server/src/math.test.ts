@@ -1,302 +1,241 @@
 // Run: pnpm test:server  (node --test, no framework)
 //
-// BUILD_PLAN 3.5 — Mathematical Testing. Proves the server's gambling math is
-// correct and hits the GDD's 96% RTP target, without the client or a renderer
-// (ARCHITECTURE.md §33). Five buckets:
+// BUILD_PLAN 3.5 / 30 — Mathematical Testing. Proves the market model's maths
+// is correct and hits the GDD's 96% RTP target, without the client or a
+// renderer (ARCHITECTURE.md §33). Five buckets:
 //
-//   1. Unit tests        — resolveBet pays stake × table multiplier, exactly.
-//   2. Probability tests  — rollOutcome realises the weight tables.
-//   3. RTP simulation     — every selection returns ~96%, blended too.
-//   4. Combined bet tests — multiple bets resolve independently; combining
-//                           them does not distort RTP.
-//   5. Edge case tests    — stake limits, half-cent rounding, total losses,
-//                           the rarest outcome, off-table selections.
+//   1. Tables       — the price pools fit the roster, and prices are real.
+//   2. RTP          — every volatility returns 96%, however the market is arranged.
+//   3. Probability  — rollRound realises the odds; the market is fixed.
+//   4. Simulation   — a long run of rounds converges on 96% at every volatility.
+//   5. Edge cases   — payout rounding and the stake limits on the biggest prize.
 //
-// rounds.test.ts already covers rollOutcome determinism, roster consistency,
-// per-branch coverage and the depth ordering — not repeated here.
+// rounds.test.ts covers rollRound's determinism and roster consistency — not repeated here.
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { config } from "./config.ts";
-import { DEPTH_MULTIPLIERS, DEPTH_WEIGHTS, FISH } from "./constants.ts";
+import { DEPTHS, FISH, LEVELS, PRICE_POOLS, RTP, VOLATILITIES } from "./constants.ts";
+import { PRICES } from "./market.ts";
 import { toCents } from "./money.ts";
-import { type Bet, type DepthId, type FishingOutcome, resolveBet, rollOutcome } from "./rounds.ts";
+import { type DepthId, payoutCents, rollRound, type Volatility } from "./rounds.ts";
 
-// --- The test's own model of the probabilities, derived straight from the
-// weight tables. Deliberately not a server import: a bug in how the server
-// turns weights into draws must not be able to hide behind a shared helper.
+// --- The test's own model of the odds and the returns, derived straight from
+// the tables. Deliberately not a server helper: a bug in how the server turns
+// odds into draws must not be able to hide behind a shared function.
 
-const DEPTHS = Object.keys(DEPTH_WEIGHTS) as DepthId[];
-const depthWeightTotal = DEPTHS.reduce((sum, d) => sum + DEPTH_WEIGHTS[d], 0);
+const mean = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / values.length;
 const rosterOf = (d: DepthId) => FISH.filter(f => f.depth === d);
+const oddsTotal = (v: Volatility) => DEPTHS.reduce((sum, d) => sum + LEVELS[v].odds[d], 0);
+const pZone = (v: Volatility, d: DepthId) => LEVELS[v].odds[d] / oddsTotal(v);
 
-const pDepth = (d: DepthId) => DEPTH_WEIGHTS[d] / depthWeightTotal;
-const pFish = (id: string) => {
-	const f = FISH.find(x => x.id === id);
-	assert.ok(f, `unknown fish ${id}`);
-	const rosterWeight = rosterOf(f.depth).reduce((sum, x) => sum + x.weight, 0);
-	return pDepth(f.depth) * (f.weight / rosterWeight);
-};
-
-const unitBet = (type: Bet["type"], selection: string): Bet => ({
-	type,
-	selection,
-	amount: "1.00"
-});
-const allSelections: Bet[] = [...DEPTHS.map(d => unitBet("depth", d)), ...FISH.map(f => unitBet("fish", f.id))];
-const key = (b: Bet) => `${b.type}:${b.selection}`;
-const pSelection = (b: Bet) => (b.type === "depth" ? pDepth(b.selection as DepthId) : pFish(b.selection));
-const multiplierOf = (b: Bet) =>
-	b.type === "depth"
-		? DEPTH_MULTIPLIERS[b.selection as DepthId]
-		: (FISH.find(f => f.id === b.selection)?.multiplier ?? 0);
-
-const outcomeFor = (fishId: string): FishingOutcome => {
-	const f = FISH.find(x => x.id === fishId);
-	assert.ok(f, `unknown fish ${fishId}`);
-	return { depth: f.depth, fish: f.id, tier: f.tier };
-};
-
-// --- One shared simulation, run once at load. Deterministic in the seed pair
-// (rollOutcome is pure in its triple), so every run draws the same 200k
-// outcomes and the tolerances below only have to clear this one sample.
-
-const SIM_N = 200_000;
-const SIM_SERVER_SEED = "math-test-server-seed";
-const SIM_CLIENT_SEED = "math-test-client-seed";
-
-const sim = (() => {
-	const depthHits = Object.fromEntries(DEPTHS.map(d => [d, 0])) as Record<string, number>;
-	const fishHits = Object.fromEntries(FISH.map(f => [f.id, 0])) as Record<string, number>;
-	const staked = Object.fromEntries(allSelections.map(b => [key(b), 0])) as Record<string, number>;
-	const returned = Object.fromEntries(allSelections.map(b => [key(b), 0])) as Record<string, number>;
-
-	for (let nonce = 0; nonce < SIM_N; nonce++) {
-		const outcome = rollOutcome(SIM_SERVER_SEED, SIM_CLIENT_SEED, nonce);
-		depthHits[outcome.depth]++;
-		fishHits[outcome.fish]++;
-		for (const bet of allSelections) {
-			staked[key(bet)] += 100; // 1.00 in cents
-			returned[key(bet)] += toCents(resolveBet(bet, outcome).payout);
-		}
-	}
-	return { depthHits, fishHits, staked, returned };
-})();
-
-const simRtp = (b: Bet) => sim.returned[key(b)] / sim.staked[key(b)];
+/** What a volatility returns per unit staked, given what each zone's fish are listed at on average (bonus aside). */
+const returnOf = (v: Volatility, zoneMean: (d: DepthId) => number) =>
+	DEPTHS.reduce((sum, d) => sum + pZone(v, d) * zoneMean(d) * (d === "jackpot" ? 1 : 1 - LEVELS[v].escape), 0);
 
 // ===========================================================================
-// 1. Unit tests — the pure (bet, outcome) → payout contract
+// 1. Tables — the pools fit the roster
 // ===========================================================================
 
-test("resolveBet — a winning bet pays exactly round(stake × table multiplier), for every selection", () => {
-	for (const bet of allSelections) {
-		// Build the one outcome this selection wins against.
-		const outcome =
-			bet.type === "depth" ? outcomeFor(rosterOf(bet.selection as DepthId)[0].id) : outcomeFor(bet.selection);
-		const r = resolveBet({ ...bet, amount: "3.33" }, outcome);
-		assert.equal(r.won, true, key(bet));
-		assert.equal(toCents(r.payout), Math.round(333 * multiplierOf(bet)), `${key(bet)} payout`);
-		assert.equal(r.multiplier, (multiplierOf(bet) as number).toFixed(2), `${key(bet)} multiplier string`);
-	}
-});
-
-test("resolveBet — a losing bet reports the table multiplier and a zero payout", () => {
-	const outcome = outcomeFor("shark"); // deep / shark / epic
-	const miss = resolveBet(unitBet("fish", "whale"), outcome);
-	assert.equal(miss.won, false);
-	assert.equal(miss.payout, "0.00");
-	assert.equal(miss.multiplier, "231.43"); // still says what it would have paid
-});
-
-// ===========================================================================
-// 2. Probability tests — rollOutcome realises the weight tables
-// ===========================================================================
-
-test("measured depth frequencies match P(depth) from DEPTH_WEIGHTS", () => {
+test("every price pool holds exactly one price per fish in its zone", () => {
 	for (const d of DEPTHS) {
-		const measured = sim.depthHits[d] / SIM_N;
-		const expected = pDepth(d);
-		assert.ok(
-			Math.abs(measured / expected - 1) < 0.1,
-			`${d}: measured ${measured.toFixed(5)} vs expected ${expected.toFixed(5)}`
+		for (const v of VOLATILITIES) assert.equal(PRICES[v][d].length, rosterOf(d).length, `${v} ${d}`);
+		if (d !== "jackpot") assert.equal(PRICE_POOLS[d].length, rosterOf(d).length, `PRICE_POOLS ${d}`);
+	}
+});
+
+test("prices are real money, and a deeper zone is worth more than the one above it", () => {
+	for (const v of VOLATILITIES) {
+		for (const d of DEPTHS) {
+			for (const price of PRICES[v][d]) {
+				assert.ok(price >= 0.05, `${v} ${d}: ${price} is too small to pay out in cents`);
+				assert.ok(Math.abs(price * 100 - Math.round(price * 100)) < 1e-6, `${v} ${d}: ${price} is not whole cents`);
+			}
+		}
+		const means = DEPTHS.map(d => mean(PRICES[v][d]));
+		for (let i = 1; i < means.length; i++) assert.ok(means[i] > means[i - 1], `${v}: ${DEPTHS[i]} !> ${DEPTHS[i - 1]}`);
+	}
+});
+
+test("the hook dives shallower, and the jackpot grows, as the volatility rises", () => {
+	const deep = (v: Volatility) => pZone(v, "deep") + pZone(v, "abyss") + pZone(v, "jackpot");
+	assert.ok(deep("low") > deep("medium") && deep("medium") > deep("high"), "dive odds must fall");
+	assert.ok(PRICES.low.jackpot[0] < PRICES.medium.jackpot[0] && PRICES.medium.jackpot[0] < PRICES.high.jackpot[0]);
+	for (const v of VOLATILITIES) assert.ok(pZone(v, "shallow") > pZone(v, "abyss"), `${v}: shallow is the common catch`);
+});
+
+// ===========================================================================
+// 2. RTP — the 96% target (GDD "Mathematical Model & RTP")
+// ===========================================================================
+
+test("theoretical RTP — every volatility returns 96% (bonus aside, to within the cent rounding of the prices)", () => {
+	for (const v of VOLATILITIES) {
+		const rtp = returnOf(v, d => mean(PRICES[v][d]));
+		assert.ok(Math.abs(rtp - RTP) < 0.005, `${v}: ${(rtp * 100).toFixed(3)}%`);
+	}
+});
+
+test("the listed market returns 96% too", () => {
+	for (const v of VOLATILITIES) {
+		const { market } = rollRound("arrangement", "check", 0, v);
+		const price = new Map(market.map(e => [e.fish, Number(e.multiplier)]));
+		const rtp = returnOf(v, d => mean(rosterOf(d).map(f => price.get(f.id)!)));
+		assert.ok(Math.abs(rtp - RTP) < 0.005, `${v}: ${(rtp * 100).toFixed(3)}%`);
+	}
+});
+
+// ===========================================================================
+// 3. Probability — the catch follows the odds
+// ===========================================================================
+
+test("a market lists every fish once, each zone dealt exactly its own prices", () => {
+	for (const v of VOLATILITIES) {
+		const { market } = rollRound("market", "check", 7, v);
+		assert.deepEqual(
+			market.map(e => e.fish),
+			FISH.map(f => f.id)
 		);
-	}
-});
-
-test("measured fish frequencies match P(fish) = P(depth) × in-depth weight share", () => {
-	for (const f of FISH) {
-		const measured = sim.fishHits[f.id] / SIM_N;
-		const expected = pFish(f.id);
-		assert.ok(
-			Math.abs(measured / expected - 1) < 0.15, // whale P≈0.0056 — wide enough for its sampling noise
-			`${f.id}: measured ${measured.toFixed(5)} vs expected ${expected.toFixed(5)}`
-		);
-	}
-});
-
-test("depth probabilities sum to 1 and fish probabilities sum to 1", () => {
-	const depthSum = DEPTHS.reduce((s, d) => s + pDepth(d), 0);
-	const fishSum = FISH.reduce((s, f) => s + pFish(f.id), 0);
-	assert.ok(Math.abs(depthSum - 1) < 1e-9, `depth sum ${depthSum}`);
-	assert.ok(Math.abs(fishSum - 1) < 1e-9, `fish sum ${fishSum}`);
-});
-
-// ===========================================================================
-// 3. RTP simulation — the 96% target (GDD "Mathematical Model & RTP")
-// ===========================================================================
-
-test("theoretical RTP of every selection sits in the 96% ± 0.5% band", () => {
-	for (const bet of allSelections) {
-		const rtp = pSelection(bet) * multiplierOf(bet);
-		assert.ok(rtp > 0.955 && rtp < 0.965, `${key(bet)}: ${(rtp * 100).toFixed(3)}%`);
-	}
-});
-
-test("simulated blended RTP — a unit bet on every selection, over 200k rounds — converges on 96%", () => {
-	const staked = allSelections.reduce((s, b) => s + sim.staked[key(b)], 0);
-	const returned = allSelections.reduce((s, b) => s + sim.returned[key(b)], 0);
-	const rtp = returned / staked;
-	assert.ok(rtp > 0.95 && rtp < 0.975, `blended RTP ${(rtp * 100).toFixed(4)}%`);
-});
-
-test("simulated RTP of the frequently-hit selections (P ≥ 9%) lands within 2% of 96%", () => {
-	// These come up often enough that 200k rounds pin them tight. Rarer, higher-
-	// multiplier selections (jackpot, swordfish, whale, kraken, ...) stay noisy at
-	// this N — the theoretical-band test above is their guarantee, and the
-	// runaway check below is their floor/ceiling.
-	const steady = allSelections.filter(b => pSelection(b) >= 0.09);
-	assert.ok(steady.length >= 6, "expected several high-probability selections");
-	for (const bet of steady) {
-		assert.ok(Math.abs(simRtp(bet) - 0.96) < 0.02, `${key(bet)}: ${(simRtp(bet) * 100).toFixed(3)}%`);
-	}
-});
-
-test("no selection is a runaway win or a dead loss in simulation", () => {
-	for (const bet of allSelections) {
-		assert.ok(simRtp(bet) > 0.85 && simRtp(bet) < 1.1, `${key(bet)}: ${(simRtp(bet) * 100).toFixed(2)}%`);
-	}
-});
-
-// ===========================================================================
-// 4. Combined bet tests — many bets, one outcome (GDD: a depth + a fish bet
-//    can both win; combining bets must not move the RTP)
-// ===========================================================================
-
-/** Mirrors openRound's aggregation, kept pure for the unit level. */
-function settle(bets: Bet[], outcome: FishingOutcome) {
-	const results = bets.map(b => resolveBet(b, outcome));
-	const total = results.reduce((s, r) => s + toCents(r.payout), 0);
-	const wagered = bets.reduce((s, b) => s + toCents(b.amount), 0);
-	return { results, total, wagered, net: total - wagered };
-}
-
-test("a depth bet and a fish bet on the same outcome both win and both pay", () => {
-	const outcome = outcomeFor("shark"); // deep / shark / epic
-	const { results, total, net } = settle(
-		[
-			{ type: "depth", selection: "deep", amount: "10.00" },
-			{ type: "fish", selection: "shark", amount: "10.00" }
-		],
-		outcome
-	);
-	assert.deepEqual(
-		results.map(r => r.won),
-		[true, true]
-	);
-	assert.equal(total, Math.round(1000 * DEPTH_MULTIPLIERS.deep) + Math.round(1000 * 36.71));
-	assert.equal(net, total - 2000);
-});
-
-test("bets in one slip resolve independently — winners pay, losers do not drag them down", () => {
-	const outcome = outcomeFor("shark");
-	const { results, total, wagered, net } = settle(
-		[
-			{ type: "depth", selection: "deep", amount: "10.00" }, // hit
-			{ type: "fish", selection: "shark", amount: "10.00" }, // hit
-			{ type: "fish", selection: "whale", amount: "10.00" }, // miss
-			{ type: "depth", selection: "shallow", amount: "10.00" } // miss
-		],
-		outcome
-	);
-	assert.deepEqual(
-		results.map(r => r.won),
-		[true, true, false, false]
-	);
-	assert.equal(wagered, 4000);
-	assert.equal(total, toCents(results[0].payout) + toCents(results[1].payout));
-	assert.equal(net, total - 4000);
-});
-
-test("combining a depth bet with a fish bet does not distort RTP", () => {
-	// Same 200k stream, a unit bet on { reef, napoleon } every round. Both are
-	// frequent enough to converge; the pair's RTP is still ~96%.
-	let staked = 0;
-	let returned = 0;
-	const slip: Bet[] = [unitBet("depth", "reef"), unitBet("fish", "napoleon")];
-	for (let nonce = 0; nonce < SIM_N; nonce++) {
-		const outcome = rollOutcome(SIM_SERVER_SEED, SIM_CLIENT_SEED, nonce);
-		for (const bet of slip) {
-			staked += 100;
-			returned += toCents(resolveBet(bet, outcome).payout);
+		for (const d of DEPTHS) {
+			const dealt = rosterOf(d)
+				.map(f => Number(market.find(e => e.fish === f.id)!.multiplier))
+				.sort((a, b) => a - b);
+			assert.deepEqual(
+				dealt,
+				[...PRICES[v][d]].sort((a, b) => a - b),
+				`${v} ${d}`
+			);
 		}
 	}
-	const rtp = returned / staked;
-	assert.ok(rtp > 0.94 && rtp < 0.98, `combined RTP ${(rtp * 100).toFixed(4)}%`);
 });
 
-// ===========================================================================
-// 5. Edge case tests
-// ===========================================================================
-
-test("stake at the configured min and max resolves cleanly on the biggest multiplier", () => {
-	const outcome = outcomeFor("whale"); // abyss / whale / jackpot, ×231.43
-	for (const amount of [config.minBet, config.maxBet]) {
-		const r = resolveBet({ type: "fish", selection: "whale", amount }, outcome);
-		assert.equal(r.won, true);
-		assert.equal(toCents(r.payout), Math.round(toCents(amount) * 231.43));
-		assert.ok(Number.isFinite(toCents(r.payout)) && !r.payout.includes("NaN"));
+test("the market is fixed: every round of a volatility lists the same prices", () => {
+	for (const v of VOLATILITIES) {
+		const first = JSON.stringify(rollRound("fixed", "check", 0, v).market);
+		for (let nonce = 1; nonce < 20; nonce++)
+			assert.equal(JSON.stringify(rollRound("fixed", "check", nonce, v).market), first);
 	}
 });
 
-test("half-a-cent payouts round up, not to even", () => {
-	// 0.50 × bluefin-tuna 24.47 = 12.235 exactly → 12.24 (Math.round is half-up, not banker's).
-	const r = resolveBet({ type: "fish", selection: "bluefin-tuna", amount: "0.50" }, outcomeFor("bluefin-tuna"));
-	assert.equal(r.payout, "12.24");
+test("the Kraken is listed at the jackpot", () => {
+	for (const v of VOLATILITIES) {
+		const kraken = rollRound("kraken", "check", 0, v).market.find(e => e.fish === "kraken")!;
+		assert.equal(Number(kraken.multiplier), PRICES[v].jackpot[0]);
+	}
 });
 
-test("a round where every bet loses pays zero and nets the full wager back as negative", () => {
-	const outcome = outcomeFor("shark"); // deep / shark
-	const { total, wagered, net } = settle(
-		[
-			{ type: "depth", selection: "shallow", amount: "1.00" },
-			{ type: "fish", selection: "kraken", amount: "1.00" }
-		],
-		outcome
-	);
-	assert.equal(total, 0);
-	assert.equal(wagered, 200);
-	assert.equal(net, -200);
+// ===========================================================================
+// 4. Simulation — one shared run per volatility, drawn once at load
+// ===========================================================================
+
+const SIM_N = 150_000;
+
+const sims = Object.fromEntries(
+	VOLATILITIES.map(v => {
+		const zoneHits = Object.fromEntries(DEPTHS.map(d => [d, 0])) as Record<DepthId, number>;
+		let paid = 0;
+		for (let nonce = 0; nonce < SIM_N; nonce++) {
+			const { outcome, bonus } = rollRound("math-test-server-seed", "math-test-client-seed", nonce, v);
+			zoneHits[outcome.depth]++;
+			// The bonus is too rare for a run this size to average out, so the run is checked without it.
+			paid += Number(outcome.multiplier) / Number(bonus.find(b => b.fish === outcome.fish)?.multiplier ?? 1);
+		}
+		return [v, { zoneHits, rtp: paid / SIM_N }];
+	})
+) as Record<Volatility, { zoneHits: Record<DepthId, number>; rtp: number }>;
+
+test("measured zone frequencies match the odds of every volatility", () => {
+	for (const v of VOLATILITIES) {
+		for (const d of DEPTHS) {
+			const measured = sims[v].zoneHits[d] / SIM_N;
+			const expected = pZone(v, d);
+			// The jackpot's 0.1% is only ~150 rounds in this run, so it gets a wider band.
+			const tolerance = expected < 0.005 ? 0.35 : 0.06;
+			assert.ok(
+				Math.abs(measured / expected - 1) < tolerance,
+				`${v} ${d}: measured ${measured.toFixed(5)} vs expected ${expected.toFixed(5)}`
+			);
+		}
+	}
 });
 
-test("the rarest outcome (kraken, P≈0.01) still pays its exact multiplier", () => {
-	const outcome = outcomeFor("kraken"); // jackpot / kraken / jackpot
-	assert.equal(resolveBet({ type: "fish", selection: "kraken", amount: "1.00" }, outcome).payout, "96.00");
-	assert.equal(resolveBet({ type: "depth", selection: "jackpot", amount: "1.00" }, outcome).payout, "96.00");
+test("simulated RTP — over a long run, every volatility converges on 96%, bonus aside", () => {
+	// The jackpot is a small share of the rounds but a big share of the return at high volatility, so that is
+	// where the sample is noisiest; the theoretical test above is the exact guarantee.
+	for (const v of VOLATILITIES) {
+		assert.ok(Math.abs(sims[v].rtp - RTP) < 0.06, `${v}: ${(sims[v].rtp * 100).toFixed(2)}%`);
+	}
 });
 
-test("resolveBet on an off-table selection is a zero, not a NaN, into the wallet", () => {
-	// validateBets rejects these upstream — this is the last-ditch guard in multiplierFor.
-	const outcome = outcomeFor("shark");
-	const r = resolveBet({ type: "fish", selection: "mermaid", amount: "10.00" }, outcome);
-	assert.equal(r.won, false);
-	assert.equal(r.multiplier, "0.00");
-	assert.equal(r.payout, "0.00");
+// ===========================================================================
+// 5. Edge cases
+// ===========================================================================
+
+test("payoutCents pays stake × multiplier in whole cents, halves rounding up", () => {
+	assert.equal(payoutCents(333, "6.00"), 1998);
+	assert.equal(payoutCents(100, "0.07"), 7);
+	// 0.50 × 24.47 = 12.235 exactly → 12.24 (half up, not banker's — and no float error tipping it down).
+	assert.equal(payoutCents(50, "24.47"), 1224);
+	assert.equal(payoutCents(1, "0.50"), 1);
 });
 
-test("a large stake on a large multiplier stays exact in integer cents", () => {
-	const outcome = outcomeFor("kraken");
-	const r = resolveBet({ type: "fish", selection: "kraken", amount: config.maxBet }, outcome);
-	assert.equal(r.payout, "48000.00"); // 500.00 × 96
+test("payoutCents is exact in integer cents for the biggest stake on the biggest prize", () => {
+	const top = Math.max(...VOLATILITIES.map(v => PRICES[v].jackpot[0]));
+	const paid = payoutCents(toCents(config.maxBet), top.toFixed(2));
+	assert.equal(paid, toCents(config.maxBet) * top);
+	assert.ok(Number.isSafeInteger(paid));
+});
+
+test("a stake at the configured minimum still pays whole cents on the smallest price", () => {
+	const cheapest = Math.min(...VOLATILITIES.map(v => Math.min(...DEPTHS.flatMap(d => PRICES[v][d]))));
+	const paid = payoutCents(toCents(config.minBet), cheapest.toFixed(2));
+	assert.ok(Number.isInteger(paid) && paid >= 0);
+});
+
+// ===========================================================================
+// 5. Bonus — the highlighted fish
+// ===========================================================================
+
+test("every round highlights 1 to 5 distinct fish, in roster order, each with a bonus of 100x to 8888x", () => {
+	const order = FISH.map(f => f.id);
+	for (let nonce = 0; nonce < 500; nonce++) {
+		const { bonus } = rollRound("bonus", "check", nonce, "medium");
+		assert.ok(bonus.length >= 1 && bonus.length <= 5, `${bonus.length} fish`);
+		const ids = bonus.map(b => b.fish);
+		assert.deepEqual(
+			ids,
+			order.filter(id => ids.includes(id))
+		);
+		for (const b of bonus) assert.ok(Number(b.multiplier) >= 100 && Number(b.multiplier) <= 8888);
+	}
+});
+
+test("a highlighted catch pays its bonus on top; an ordinary one is never highlighted", () => {
+	let hits = 0;
+	for (let nonce = 0; nonce < 60_000; nonce++) {
+		const { outcome, bonus, market } = rollRound("bonus-hit", "check", nonce, "low");
+		const hit = bonus.find(b => b.fish === outcome.fish);
+		if (!hit) continue;
+		hits++;
+		const price = Number(market.find(e => e.fish === outcome.fish)!.multiplier);
+		assert.ok(Math.abs(Number(outcome.multiplier) - price * Number(hit.multiplier)) < 0.01);
+	}
+	assert.ok(hits > 5 && hits < 80, `${hits} hits in 60000 rounds`);
+});
+
+test("a hooked fish gets away at the volatility's escape chance, pays nothing, and is never the Kraken or highlighted", () => {
+	for (const v of VOLATILITIES) {
+		let escapes = 0;
+		let landed = 0;
+		for (let nonce = 0; nonce < 20_000; nonce++) {
+			const { outcome, bonus } = rollRound("escape", "check", nonce, v);
+			if (outcome.depth !== "jackpot") landed++;
+			if (!outcome.escaped) continue;
+			escapes++;
+			assert.equal(Number(outcome.multiplier), 0);
+			assert.notEqual(outcome.depth, "jackpot");
+			assert.ok(!bonus.some(b => b.fish === outcome.fish), "an escaped fish is never highlighted");
+		}
+		assert.ok(Math.abs(escapes / landed - LEVELS[v].escape) < 0.02, `${v}: ${escapes}/${landed}`);
+	}
 });

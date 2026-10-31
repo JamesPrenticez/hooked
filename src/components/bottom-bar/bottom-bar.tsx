@@ -8,16 +8,17 @@ import { BetSection } from "./bet-section";
 import { BonusModal } from "./bonus-modal";
 import { BonusSection } from "./bonus-section";
 import { CallToActionSection } from "./call-to-action-section";
-import { SelectTargetsSection } from "./select-targets.modal";
-import { SelectTargetsModal } from "./select-targets-modal";
+import { MarketModal } from "./market-modal";
+import { MarketSection } from "./market-section";
 import { TotalSection } from "./total-section";
+import { VolatilityModal } from "./volatility-modal";
+import { VolatilitySection } from "./volatility-section";
 
 const Container = styled.div`
 	position: fixed;
 	left: 0;
 	right: 0;
 	bottom: 0;
-
 	display: flex;
 	align-items: center;
 	gap: var(--spacing-sm);
@@ -27,7 +28,7 @@ const Container = styled.div`
 	}
 
 	@media ${breakpoint.tablet} {
-		bottom: var(--spacing-lg);
+		bottom: var(--spacing-xxl);
 		left: 50%;
 		right: auto;
 		transform: translateX(-50%);
@@ -35,18 +36,26 @@ const Container = styled.div`
 	}
 `;
 
-/* never-give-up's shape: a full-bleed, square-cornered column stack on a
- * portrait phone, laid flat into one edge-to-edge row on a landscape phone,
- * and only pulled into an inset, bordered, rounded pill at tablet+. */
+/* Phones: transparent, so each button keeps its own place against the bar. Desktop: the two stack inside the bar's right end. */
+const SideButtons = styled.div`
+	display: contents;
+
+	@media ${breakpoint.tablet} {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-xs);
+		margin-right: var(--spacing-sm);
+	}
+`;
+
 const Bar = styled.div`
 	box-sizing: border-box;
-	/* Only the controls are interactive; the bar itself never blocks taps to whatever's behind it. */
 	pointer-events: none;
 	display: flex;
 	flex-direction: column;
 	flex-grow: 1;
 	gap: var(--spacing-sm);
-	padding: var(--spacing-sm);
+	/* padding: var(--spacing-sm); */
 	background: color-mix(in srgb, var(--color-black) 72%, transparent);
 
 	@media ${breakpoint.landscape} {
@@ -62,7 +71,7 @@ const Bar = styled.div`
 		align-items: center;
 		justify-content: space-between;
 		flex-grow: 0;
-		padding: var(--spacing-md);
+		/* padding: var(--spacing-md); */
 		border: var(--border-thickness) solid color-mix(in srgb, var(--color-primary) 40%, transparent);
 		border-radius: 1.2rem;
 	}
@@ -74,32 +83,40 @@ interface BottomBarProps {
 }
 
 /**
- * Mobile-first bottom UI: chip selector, cast-line control, total wager, a
- * "Select Targets" button and a "Bonus" button. The depth/species board
- * (`BettingBoard`) used to sit inline here; it now opens in
- * `SelectTargetsModal` instead, mirroring never-give-up's difficulty picker.
- * Bonus opens `BonusModal`, mirroring its bonus-buy button.
+ * Mobile-first bottom UI: the stake, the cast-line control, the total and a
+ * "Volatility" button and a "Bonus" button. Volatility opens
+ * `VolatilityModal` (how deep the hook tends to dive), mirroring
+ * never-give-up's difficulty picker. Bonus opens `BonusModal`, mirroring its
+ * bonus-buy button.
  *
- * Cast toggles the client-only descent view (App.tsx) — bets aren't submitted
- * to the server yet, and targets and bonuses lock while descending.
+ * Cast opens a round on the server and deals its fish market (App.tsx); the
+ * stake, volatility and bonuses lock from then until the catch is landed.
  */
 export const BottomBar = ({ descending, onCast }: BottomBarProps) => {
-	const [targetsOpen, setTargetsOpen] = useState(false);
+	const [volatilityOpen, setVolatilityOpen] = useState(false);
+	const [marketOpen, setMarketOpen] = useState(false);
 	const [bonusOpen, setBonusOpen] = useState(false);
 
 	return (
-		<Container>
-			<Bar>
-				<BonusSection disabled={descending} onOpen={() => setBonusOpen(true)} />
-				<Balance />
-				<BetSection disabled={descending} />
-				<CallToActionSection descending={descending} onCast={onCast} />
-				<TotalSection disabled={descending} />
-				<SelectTargetsSection disabled={descending} onOpen={() => setTargetsOpen(true)} />
-			</Bar>
+		<>
+			{/* Outside Container: its tablet transform would re-anchor an absolute child to the bar. */}
+			<TotalSection />
+			<Container>
+				<Bar>
+					<BonusSection disabled={descending} onOpen={() => setBonusOpen(true)} />
+					<Balance />
+					<BetSection disabled={descending} />
+					<CallToActionSection descending={descending} onCast={onCast} />
+					<SideButtons>
+						<MarketSection onOpen={() => setMarketOpen(true)} />
+						<VolatilitySection disabled={descending} onOpen={() => setVolatilityOpen(true)} />
+					</SideButtons>
+				</Bar>
 
-			{targetsOpen && <SelectTargetsModal disabled={descending} onClose={() => setTargetsOpen(false)} />}
-			{bonusOpen && <BonusModal onClose={() => setBonusOpen(false)} />}
-		</Container>
+				{volatilityOpen && <VolatilityModal onClose={() => setVolatilityOpen(false)} />}
+				{marketOpen && <MarketModal onClose={() => setMarketOpen(false)} />}
+				{bonusOpen && <BonusModal onClose={() => setBonusOpen(false)} />}
+			</Container>
+		</>
 	);
 };

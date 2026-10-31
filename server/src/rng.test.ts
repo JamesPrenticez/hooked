@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { byteStream, generateSeed, hashSeed, rollInt, rollWeighted } from "./rng.ts";
+import { byteStream, generateSeed, hashSeed, rollInt, rollWeighted, shuffle } from "./rng.ts";
 
 const take = (gen: Generator<number>, n: number) => Array.from({ length: n }, () => gen.next().value);
 
@@ -76,4 +76,27 @@ test("rollWeighted rejects empty, non-integer or all-zero weights", () => {
 	assert.throws(() => rollWeighted(byteStream("s", "c", 0), []), RangeError);
 	assert.throws(() => rollWeighted(byteStream("s", "c", 0), [1.5, 2]), RangeError);
 	assert.throws(() => rollWeighted(byteStream("s", "c", 0), [0, 0]), RangeError);
+});
+
+test("shuffle deals a permutation, reproducibly, and reaches every ordering", () => {
+	assert.deepEqual(
+		shuffle(byteStream("s", "c", 0), [1, 2, 3, 4, 5]),
+		shuffle(byteStream("s", "c", 0), [1, 2, 3, 4, 5])
+	);
+
+	const seen = new Map<string, number>();
+	for (let i = 0; i < 6000; i++) {
+		const order = shuffle(byteStream("shuf", "fle", i), ["a", "b", "c"]);
+		assert.deepEqual([...order].sort(), ["a", "b", "c"]);
+		seen.set(order.join(""), (seen.get(order.join("")) ?? 0) + 1);
+	}
+	// 3! = 6 orderings, each expected 1000 times.
+	assert.equal(seen.size, 6);
+	for (const [order, count] of seen) assert.ok(count > 800 && count < 1200, `${order}: ${count}`);
+});
+
+test("shuffle leaves a lone item alone and draws nothing for it", () => {
+	const stream = byteStream("s", "c", 0);
+	assert.deepEqual(shuffle(stream, ["only"]), ["only"]);
+	assert.deepEqual(shuffle(stream, []), []);
 });

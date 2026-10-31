@@ -92,6 +92,8 @@ const TUNA = sheet(new URL("../assets/fish-sprites/tuna.png", import.meta.url).h
 const NAPOLEON = sheet(new URL("../assets/fish-sprites/napoleon.png", import.meta.url).href, { opaque: true });
 const TURTLE = sheet(new URL("../assets/fish-sprites/turtle.png", import.meta.url).href, { fps: 8 });
 const JELLY = sheet(new URL("../assets/fish-sprites/jelly.png", import.meta.url).href, { fps: 8 });
+const STARFISH = sheet(new URL("../assets/fish-sprites/starfish.png", import.meta.url).href, { fps: 8 });
+const CRAB = sheet(new URL("../assets/fish-sprites/crab.png", import.meta.url).href, { fps: 8 });
 const WHALE = sheet(new URL("../assets/fish-sprites/sperm.png", import.meta.url).href, { fps: 8 });
 
 const portrait = (name: string) => new URL(`../assets/single-fish/${name}.png`, import.meta.url).href;
@@ -127,7 +129,7 @@ export const FISH: (FishEntry | HookableFish)[] = [
 	// reef
 	fish("napoleon", "Napoleon Wrasse", "reef", NAPOLEON, 0.8, 55, 1530, 3610, 2, portrait("napoleon")),
 	fish("turtle", "Turtle", "reef", TURTLE, 0.85, 40, 1640, 4045, 2, portrait("turtle")),
-	fish("king-crab", "King Crab", "reef", GROUPER, 0.5, 40, 1640, 4045, 2),
+	fish("king-crab", "King Crab", "reef", CRAB, 0.5, 40, 1640, 4045, 2, portrait("crab")),
 	fish("snapper", "Snapper", "reef", SNAPPER, 0.8, 60, 1530, 3610, 2, portrait("snapper")),
 	fish("grouper", "Grouper", "reef", GROUPER, 0.9, 45, 1640, 4045, 2, portrait("grouper")),
 	fish("trevelly", "Trevally", "reef", TREVALLY, 0.9, 120, 1530, 3935, 2, portrait("trevelly")),
@@ -136,13 +138,12 @@ export const FISH: (FishEntry | HookableFish)[] = [
 	fish("bluefin-tuna", "Bluefin Tuna", "deep", TUNA, 1, 140, 4100, 7110, 2, portrait("tuna")),
 	fish("puffer", "Pufferfish", "deep", PUFFER, 0.7, 45, 4210, 7110, 2, portrait("puffer")),
 	fish("shark", "Shark", "deep", SHARK, 2.3, 100, 4430, 7215, 2, portrait("shark")),
-	fish("barracuda-epic", "Barracuda", "deep", BARRACUDA, 0.9, 120, 4100, 7000, 2, portrait("barracuda")),
 	fish("swordfish", "Swordfish", "deep", MARLIN, 1.3, 150, 4100, 7110, 2, portrait("marlin")),
 	fish("sting", "Stingray", "deep", STING, 0.9, 50, 4100, 7000, 2, portrait("sting")),
 	// abyss
 	fish("lanternfish", "Lanternfish", "abyss", LANTERN, 0.75, 45, 9895, 10_825, 2, portrait("lantern")),
 	fish("jellyfish", "Jellyfish", "abyss", JELLY, 0.6, 20, 7215, 9675, 2, portrait("jellly")),
-	fish("starfish", "Starfish", "abyss", JELLY, 0.5, 25, 7215, 9675, 2),
+	fish("starfish", "Starfish", "abyss", STARFISH, 0.5, 25, 7215, 9675, 2, portrait("starfish")),
 	fish("whale", "Whale", "abyss", WHALE, 4.5, 30, 10_005, 10_675, 2, portrait("sperm")),
 	fish("squid", "Squid", "abyss", SQUID, 0.8, 40, 7215, 9675, 2, portrait("squid")),
 	fish("dragon", "Sea Dragon", "abyss", DRAGON, 0.9, 50, 7215, 9675, 2, portrait("dragon")),

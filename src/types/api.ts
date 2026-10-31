@@ -23,10 +23,10 @@ export interface CurrentResponse {
 	currency: string;
 	active: boolean;
 	roundId?: string;
-	/** The open round's bets — present only when active. Outcome/payout are
-	 *  deliberately withheld here (§30); call getRound(roundId) for the full
-	 *  result to resume presentation from. */
-	bets?: Bet[];
+	/** The open round's stake and volatility — present only when active. The market, outcome and payout are
+	 *  deliberately withheld here (§30); call getRound(roundId) for the full result to resume presentation from. */
+	stake?: string;
+	volatility?: Volatility;
 }
 
 /** Non-2xx responses carry this instead of a result. */
@@ -34,20 +34,34 @@ export interface ErrorBody {
 	error: { code: string; message: string };
 }
 
-export interface Bet {
-	type: "depth" | "fish";
-	selection: string;
-	/** Decimal string. */
-	amount: string;
-}
-
 export type DepthId = "shallow" | "reef" | "deep" | "abyss" | "jackpot";
 export type FishTier = "small" | "large" | "epic" | "legendary" | "jackpot";
+
+/** How likely the hook is to dive deep: low keeps it in the shallows, high sends it deeper more often. */
+export type Volatility = "low" | "medium" | "high" | "extreme";
+
+/** One line of a round's fish market: what the fish pays if it is the one landed this round. */
+export interface MarketEntry {
+	fish: string;
+	/** Decimal string, in multiples of the stake. Can be below 1 — a catch worth less than the stake. */
+	multiplier: string;
+}
+
+/** A fish highlighted this round: if it is the one landed, its payout is multiplied by this. */
+export interface BonusEntry {
+	fish: string;
+	/** Decimal string, a whole multiple (100 to 8888). */
+	multiplier: string;
+}
 
 export interface FishingOutcome {
 	depth: DepthId;
 	fish: string;
 	tier: FishTier;
+	/** The fish took the hook but got away: nothing is landed and `multiplier` is "0.00". */
+	escaped: boolean;
+	/** Decimal string — what the landed fish pays this round: its price on the market, times its bonus if it was highlighted. */
+	multiplier: string;
 }
 
 /** Provably-fair context recorded with a round (ARCHITECTURE.md §36). The raw
@@ -61,7 +75,9 @@ export interface RoundSeed {
 // --- Round play — POST /api/game/play, the { message: { <oneVariant> } } envelope (§5) ---
 
 export interface StartMessage {
-	bets: Bet[];
+	/** Decimal string. */
+	stake: string;
+	volatility: Volatility;
 }
 
 export interface CompleteMessage {
@@ -75,27 +91,25 @@ export interface PlayRequest {
 	message: PlayMessage;
 }
 
-export interface BetResult extends Bet {
-	won: boolean;
-	/** Decimal string. */
-	multiplier: string;
-	/** Decimal string; "0.00" when lost — zero emitted, not omitted (§5). */
-	payout: string;
-}
-
 export interface PayoutResult {
-	/** Decimal string — sum of winning bets' payouts; what `complete` credits to balance. */
+	/** Decimal string — the stake times the catch's multiplier; what `complete` credits to balance. */
 	total: string;
-	/** Decimal string — sum of bet amounts; what `start` already debited. */
+	/** Decimal string — the stake; what `start` already debited. */
 	wagered: string;
-	/** Decimal string — `total` − `wagered`; negative (leading "-") on a losing round. */
+	/** Decimal string — `total` − `wagered`; negative (leading "-") when the catch pays less than the stake. */
 	net: string;
 }
 
 export interface RoundResult {
 	roundId: string;
+	volatility: Volatility;
+	/** Decimal string. */
+	stake: string;
+	/** Every fish and what it pays this round, in roster order — rotates each round. */
+	market: MarketEntry[];
+	/** The 1 to 5 fish highlighted this round, each with the bonus it pays if landed. */
+	bonus: BonusEntry[];
 	outcome: FishingOutcome;
-	bets: BetResult[];
 	payout: PayoutResult;
 	/** Always "0" on /game/play responses — NOT authoritative (§14). Read
 	 *  balance from getBalance() or track it locally. */
@@ -114,16 +128,20 @@ export type RoundStatus = "open" | "completed";
 export interface RoundDetailResponse {
 	roundId: string;
 	status: RoundStatus;
+	volatility: Volatility;
+	stake: string;
+	market: MarketEntry[];
+	bonus: BonusEntry[];
 	outcome: FishingOutcome;
-	bets: BetResult[];
 	payout: PayoutResult;
 	seed: RoundSeed;
 }
 
 export interface HistoryEntry {
 	roundId: string;
+	volatility: Volatility;
+	stake: string;
 	outcome: FishingOutcome;
-	bets: BetResult[];
 	payout: PayoutResult;
 	seed: RoundSeed;
 	completedAt: string; // ISO-8601
@@ -156,22 +174,24 @@ export interface RevealedSeedResponse {
 	nonce: number;
 }
 
-/** POST /api/game/verify — outcome recomputed from a seed triple. Compare it
- *  to the round's stored outcome; a match is the proof. */
+/** POST /api/game/verify — a round recomputed from a seed triple and its volatility. Compare it to the round's
+ *  stored market and outcome; a match is the proof. */
 export interface VerifyResponse {
 	serverSeedHash: string;
 	clientSeed: string;
 	nonce: number;
+	volatility: Volatility;
+	market: MarketEntry[];
+	bonus: BonusEntry[];
 	outcome: FishingOutcome;
 }
 
 // --- Dev controls — /api/debug/*, gated by VITE_DEBUG, absent in production (§16/§17) ---
 
-/** Any subset forces that field; omit to leave it rolled. `{}` clears the override. */
+/** A fish pins the catch; a depth pins the zone (landing its first fish). `{}` clears the override. */
 export interface ForcedOutcome {
 	depth?: DepthId;
 	fish?: string;
-	tier?: FishTier;
 }
 
 export interface DebugSimulation {
