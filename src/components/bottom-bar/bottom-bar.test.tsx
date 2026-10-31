@@ -36,10 +36,10 @@ it("opens the fish market from its button, even mid-cast, and closes it again", 
 	expect(screen.queryByRole("dialog", { name: "Fish market" })).not.toBeInTheDocument();
 });
 
-it("reads Surface and is pressed while descending", () => {
+it("reads Cash out and is pressed while descending", () => {
 	render(<BottomBar descending onCast={() => {}} />);
 
-	const button = screen.getByRole("button", { name: /surface/i });
+	const button = screen.getByRole("button", { name: /cash out/i });
 	expect(button).toHaveAttribute("aria-pressed", "true");
 });
 

@@ -28,8 +28,8 @@ test("casting lights 1 to 5 bonus fish on the board, then the hook goes down", a
 	// No casting twice while they are lit.
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeDisabled();
 
-	await expect(page.getByRole("button", { name: "Surface" })).toBeVisible({ timeout: 15_000 });
-	await page.getByRole("button", { name: "Surface" }).click();
+	await expect(page.getByRole("button", { name: "Cash out" })).toBeVisible({ timeout: 15_000 });
+	await page.getByRole("button", { name: "Cash out" }).click();
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
 	await expect(marketBoard(page).locator("[data-caught]")).toHaveCount(1);
 });
@@ -45,7 +45,7 @@ test("the board shows the prices the server listed, and the catch pays them (tim
 	const { message } = await (await started).json();
 
 	// Surfacing early still settles the round: the payout is the server's, not the presentation's.
-	await page.getByRole("button", { name: "Surface" }).click();
+	await page.getByRole("button", { name: "Cash out" }).click();
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
 
 	for (const { fish, multiplier } of message.market) {

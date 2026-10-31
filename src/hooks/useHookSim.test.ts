@@ -13,7 +13,7 @@ import { useHookSim } from "./useHookSim";
 beforeEach(() => {
 	vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame", "performance"] });
 	useHookStore.setState({
-		hookMode: "control",
+		hookMode: "manual",
 		worldSeed: 1,
 		multiplier: undefined,
 		timeScale: 8,
@@ -112,7 +112,7 @@ it("goes after the fish the server chose, and weighs the catch what its market s
 	expect(useHookStore.getState().recording).toBeUndefined();
 });
 
-it("lets the debug multiplier override the round's own", () => {
+it("keeps the round's own multiplier in auto, whatever the debug multiplier says", () => {
 	useHookStore.setState({ hookMode: "auto", multiplier: 500 });
 	useRoundStore.setState({
 		round: roundSnapshot({
@@ -121,7 +121,7 @@ it("lets the debug multiplier override the round's own", () => {
 	});
 
 	renderHook(() => useHookSim(true));
-	expect(useHookStore.getState().sim).toMatchObject({ target: "shark", multiplier: 500 });
+	expect(useHookStore.getState().sim).toMatchObject({ target: "shark", multiplier: 6.35 });
 });
 
 it("runs the hook to the Kraken when the server's catch is the Kraken", () => {

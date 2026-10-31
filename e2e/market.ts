@@ -8,7 +8,7 @@ export const marketBoard = (page: Page) => page.getByRole("region", { name: "Fis
 /** Casts the line and waits out the bonus highlight, so the hook is on its way down. */
 export async function cast(page: Page) {
 	await page.getByRole("button", { name: "Cast Line" }).click();
-	await expect(page.getByRole("button", { name: "Surface" })).toBeVisible({ timeout: 15_000 });
+	await expect(page.getByRole("button", { name: "Cash out" })).toBeVisible({ timeout: 15_000 });
 }
 
 /** Pins the next round's catch on the mock server (no fish clears it). The server's debug state is shared, so a test

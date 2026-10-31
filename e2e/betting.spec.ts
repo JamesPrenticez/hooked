@@ -29,7 +29,7 @@ test("casting takes the stake off the balance and landing pays the server's payo
 	await expect.poll(() => balance(page)).toBeCloseTo(before - 1, 2);
 
 	// The hook goes down and the catch is landed; the cast button is back once the round is over.
-	await expect(page.getByRole("button", { name: "Surface" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Cash out" })).toBeVisible();
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible({ timeout: 240_000 });
 	await expect.poll(() => balance(page), { timeout: 30_000 }).toBeCloseTo(before - 1 + Number(message.payout.total), 2);
 });

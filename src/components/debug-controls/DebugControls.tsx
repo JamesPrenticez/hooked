@@ -10,54 +10,19 @@ const KEYS = [
 	{ key: "ArrowRight", area: "right", turn: 90, label: "steer right" }
 ];
 
-/* Inverted-T, like a keyboard: ↑ over ↓, flanked by ← and →. */
-const Pad = styled.div`
+/* Inverted-T, like a keyboard: ↑ over ↓, flanked by ← and →. The whole pad is the auto/manual toggle. */
+const Pad = styled.button<{ $on: boolean }>`
 	display: grid;
 	grid-template-areas:
 		". up ."
 		"left down right";
 	gap: 0.25rem;
-`;
-
-const Wrap = styled.div`
-	display: flex;
-	align-items: center;
-	gap: var(--spacing-sm);
-`;
-
-const Switch = styled.button`
-	display: flex;
-	align-items: center;
-	gap: var(--spacing-sm);
 	padding: 0;
 	border: 0;
 	background: none;
-	color: var(--color-white);
-	font: var(--font-display-xs);
 	cursor: pointer;
-`;
-
-const Track = styled.span<{ $on: boolean }>`
-	position: relative;
-	width: 3rem;
-	height: 1.5rem;
-	border-radius: 999px;
-	background: ${p => (p.$on ? "var(--color-secondary)" : "color-mix(in srgb, var(--color-black) 60%, transparent)")};
-	box-shadow: inset 0 2px 4px color-mix(in srgb, var(--color-black) 50%, transparent);
-	transition: background 0.15s;
-
-	&::after {
-		content: "";
-		position: absolute;
-		top: 0.1875rem;
-		left: ${p => (p.$on ? "1.6875rem" : "0.1875rem")};
-		width: 1.125rem;
-		height: 1.125rem;
-		border-radius: 50%;
-		background: var(--color-white);
-		box-shadow: 0 1px 3px color-mix(in srgb, var(--color-black) 60%, transparent);
-		transition: left 0.15s;
-	}
+	filter: ${p => (p.$on ? "none" : "grayscale(1) opacity(0.5)")};
+	transition: filter 0.15s;
 `;
 
 /* A keycap: light face, dark rim, a thick lower edge that squashes when the key is held. */
@@ -68,10 +33,11 @@ const Cap = styled.span<{ $down: boolean }>`
 	height: 2.25rem;
 	border: 1px solid color-mix(in srgb, var(--color-black) 70%, transparent);
 	border-radius: 0.375rem;
+	--face: var(--color-white);
 	background: ${p =>
 		p.$down
-			? "color-mix(in srgb, var(--color-white) 80%, var(--color-black))"
-			: "linear-gradient(color-mix(in srgb, var(--color-white) 100%, transparent), color-mix(in srgb, var(--color-white) 85%, var(--color-black)))"};
+			? "color-mix(in srgb, var(--face) 80%, var(--color-black))"
+			: "linear-gradient(var(--face), color-mix(in srgb, var(--face) 85%, var(--color-black)))"};
 	color: color-mix(in srgb, var(--color-black) 80%, transparent);
 	font: var(--font-display-xs);
 	user-select: none;
@@ -85,30 +51,26 @@ const Cap = styled.span<{ $down: boolean }>`
 		box-shadow 0.05s;
 `;
 
-/** Debug dock: arrow keycaps that sink while their key is held, and the control-mode switch. */
+/** Debug dock: arrow keycaps that sink while their key is held; clicking them switches between auto and manual. */
 export function DebugControls() {
-	const on = useHookStore(state => state.hookMode === "control");
+	const on = useHookStore(state => state.hookMode === "manual");
 	const setHookMode = useHookStore(state => state.setHookMode);
 	const heldKeys = useHookStore(state => state.heldKeys);
 
 	return (
-		<Wrap>
-			<Pad>
-				{KEYS.map(k => (
-					<Cap key={k.key} style={{ gridArea: k.area }} $down={heldKeys.includes(k.key)} title={k.label}>
-						<ArrowIcon width="60%" height="60%" style={{ transform: `rotate(${k.turn}deg)` }} />
-					</Cap>
-				))}
-			</Pad>
-			<Switch
-				role="switch"
-				aria-checked={on}
-				title="control mode"
-				aria-label="control mode"
-				onClick={() => setHookMode(on ? "auto" : "control")}
-			>
-				<Track $on={on} />
-			</Switch>
-		</Wrap>
+		<Pad
+			role="switch"
+			aria-checked={on}
+			title={on ? "manual mode (click for auto)" : "auto mode (click for manual)"}
+			aria-label="manual mode"
+			$on={on}
+			onClick={() => setHookMode(on ? "auto" : "manual")}
+		>
+			{KEYS.map(k => (
+				<Cap key={k.key} style={{ gridArea: k.area }} $down={heldKeys.includes(k.key)} title={k.label}>
+					<ArrowIcon width="60%" height="60%" style={{ transform: `rotate(${k.turn}deg)` }} />
+				</Cap>
+			))}
+		</Pad>
 	);
 }

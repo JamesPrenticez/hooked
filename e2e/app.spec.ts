@@ -24,12 +24,16 @@ test("casting and surfacing play out in the one canvas, without leaving the game
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
 
 	await cast(page);
-	await expect(page.getByRole("button", { name: "Surface" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Cash out" })).toBeVisible();
 	await expect(page.locator("canvas")).toBeVisible();
 
-	await page.getByRole("button", { name: "Surface" }).click();
+	await page.getByRole("button", { name: "Cash out" }).click();
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
 	await expect(page.locator("canvas")).toBeVisible();
+
+	// The payout modal shows the result, then closes itself after its 3s countdown.
+	await expect(page.getByRole("dialog", { name: "Payout" })).toBeVisible();
+	await expect(page.getByRole("dialog", { name: "Payout" })).not.toBeVisible({ timeout: 6000 });
 });
 
 test("the debug panel's Player section plays every fisherman animation without errors", async ({ page }) => {
@@ -69,7 +73,7 @@ test("the debug panel's Kraken section parks the hook at the trench, plays every
 
 	// Straight to the bottom: no Cast Line, no dive to wait out.
 	await expect(page.getByText("11,400m", { exact: true })).toBeVisible();
-	await expect(page.getByRole("button", { name: "Surface" })).toBeVisible();
+	await expect(page.getByRole("button", { name: "Cash out" })).toBeVisible();
 
 	await page.getByRole("button", { name: "DEBUG" }).click();
 	const animations = kraken.locator("fieldset").getByRole("button");
@@ -79,7 +83,7 @@ test("the debug panel's Kraken section parks the hook at the trench, plays every
 
 	// Still there after all that; only Surface (or unticking) lets it go.
 	await expect(page.getByText("11,400m", { exact: true })).toBeVisible();
-	await page.getByRole("button", { name: "Surface" }).click();
+	await page.getByRole("button", { name: "Cash out" }).click();
 	await expect(page.getByRole("button", { name: "Cast Line" })).toBeVisible();
 	await expect(page.getByText("11,400m", { exact: true })).not.toBeVisible();
 

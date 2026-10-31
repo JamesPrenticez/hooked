@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Application, extend } from "@pixi/react";
 import { Container, Graphics, Mesh, Sprite, Text, TilingSprite } from "pixi.js";
 import styled from "styled-components";
@@ -12,6 +12,7 @@ import { HarbourDebug } from "@components/harbour-debug";
 import { HarbourScene } from "@components/harbour-scene";
 import { HookedBanner } from "@components/hooked-banner";
 import { LoadingScreen } from "@components/loading-screen";
+import { type ManualCatch, PayoutModal } from "@components/payout-modal";
 import { SceneManager } from "@components/scene-manager/SceneManager";
 import { closeRound, openRound } from "@components/system/roundController";
 import { StoreSync } from "@components/system/StoreSync";
@@ -24,6 +25,7 @@ import { useDebugStore } from "@stores/debugStore";
 import { type GamePhase, useGameStore } from "@stores/gameStore";
 import { useHookStore } from "@stores/hookStore";
 import { useKrakenStore } from "@stores/krakenStore";
+import { useRoundStore } from "@stores/roundStore";
 
 const Root = styled.div`
 	position: relative;
@@ -89,10 +91,18 @@ export function App() {
 	const setIsDebugOpen = useDebugStore(state => state.setIsDebugOpen);
 
 	const [descending, setDescending] = useState(false);
-	// Every cast runs the sim: arrow keys in control mode (debug), an autopilot to the server's fish otherwise.
+	// Every cast runs the sim: arrow keys in manual mode (debug), an autopilot to the server's fish otherwise.
+	const [showPayout, setShowPayout] = useState(false);
+	const [manualCatch, setManualCatch] = useState<ManualCatch>();
+	const closePayout = useCallback(() => setShowPayout(false), []);
 	const land = () => {
+		// A manual run ignores the server's outcome, so the card shows what the run caught. Read before the sim clears.
+		const { hookMode, sim } = useHookStore.getState();
+		setManualCatch(hookMode === "manual" && sim?.result ? sim.result : undefined);
 		setDescending(false);
-		closeRound().catch(console.error);
+		closeRound()
+			.then(() => setShowPayout(useRoundStore.getState().round?.status === "completed"))
+			.catch(console.error);
 	};
 	useHookSim(descending, land);
 	// The camera's depth, not the hook's: after a fish bites the camera returns to the surface alone.
@@ -127,6 +137,7 @@ export function App() {
 
 			{phase === "game" && underwater && <DepthIndicator depth={depth} />}
 			{phase === "game" && <HookedBanner />}
+			{phase === "game" && showPayout && <PayoutModal onClose={closePayout} manual={manualCatch} />}
 			{phase === "game" && (
 				<BottomBar
 					descending={underwater}

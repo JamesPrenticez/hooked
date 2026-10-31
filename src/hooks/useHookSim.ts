@@ -17,7 +17,7 @@ const MAX_FRAME_MS = 250;
  * Runs the sim while `active`, on a fixed-step accumulator (`timeScale` just runs more ticks per frame), publishing one
  * snapshot per frame to `hookStore.sim` and clearing it when `active` drops. A real cast plays out the round the
  * server opened: the autopilot steers the hook to the fish the server chose, and the catch weighs what the round's
- * market says it pays. In the debug sandbox the arrow keys steer instead (`control`), or a stored recording does
+ * market says it pays. In the debug sandbox the arrow keys steer instead (`manual`), or a stored recording does
  * (`replay`), and any fish will take the hook. Every tick's steering is kept, and when a sandbox run ends it is
  * published as `hookStore.recording` before `onSurfaced` is called. A run cut short, aimed at a fish, or sped up or
  * slowed with ↑/↓ leaves none — the server could not replay it without the target or the speed.
@@ -33,13 +33,14 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 		// In replay mode the recording fixes the world and every tick's steering; the keys are not read.
 		const run = state.hookMode === "replay" ? state.replay : undefined;
 		const script = run ? decodeInputs(run.inputs) : undefined;
-		const manual = state.hookMode === "control";
+		const manual = state.hookMode === "manual";
 		const round = manual || run ? undefined : useRoundStore.getState().round;
 		const target = round?.outcome.fish;
 		const escapes = round?.outcome.escaped ?? false;
+		// Only a manual run (which already ignores the server's round) takes the debug multiplier.
 		const multiplier =
 			run?.multiplier ??
-			state.multiplier ??
+			(manual ? state.multiplier : undefined) ??
 			(round ? Math.max(Number(round.outcome.multiplier), MIN_MULTIPLIER) : MIN_MULTIPLIER);
 		// A fresh world each cast; the debug panel's seed only pins it for manual runs and replays.
 		const worldSeed = run?.worldSeed ?? (manual ? state.worldSeed : Math.floor(Math.random() * 2 ** 31));

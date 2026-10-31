@@ -68,7 +68,7 @@ interface CallToActionSectionProps {
 export const CallToActionSection = ({ descending, onCast }: CallToActionSectionProps) => {
 	return (
 		<CastButton type="button" aria-pressed={descending} onClick={onCast}>
-			{descending ? <SurfaceLabel>Surface</SurfaceLabel> : <CastLabel src={castLineText} alt="Cast Line" />}
+			{descending ? <SurfaceLabel>Cash out</SurfaceLabel> : <CastLabel src={castLineText} alt="Cast Line" />}
 		</CastButton>
 	);
 };

@@ -35,6 +35,6 @@ test("the Bonus button locks while casting and comes back on surfacing", async (
 	await cast(page);
 	await expect(page.getByRole("button", { name: "Bonus" })).toBeDisabled();
 
-	await page.getByRole("button", { name: "Surface" }).click();
+	await page.getByRole("button", { name: "Cash out" }).click();
 	await expect(page.getByRole("button", { name: "Bonus" })).toBeEnabled();
 });
