@@ -19,7 +19,7 @@ import { consumeNonce } from "./seeds.ts";
 
 export type DepthId = "shallow" | "reef" | "deep" | "abyss" | "jackpot";
 export type FishTier = "small" | "large" | "epic" | "legendary" | "jackpot";
-export type Volatility = "low" | "medium" | "high";
+export type Volatility = "low" | "medium" | "high" | "extreme";
 export type RoundStatus = "open" | "completed";
 
 /** One line of a round's fish market: what the fish pays if it is the one landed this round. */

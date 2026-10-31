@@ -225,7 +225,7 @@ Example shapes:
 ```ts
 interface StartMessage {
 	stake: string; // decimal string
-	volatility: "low" | "medium" | "high";
+	volatility: "low" | "medium" | "high" | "extreme";
 }
 
 interface RoundResult {
@@ -457,7 +457,7 @@ The presentation sequence cannot change the outcome.
 
 # 13. Betting Architecture
 
-The player chooses two things: a **stake** and a **volatility** (low / medium / high). There is no depth or species to pick — the fish are the server's to roll.
+The player chooses two things: a **stake** and a **volatility** (low / medium / high / extreme). There is no depth or species to pick — the fish are the server's to roll.
 
 The client owns the **betting interface** (the stake input and the volatility picker).
 

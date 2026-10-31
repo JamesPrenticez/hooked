@@ -38,7 +38,7 @@ export type DepthId = "shallow" | "reef" | "deep" | "abyss" | "jackpot";
 export type FishTier = "small" | "large" | "epic" | "legendary" | "jackpot";
 
 /** How likely the hook is to dive deep: low keeps it in the shallows, high sends it deeper more often. */
-export type Volatility = "low" | "medium" | "high";
+export type Volatility = "low" | "medium" | "high" | "extreme";
 
 /** One line of a round's fish market: what the fish pays if it is the one landed this round. */
 export interface MarketEntry {

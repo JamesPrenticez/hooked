@@ -234,7 +234,7 @@ test("invalid_bet — bad stake, bad volatility, stake limits", async () => {
 		["-5.00", "medium"],
 		["0.05", "medium"], // below minBet 0.10
 		["999.00", "medium"], // above maxBet 500.00
-		["5.00", "extreme"],
+		["5.00", "ludicrous"],
 		["5.00", null],
 		["5.00", 2]
 	];

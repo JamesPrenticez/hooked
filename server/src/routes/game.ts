@@ -165,7 +165,7 @@ route("POST", "/api/game/verify", ctx => {
 		throw new HttpError(
 			400,
 			"invalid_verify_request",
-			"serverSeed and clientSeed must be strings, nonce a non-negative integer and volatility low, medium or high"
+			"serverSeed and clientSeed must be strings, nonce a non-negative integer and volatility low, medium, high or extreme"
 		);
 	}
 	return {

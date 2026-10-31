@@ -41,7 +41,6 @@ export const FISH: FishDef[] = [
 	{ id: "sting-ray", depth: "deep", tier: "epic" },
 	{ id: "bluefin-tuna", depth: "deep", tier: "epic" },
 	{ id: "shark", depth: "deep", tier: "epic" },
-	{ id: "barracuda-epic", depth: "deep", tier: "epic" },
 	{ id: "puffer", depth: "deep", tier: "epic" },
 	{ id: "swordfish", depth: "deep", tier: "epic" },
 	{ id: "sting", depth: "deep", tier: "epic" },
@@ -102,7 +101,8 @@ export interface Level {
 export const LEVELS: Record<Volatility, Level> = {
 	low: { odds: { shallow: 3300, reef: 3000, deep: 2500, abyss: 1190, jackpot: 10 }, escape: 0.2, jackpot: 50 },
 	medium: { odds: { shallow: 4300, reef: 3200, deep: 1750, abyss: 740, jackpot: 10 }, escape: 0.2, jackpot: 100 },
-	high: { odds: { shallow: 5600, reef: 3300, deep: 900, abyss: 190, jackpot: 10 }, escape: 0.2, jackpot: 200 }
+	high: { odds: { shallow: 5600, reef: 3300, deep: 900, abyss: 190, jackpot: 10 }, escape: 0.2, jackpot: 200 },
+	extreme: { odds: { shallow: 6800, reef: 2800, deep: 330, abyss: 60, jackpot: 10 }, escape: 0.2, jackpot: 400 }
 };
 
 export const VOLATILITIES = Object.keys(LEVELS) as Volatility[];

@@ -5,8 +5,6 @@ import { IconButton } from "@hooked-ui";
 import { useBetStore } from "@stores/betStore";
 import { breakpoint } from "@utils/breakpoint";
 
-import { DepthMeter } from "./depth-meter";
-
 const Trigger = styled(IconButton)`
 	pointer-events: auto;
 	position: absolute;
@@ -34,18 +32,11 @@ const Trigger = styled(IconButton)`
 	}
 `;
 
-const Level = styled.span`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 0.3rem;
+const Icon = styled.img`
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 	pointer-events: none;
-`;
-
-const Name = styled.span`
-	font: var(--font-display-legal);
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
 `;
 
 interface VolatilitySectionProps {
@@ -63,12 +54,7 @@ export const VolatilitySection = ({ disabled, onOpen }: VolatilitySectionProps) 
 			onClick={onOpen}
 			aria-haspopup="dialog"
 			aria-label={`Volatility, ${level.label}`}
-			icon={
-				<Level>
-					<Name>{level.short}</Name>
-					<DepthMeter depth={level.depth} />
-				</Level>
-			}
+			icon={<Icon src={level.icon} alt="" />}
 		/>
 	);
 };

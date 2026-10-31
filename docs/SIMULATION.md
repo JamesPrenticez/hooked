@@ -419,7 +419,7 @@ outcome X" button that runs the same pick.
 
 **Open questions** (default in bold):
 
-1. Stand-in art for roster ids with no sheet (blue-cod, starfish, barracuda-epic; and
+1. Stand-in art for roster ids with no sheet (blue-cod, starfish; and
    swordfish, sardine, king-crab whose names don't match a file):
    **mackerel→sardine, crab→king-crab, pike→swordfish; the rest reuse the nearest
    sheet until the manifest's marlin / blue-reef-fish / starfish / parrotfish PNGs land**.

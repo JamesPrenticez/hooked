@@ -1,64 +1,151 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { InnerShadowText } from "@styles/inner-shadow-text";
 import styled from "styled-components";
 
 import { VOLATILITY_LEVELS } from "@constants/volatility";
-import { Overlay } from "@hooked-ui";
+import { Button, Overlay } from "@hooked-ui";
 import { Modal } from "@hooked-ui/modal";
 import { useBetStore } from "@stores/betStore";
+import { breakpoint } from "@utils/breakpoint";
 
-import { DepthMeter } from "./depth-meter";
+import { VolatilityCard } from "./volatility-card";
 
-/* The panel has a fixed height, so the three levels share it rather than leave it empty. */
-const Options = styled.div`
-	display: flex;
-	flex: 1;
-	flex-direction: column;
-	gap: var(--spacing-sm);
-	min-height: 0;
-	padding: var(--spacing-sm);
-	overflow-y: auto;
-`;
+/* Narrow portrait phones: one card at a time, picked from the tabs. Everywhere else all three sit side by side. */
+const NARROW_PORTRAIT = "(orientation: portrait) and (max-width: 767px)";
 
-const Option = styled.button`
-	display: grid;
-	flex: 1 1 0;
-	grid-template-columns: minmax(0, 1fr) auto;
-	align-content: center;
-	align-items: center;
-	gap: var(--spacing-xs) var(--spacing-md);
-	padding: var(--spacing-sm) var(--spacing-md);
-	border: 0.2rem solid transparent;
-	border-radius: var(--border-radius-md);
-	background: color-mix(in srgb, var(--color-white) 12%, var(--color-black));
-	color: var(--color-white);
-	text-align: left;
-	cursor: pointer;
+const Panel = styled(Modal)`
+	&& {
+		width: 100%;
+		height: auto;
+		max-height: 100dvh;
+		overflow-y: auto;
+		background: transparent;
+		backdrop-filter: unset;
 
-	&[aria-pressed="true"] {
-		border-color: var(--color-primary-accent);
-		background: color-mix(in srgb, var(--color-primary) 30%, var(--color-black));
+		&::after {
+			display: none;
+		}
+
+		@media ${breakpoint.tablet} {
+			width: 80%;
+		}
 	}
 `;
 
-const Name = styled.span`
+const Title = styled(InnerShadowText)`
+	display: block;
+	margin-top: var(--spacing-lg);
 	font: var(--font-display-sm);
+	color: var(--color-primary);
+	text-align: center;
+
+	@media ${breakpoint.landscape} {
+		font: var(--font-display-xs);
+		margin-top: 0;
+	}
+
+	@media ${breakpoint.tablet} {
+		font: var(--font-display-xl);
+		margin-top: 0;
+	}
+`;
+
+const Tabs = styled.div`
+	display: none;
+
+	@media ${NARROW_PORTRAIT} {
+		display: flex;
+		height: var(--size-control);
+		margin: var(--spacing-lg);
+		overflow: hidden;
+		border: var(--border-thickness) solid color-mix(in srgb, var(--color-primary) 40%, transparent);
+		border-radius: var(--border-radius-md);
+		background: var(--color-black);
+	}
+`;
+
+const Tab = styled.button<{ $color: string }>`
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.2rem;
+	margin: 0.3rem;
+	padding: 0.1rem 0.8rem;
+	border: none;
+	border-radius: var(--border-radius-sm);
+	background: transparent;
+	color: color-mix(in srgb, ${({ $color }) => $color} 20%, transparent);
+	font: var(--font-display-xxs);
 	text-transform: uppercase;
+	cursor: pointer;
+
+	&[aria-selected="true"] {
+		background: color-mix(in srgb, var(--color-white) 10%, transparent);
+		color: ${({ $color }) => $color};
+	}
+
+	img {
+		width: 2.4rem;
+		height: 2.4rem;
+		opacity: 0.2;
+	}
+
+	&[aria-selected="true"] img {
+		opacity: 1;
+	}
 `;
 
-const Description = styled.span`
-	grid-column: 1;
-	font: var(--font-text-xs);
-	line-height: 1.3;
-	color: color-mix(in srgb, var(--color-white) 75%, transparent);
-	text-transform: none;
+const Cards = styled.div<{ $selected: string }>`
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--spacing-lg);
+	min-height: 0;
+	padding: 0 var(--spacing-lg);
+
+	& > * {
+		width: 100%;
+	}
+
+	@media ${NARROW_PORTRAIT} {
+		& > :not([data-level="${({ $selected }) => $selected}"]) {
+			display: none;
+		}
+	}
+
+	@media ${breakpoint.tablet}, ${breakpoint.landscape} {
+		flex-direction: row;
+		align-items: flex-start;
+		justify-content: center;
+		margin-top: var(--spacing-lg);
+
+		& > * {
+			flex: 1 1 0;
+			min-width: 0;
+			max-width: 32rem;
+		}
+	}
+
+	@media ${breakpoint.landscape} and (max-height: 400px) {
+		& > * {
+			max-width: 46dvh;
+		}
+	}
 `;
 
-const Meter = styled(DepthMeter)`
-	--chevron-size: 2.4rem;
+const Apply = styled(Button)`
+	display: block;
+	width: calc(100% - 2 * var(--spacing-md));
+	max-width: 30rem;
+	margin: 2rem auto 4rem;
 
-	grid-row: 1 / span 2;
-	grid-column: 2;
+	@media ${breakpoint.tablet}, ${breakpoint.landscape} {
+		display: none;
+	}
 `;
 
 interface VolatilityModalProps {
@@ -69,6 +156,7 @@ interface VolatilityModalProps {
 export const VolatilityModal = ({ onClose }: VolatilityModalProps) => {
 	const volatility = useBetStore(s => s.volatility);
 	const setVolatility = useBetStore(s => s.setVolatility);
+	const [selected, setSelected] = useState(volatility);
 
 	useEffect(() => {
 		const onKey = (event: KeyboardEvent) => {
@@ -78,34 +166,42 @@ export const VolatilityModal = ({ onClose }: VolatilityModalProps) => {
 		return () => document.removeEventListener("keydown", onKey);
 	}, [onClose]);
 
+	const apply = (id: typeof volatility) => {
+		setVolatility(id);
+		onClose();
+	};
+
 	return createPortal(
 		<Overlay onClick={onClose}>
-			<Modal
-				title="Volatility"
-				role="dialog"
-				aria-modal="true"
-				aria-label="Volatility"
-				onClick={event => event.stopPropagation()}
-				onCloseClick={onClose}
-			>
-				<Options role="group" aria-label="How deep the hook dives">
+			<Panel role="dialog" aria-modal="true" aria-label="Volatility" onCloseClick={onClose}>
+				<Title>SELECT YOUR VOLATILITY</Title>
+
+				<Tabs role="tablist" aria-label="Volatility">
 					{VOLATILITY_LEVELS.map(level => (
-						<Option
+						<Tab
 							key={level.id}
 							type="button"
-							aria-pressed={level.id === volatility}
-							onClick={() => {
-								setVolatility(level.id);
-								onClose();
-							}}
+							role="tab"
+							aria-selected={level.id === selected}
+							$color={level.color}
+							onClick={() => setSelected(level.id)}
 						>
-							<Name>{level.label}</Name>
-							<Description>{level.description}</Description>
-							<Meter depth={level.depth} />
-						</Option>
+							<img src={level.icon} alt="" />
+							{level.label}
+						</Tab>
 					))}
-				</Options>
-			</Modal>
+				</Tabs>
+
+				<Cards $selected={selected} role="group" aria-label="How deep the hook dives">
+					{VOLATILITY_LEVELS.map(level => (
+						<div key={level.id} data-level={level.id}>
+							<VolatilityCard level={level} active={level.id === volatility} onClick={() => apply(level.id)} />
+						</div>
+					))}
+				</Cards>
+
+				<Apply onClick={() => apply(selected)}>APPLY</Apply>
+			</Panel>
 		</Overlay>,
 		document.body
 	);

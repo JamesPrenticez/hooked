@@ -138,7 +138,6 @@ export const FISH: (FishEntry | HookableFish)[] = [
 	fish("bluefin-tuna", "Bluefin Tuna", "deep", TUNA, 1, 140, 4100, 7110, 2, portrait("tuna")),
 	fish("puffer", "Pufferfish", "deep", PUFFER, 0.7, 45, 4210, 7110, 2, portrait("puffer")),
 	fish("shark", "Shark", "deep", SHARK, 2.3, 100, 4430, 7215, 2, portrait("shark")),
-	fish("barracuda-epic", "Barracuda", "deep", BARRACUDA, 0.9, 120, 4100, 7000, 2, portrait("barracuda")),
 	fish("swordfish", "Swordfish", "deep", MARLIN, 1.3, 150, 4100, 7110, 2, portrait("marlin")),
 	fish("sting", "Stingray", "deep", STING, 0.9, 50, 4100, 7000, 2, portrait("sting")),
 	// abyss
