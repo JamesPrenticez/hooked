@@ -4,12 +4,15 @@ import styled from "styled-components";
 import { Balance } from "@components/balance";
 import { breakpoint } from "@utils/breakpoint";
 
+import { AudioSection } from "./audio-section";
 import { BetSection } from "./bet-section";
 import { BonusModal } from "./bonus-modal";
 import { BonusSection } from "./bonus-section";
 import { CallToActionSection } from "./call-to-action-section";
 import { MarketModal } from "./market-modal";
 import { MarketSection } from "./market-section";
+import { MasterVolume } from "./master-volume";
+import { MenuSection } from "./menu-section";
 import { TotalSection } from "./total-section";
 import { VolatilityModal } from "./volatility-modal";
 import { VolatilitySection } from "./volatility-section";
@@ -45,6 +48,22 @@ const SideButtons = styled.div`
 		flex-direction: column;
 		gap: var(--spacing-xs);
 		margin-right: var(--spacing-sm);
+	}
+`;
+
+/* Mirror of SideButtons on the bar's left end: menu above, audio at the bottom. */
+const LeftButtons = styled.div`
+	display: contents;
+
+	@media ${breakpoint.landscape} {
+		display: flex;
+		order: -2;
+	}
+
+	@media ${breakpoint.tablet} {
+		flex-direction: column-reverse;
+		gap: var(--spacing-xs);
+		margin-left: var(--spacing-sm);
 	}
 `;
 
@@ -96,6 +115,7 @@ export const BottomBar = ({ descending, onCast }: BottomBarProps) => {
 	const [volatilityOpen, setVolatilityOpen] = useState(false);
 	const [marketOpen, setMarketOpen] = useState(false);
 	const [bonusOpen, setBonusOpen] = useState(false);
+	const [volumeOpen, setVolumeOpen] = useState(false);
 
 	return (
 		<>
@@ -103,6 +123,10 @@ export const BottomBar = ({ descending, onCast }: BottomBarProps) => {
 			<TotalSection />
 			<Container>
 				<Bar>
+					<LeftButtons>
+						<AudioSection onOpenVolume={() => setVolumeOpen(true)} />
+						<MenuSection />
+					</LeftButtons>
 					<BonusSection disabled={descending} onOpen={() => setBonusOpen(true)} />
 					<Balance />
 					<BetSection disabled={descending} />
@@ -113,6 +137,7 @@ export const BottomBar = ({ descending, onCast }: BottomBarProps) => {
 					</SideButtons>
 				</Bar>
 
+				{volumeOpen && <MasterVolume onClose={() => setVolumeOpen(false)} />}
 				{volatilityOpen && <VolatilityModal onClose={() => setVolatilityOpen(false)} />}
 				{marketOpen && <MarketModal onClose={() => setMarketOpen(false)} />}
 				{bonusOpen && <BonusModal onClose={() => setBonusOpen(false)} />}

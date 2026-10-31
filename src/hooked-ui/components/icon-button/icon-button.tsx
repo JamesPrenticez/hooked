@@ -4,7 +4,7 @@ import styled from "styled-components";
 const StyledButton = styled.button`
 	align-items: center;
 	background: var(--hooked-button-bg-color);
-	border: 1px solid var(--hooked-border-color);
+	border: 1px solid transparent;
 	border-radius: 0.8rem;
 	color: var(--hooked-color-white);
 	cursor: pointer;
@@ -16,11 +16,12 @@ const StyledButton = styled.button`
 	padding: 0;
 	transition:
 		background 0.15s,
+		border-color 0.15s,
 		color 0.15s;
 	width: 4rem;
 
 	&:hover:not(:disabled) {
-		border-color: var(--hooked-color-soft-accent);
+		border-color: var(--hooked-color-primary);
 		color: var(--hooked-color-primary);
 	}
 

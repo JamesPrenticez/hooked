@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 
+import { useAudioStore } from "@stores/audioStore";
 import { useBetStore } from "@stores/betStore";
 import { useHookStore } from "@stores/hookStore";
 import { useRoundStore } from "@stores/roundStore";
@@ -173,4 +174,20 @@ it("shows no payout for a round the server settled at nothing", () => {
 	landWithServerPayout("0.00");
 	expect(screen.getByText("$0.00")).toBeInTheDocument();
 	act(() => useHookStore.setState({ sim: undefined }));
+});
+
+it("toggles mute from the audio button, even mid-cast", () => {
+	render(<BottomBar descending onCast={() => {}} />);
+
+	fireEvent.click(screen.getByRole("button", { name: "Mute" }));
+	expect(screen.getByRole("button", { name: "Unmute" })).toHaveAttribute("aria-pressed", "true");
+});
+
+it("opens a master volume slider from the audio button and sets the volume", () => {
+	render(<BottomBar descending={false} onCast={() => {}} />);
+	expect(screen.queryByRole("slider", { name: "Master volume" })).not.toBeInTheDocument();
+
+	fireEvent.click(screen.getByRole("button", { name: /mute/i }));
+	fireEvent.change(screen.getByRole("slider", { name: "Master volume" }), { target: { value: "0.3" } });
+	expect(useAudioStore.getState().masterVolume).toBe(0.3);
 });

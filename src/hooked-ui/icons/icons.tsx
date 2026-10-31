@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import AudioIcon from "@icons/audio.icon.svg?react";
+import AudioOffIcon from "@icons/audio-off.icon.svg?react";
 import AutoPlayIcon from "@icons/auto-play.icon.svg?react";
 import ChevronIcon from "@icons/chevron-down.icon.svg?react";
 import Fairness from "@icons/fairness.icon.svg?react";
@@ -23,6 +24,7 @@ export enum IconKeys {
 	InfoIcon = "InfoIcon",
 	MusicIcon = "MusicIcon",
 	AudioIcon = "AudioIcon",
+	AudioOffIcon = "AudioOffIcon",
 	ScrollIcon = "ScrollIcon",
 	AutoPlayIcon = "AutoPlayIcon",
 	HistoryIcon = "HistoryIcon",
@@ -42,6 +44,7 @@ export const ICONS: Record<IconKeys, ReactElement> = {
 	InfoIcon: <InfoIcon />,
 	MusicIcon: <MusicIcon />,
 	AudioIcon: <AudioIcon />,
+	AudioOffIcon: <AudioOffIcon />,
 	ScrollIcon: <ScrollIcon />,
 	AutoPlayIcon: <AutoPlayIcon />,
 	HistoryIcon: <HistoryIcon />,

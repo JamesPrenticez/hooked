@@ -14,6 +14,7 @@ import { HookedBanner } from "@components/hooked-banner";
 import { LoadingScreen } from "@components/loading-screen";
 import { type ManualCatch, PayoutModal } from "@components/payout-modal";
 import { SceneManager } from "@components/scene-manager/SceneManager";
+import { AudioSync } from "@components/system/AudioSync";
 import { closeRound, openRound } from "@components/system/roundController";
 import { StoreSync } from "@components/system/StoreSync";
 import { DEBUG } from "@constants/config";
@@ -132,6 +133,7 @@ export function App() {
 			</Canvas>
 
 			<StoreSync />
+			<AudioSync payoutOpen={showPayout} />
 
 			{phase === "loading" && <LoadingScreen progress={progress} />}
 

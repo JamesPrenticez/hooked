@@ -6,6 +6,9 @@
 	--color-primary-hover: #e7b64f;
 	--color-primary-accent: #ffde96;
 
+	/* @hooked-ui defaults its primary to off-white; point it at the app's. */
+	--hooked-color-primary: var(--color-primary);
+
 	--color-secondary: #16a34a;
 	--color-secondary-hover: #388e3c;
 	--color-secondary-accent: #a5d6a7;
