@@ -206,7 +206,7 @@ describe("landingScene", () => {
 
 	it("leaves the harbour as it rests whenever a fish isn't being brought up", () => {
 		expect(landingScene(undefined)).toEqual(REST);
-		for (const phase of ["descend", "hooked", "announce", "kraken", "reel", "surfaced"] as const) {
+		for (const phase of ["descend", "hooked", "announce", "kraken", "surfaced"] as const) {
 			const sim = createSim(1);
 			sim.phase = phase;
 			expect(landingScene(sim)).toEqual(REST);
@@ -397,9 +397,9 @@ describe("playerCue", () => {
 		expect(playerCue(landing(250, extractionTicks(gearsFor(250), 2400)))).toBe("celebrate_big");
 	});
 
-	it("leaves the Kraken's reel alone", () => {
+	it("leaves the Kraken's fight alone", () => {
 		const sim = createSim(1);
-		sim.phase = "reel";
+		sim.phase = "kraken";
 		expect(playerCue(sim)).toBeUndefined();
 	});
 });

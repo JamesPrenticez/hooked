@@ -62,8 +62,16 @@ export const KRAKEN_FIGHT = [
 	"coiled_yanks_full_body.repeat_tug"
 ];
 
-/** How long the Kraken stays on screen with the hook — the hook holds at the bottom of the trench that long. */
+/** How long the Kraken fights the hook — the hook holds at the bottom of the trench that long. */
 export const KRAKEN_FIGHT_SECONDS = 8;
+
+/** Then it swims back and forth across the trench, the hook in its beak, for this long. */
+export const KRAKEN_SWIM = "swimming_full_body.jet_swim";
+export const KRAKEN_SWIM_SECONDS = 6;
+/** Then it hangs from the hook by its beak, struggling, for this long before the camera leaves. */
+export const KRAKEN_HOOKED_SECONDS = 2.5;
+/** What it does while it is landed, hanging from the hook by its beak. */
+export const KRAKEN_HANG = "swimming_full_body.cruise";
 
 const seconds = (id: string) => KRAKEN_ANIMATIONS[id].frames.length / KRAKEN_ANIMATIONS[id].fps;
 

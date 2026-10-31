@@ -7,14 +7,14 @@ import krak4 from "@assets/kraken/krak-4.png";
 import krak5 from "@assets/kraken/krak-5.png";
 import krak6 from "@assets/kraken/krak-6.png";
 import krak7 from "@assets/kraken/krak-7.png";
-import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT, KRAKEN_SHEETS } from "@constants/krakenAnimations";
+import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT, KRAKEN_SHEETS, KRAKEN_SWIM } from "@constants/krakenAnimations";
 
 /** Sheet id → image, in the order `kraken-animations.json` lists them. */
 export const SHEET_URLS: Record<string, string> = Object.fromEntries(
 	[krak1, krak2, krak3, krak4, krak5, krak6, krak7].map((url, i) => [KRAKEN_SHEETS[i].id, url])
 );
 
-/** Starts fetching the fight's sheet (~3MB) so it's ready by the time the hook reaches the trench. */
+/** Starts fetching the fight's and the swim's sheets (~3MB each) so they're ready by the time the hook reaches the trench. */
 export function preloadKrakenFight() {
-	void Assets.load(SHEET_URLS[KRAKEN_ANIMATIONS[KRAKEN_FIGHT[0]].sheet]);
+	for (const id of [KRAKEN_FIGHT[0], KRAKEN_SWIM]) void Assets.load(SHEET_URLS[KRAKEN_ANIMATIONS[id].sheet]);
 }

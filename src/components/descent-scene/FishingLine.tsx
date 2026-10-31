@@ -6,7 +6,7 @@ import { useDebugStore } from "@stores/debugStore";
 import { useKrakenStore } from "@stores/krakenStore";
 import { cachedTextures, mipmapped } from "@utils/bootAssets";
 
-import { krakenFightPose, krakenHold } from "./krakenFight";
+import { krakenHold, krakenHookAt } from "./krakenFight";
 import { hookX as sweptHookX } from "./lineDrift";
 
 interface FishingLineProps {
@@ -46,7 +46,7 @@ const HOOK_EYE = { x: 0.545, y: 0.067 };
  * diagonal leave the screen and what's left is a vertical line hanging from the
  * top of the water, moving horizontally. While the Kraken has hold of it
  * (`useKrakenStore`'s `fightStart`) the hook comes off that sweep and rides in
- * its coil instead (`krakenFightPose`), the line following it. The hook is
+ * its coil, then its beak, instead (`krakenHookAt`), the line following it. The hook is
  * placeholder art.
  */
 export function FishingLine({
@@ -81,7 +81,7 @@ export function FishingLine({
 	let y = hookY;
 	if (fightStart !== undefined) {
 		const elapsed = seconds - fightStart;
-		const { grip } = krakenFightPose(view, elapsed, depthZones);
+		const grip = krakenHookAt(view, elapsed, depthZones);
 		const hold = krakenHold(elapsed);
 		x += (grip.x - x) * hold;
 		y += (grip.y + scroll - y) * hold;

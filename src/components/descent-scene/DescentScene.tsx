@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { useApplication } from "@pixi/react";
 
-import { cameraScroll, waterlineY } from "@components/harbour-scene/framing";
+import { cameraScroll, depthToScreenY, waterlineY } from "@components/harbour-scene/framing";
 import { KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import { useDebugStore } from "@stores/debugStore";
+import { useHookStore } from "@stores/hookStore";
 
 import { Creatures } from "./Creatures";
 import { computeDepthAmbience } from "./depthAmbience";
@@ -42,6 +43,7 @@ export function DescentScene({ depth, seconds, surfaceY }: DescentSceneProps) {
 	const depthUnit = useDebugStore(state => state.depthUnit);
 	// No server-picked jackpot outcome exists yet, so for now every round that
 	// reaches the bottom of the trench fights the Kraken.
+	const ascending = useHookStore(state => state.sim?.phase === "ascend");
 	const bossEncounter = depth >= KRAKEN_DEPTH_METERS;
 	const descending = depth > 0;
 	useEffect(() => {
@@ -51,6 +53,10 @@ export function DescentScene({ depth, seconds, surfaceY }: DescentSceneProps) {
 	if (!isInitialised) return null;
 
 	const view = { width: app.screen.width, height: app.screen.height };
+	// The hooked Kraken stays on the hook as the camera leaves, until it is out of view.
+	const rise =
+		depthToScreenY(KRAKEN_DEPTH_METERS, depth, view) - depthToScreenY(KRAKEN_DEPTH_METERS, KRAKEN_DEPTH_METERS, view);
+	const leaving = ascending && rise < view.height;
 	const ambience = computeDepthAmbience(depth, depthZones);
 	const scroll = cameraScroll(depth, view);
 	const waterY = Math.max(0, (surfaceY ?? waterlineY(view)) - scroll);
@@ -68,7 +74,7 @@ export function DescentScene({ depth, seconds, surfaceY }: DescentSceneProps) {
 			<DepthMarkers view={view} depth={depth} zones={depthZones} unit={depthUnit} />
 			<Creatures view={view} depth={depth} seconds={seconds} />
 			<HitboxOverlay view={view} depth={depth} />
-			{bossEncounter && <Kraken view={view} seconds={seconds} />}
+			{(bossEncounter || leaving) && <Kraken view={view} seconds={seconds} rise={rise} />}
 		</pixiContainer>
 	);
 }

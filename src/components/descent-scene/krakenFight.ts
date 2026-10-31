@@ -1,15 +1,18 @@
-import { depthToScreenY } from "@components/harbour-scene/framing";
+import { depthToScreenY, HOOK_REST_Y } from "@components/harbour-scene/framing";
 import { DEPTH_ZONES, type DepthZone, JACKPOT_DEPTH_METERS, KRAKEN_DEPTH_METERS } from "@constants/depthZones";
 import {
 	KRAKEN_ANIMATIONS,
 	KRAKEN_FIGHT,
 	KRAKEN_FIGHT_SECONDS,
 	KRAKEN_SHEETS,
+	KRAKEN_SWIM,
+	KRAKEN_SWIM_SECONDS,
 	krakenFightBeat,
 	krakenFrame
 } from "@constants/krakenAnimations";
+import { SIM_WIDTH } from "@utils/simConfig";
 
-import { krakenBox, krakenGrip, krakenTop } from "./krakenFrames";
+import { krakenBox, krakenGrip, krakenTop, SWIM_MOUTH } from "./krakenFrames";
 
 interface Size {
 	width: number;
@@ -41,6 +44,11 @@ const GRAB_SECONDS = 0.5;
 const RELEASE_SECONDS = 0.4;
 
 const fightSheet = KRAKEN_SHEETS.find(({ id }) => id === KRAKEN_ANIMATIONS[KRAKEN_FIGHT[0]].sheet)!;
+const swimSheet = KRAKEN_SHEETS.find(({ id }) => id === KRAKEN_ANIMATIONS[KRAKEN_SWIM].sheet)!;
+export const SWIM_BOX = krakenBox(swimSheet.columns, swimSheet.rows);
+
+/** Seconds for the swim to go once across the trench and back. */
+const SWIM_PERIOD_SECONDS = 3;
 
 /** How far the art reaches above the coil's resting point at the fight's highest frame, in sheet
  *  pixels. Not just that frame's own top: the Kraken slides `1 - HOOK_FOLLOW` of the coil's travel. */
@@ -99,13 +107,95 @@ export function krakenFightPose(view: Size, elapsed: number, zones: DepthZone[] 
 	};
 }
 
+/**
+ * The swim, `elapsed` seconds in: the Kraken goes back and forth across the screen, turning at each side, with the
+ * hook in its beak (`grip`). It starts and ends in the middle, and sits where the fit puts a still Kraken. Same
+ * shape as `krakenFightPose`, but the sprite faces right and is mirrored (`facing`) to swim left.
+ */
+export function krakenSwimPose(view: Size, elapsed: number, zones: DepthZone[] = DEPTH_ZONES) {
+	const scale = krakenFitScale(view, SWIM_BOX);
+	const angle = (2 * Math.PI * Math.min(elapsed, KRAKEN_SWIM_SECONDS)) / SWIM_PERIOD_SECONDS;
+	const facing = Math.cos(angle) >= 0 ? 1 : -1;
+	const sprite = {
+		x: view.width / 2 + (Math.max(0, view.width - SWIM_BOX.width * scale) / 2) * Math.sin(angle),
+		y: krakenAnchorY(view, zones) + (SWIM_BOX.height * scale) / 2
+	};
+
+	return {
+		frame: krakenFrame(KRAKEN_SWIM, elapsed),
+		scale,
+		facing,
+		sprite,
+		grip: {
+			x: sprite.x + facing * SWIM_MOUTH.x * SWIM_BOX.width * scale,
+			y: sprite.y + SWIM_MOUTH.y * SWIM_BOX.height * scale
+		}
+	};
+}
+
+/** Where the hook hangs once the Kraken has let go of it (`FishingLine`'s own position), on screen: `x` is the sim's,
+ *  `y` the hook's resting place, and the beak goes `mouthDy` below the line's end. */
+export const hookedMouth = (view: Size, simX: number, mouthDy: number) => ({
+	x: (simX / SIM_WIDTH) * view.width,
+	y: HOOK_REST_Y * view.height + mouthDy
+});
+
+/** How much of the screen's height the hooked Kraken hangs down, at most. */
+const HANG_HEIGHT = 0.4;
+
+/**
+ * The hooked beat, `elapsed` seconds into it: the Kraken lets go of the swim, turns head-up and hangs from the hook
+ * by its beak (`mouth`, as `HookedKraken` has it when landed), swinging as it struggles. The hook slides to `mouth`
+ * over the same `RELEASE_SECONDS` (`krakenHold`), so the two stay together.
+ */
+export function krakenHungPose(
+	view: Size,
+	elapsed: number,
+	mouth: { x: number; y: number },
+	zones: DepthZone[] = DEPTH_ZONES
+) {
+	const swum = krakenSwimPose(view, KRAKEN_SWIM_SECONDS, zones);
+	const u = smoothstep(elapsed / RELEASE_SECONDS);
+	const scale = swum.scale + (Math.min(swum.scale, (HANG_HEIGHT * view.height) / SWIM_BOX.width) - swum.scale) * u;
+	const rotation = (-Math.PI / 2) * u;
+	const beak = {
+		x: swum.grip.x + (mouth.x - swum.grip.x) * u,
+		y: swum.grip.y + (mouth.y - swum.grip.y) * u
+	};
+	// The beak is `SWIM_MOUTH` from the sprite's middle; the turn takes that offset round with it.
+	const dx = SWIM_MOUTH.x * SWIM_BOX.width * scale;
+	const dy = SWIM_MOUTH.y * SWIM_BOX.height * scale;
+
+	return {
+		frame: krakenFrame(KRAKEN_SWIM, KRAKEN_SWIM_SECONDS + elapsed),
+		scale,
+		rotation,
+		beak,
+		sprite: {
+			x: beak.x - (dx * Math.cos(rotation) - dy * Math.sin(rotation)),
+			y: beak.y - (dx * Math.sin(rotation) + dy * Math.cos(rotation))
+		},
+		sway: Math.sin(elapsed * 11) * 0.12 * u
+	};
+}
+
+/** Where the Kraken has the hook `elapsed` seconds into the encounter — the fight, then the swim. */
+export function krakenHookAt(view: Size, elapsed: number, zones: DepthZone[] = DEPTH_ZONES) {
+	return (
+		elapsed < KRAKEN_FIGHT_SECONDS
+			? krakenFightPose(view, elapsed, zones)
+			: krakenSwimPose(view, elapsed - KRAKEN_FIGHT_SECONDS, zones)
+	).grip;
+}
+
 const smoothstep = (t: number) => {
 	const clamped = Math.min(1, Math.max(0, t));
 	return clamped * clamped * (3 - 2 * clamped);
 };
 
-/** `0..1`: how far the hook has come to the Kraken's coil `elapsed` seconds into the fight —
- *  eased in as the tentacle closes on it, and back out as it lets go at the end. */
+/** `0..1`: how far the hook has come to the Kraken's coil `elapsed` seconds into the encounter —
+ *  eased in as the tentacle closes on it, and back out as it lets go once it is hooked. */
 export function krakenHold(elapsed: number): number {
-	return smoothstep(elapsed / GRAB_SECONDS) * smoothstep((KRAKEN_FIGHT_SECONDS - elapsed) / RELEASE_SECONDS);
+	const end = KRAKEN_FIGHT_SECONDS + KRAKEN_SWIM_SECONDS;
+	return smoothstep(elapsed / GRAB_SECONDS) * smoothstep((end + RELEASE_SECONDS - elapsed) / RELEASE_SECONDS);
 }

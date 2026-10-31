@@ -6,7 +6,7 @@ import styled from "styled-components";
 
 import { BottomBar } from "@components/bottom-bar";
 import { DebugModal } from "@components/debug";
-import { DebugControls } from "@components/debug-controls";
+import { DebugControls, DrillButton } from "@components/debug-controls";
 import { DepthIndicator } from "@components/depth-indicator";
 import { HarbourDebug } from "@components/harbour-debug";
 import { HarbourScene } from "@components/harbour-scene";
@@ -98,8 +98,11 @@ export function App() {
 	const closePayout = useCallback(() => setShowPayout(false), []);
 	const land = () => {
 		// A manual run ignores the server's outcome, so the card shows what the run caught. Read before the sim clears.
+		// So does a run that went somewhere else than the server's fish (the debug drill goes straight to the Kraken).
 		const { hookMode, sim } = useHookStore.getState();
-		setManualCatch(hookMode === "manual" && sim?.result ? sim.result : undefined);
+		const outcomeFish = useRoundStore.getState().round?.outcome.fish;
+		const differs = hookMode === "manual" || sim?.result?.fish !== outcomeFish;
+		setManualCatch(differs && sim?.result ? sim.result : undefined);
 		setDescending(false);
 		closeRound()
 			.then(() => setShowPayout(useRoundStore.getState().round?.status === "completed"))
@@ -178,6 +181,7 @@ export function App() {
 							DEBUG
 						</Button>
 						<DebugControls />
+						<DrillButton />
 						<HarbourDebug />
 					</DebugDock>
 					{isDebugOpen && <DebugModal />}

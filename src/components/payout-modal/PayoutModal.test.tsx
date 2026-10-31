@@ -56,3 +56,10 @@ it("shows what a manual run caught, at the market's price for it, instead of the
 	expect(screen.getByText("Fresh off the pier!")).toBeInTheDocument();
 	expect(screen.queryByText("Shrimp")).not.toBeInTheDocument();
 });
+
+it("shows the Kraken for a run that ended on it, whatever fish the server chose", () => {
+	useRoundStore.getState().setRound({ ...round, market: [{ fish: "kraken", multiplier: "100.00" }] });
+	render(<PayoutModal onClose={vi.fn()} manual={{ fish: "kraken", depthM: 0 }} />);
+	expect(screen.getByText("Kraken")).toBeInTheDocument();
+	expect(screen.getByText("×100")).toBeInTheDocument();
+});

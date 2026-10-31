@@ -5,7 +5,7 @@ import { useHookStore } from "@stores/hookStore";
 const ARROWS = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
 /** Descent-speed multipliers for the ↑ (slow) and ↓ (fast) keys. */
 export const SLOW_RATE = 0.5;
-export const FAST_RATE = 2;
+export const FAST_RATE = 6;
 
 const isTyping = (target: EventTarget | null) =>
 	target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName));

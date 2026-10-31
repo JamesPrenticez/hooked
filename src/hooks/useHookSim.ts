@@ -6,7 +6,7 @@ import { autopilotAxis } from "@utils/simAutopilot";
 import { SIM_VERSION, TICK_HZ } from "@utils/simConfig";
 import { MIN_MULTIPLIER } from "@utils/simExtraction";
 import { decodeInputs, encodeInputs } from "@utils/simRecording";
-import { createSim, step } from "@utils/simStep";
+import { createSim, drill, step } from "@utils/simStep";
 
 import { useHookKeys } from "./useHookKeys";
 
@@ -51,12 +51,17 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 		let last = performance.now();
 		const publish = () => useHookStore.setState({ sim: { ...sim } });
 		publish();
-		useHookStore.setState({ recording: undefined });
+		useHookStore.setState({ recording: undefined, drillRequested: false });
 
 		let frame = requestAnimationFrame(function tick(now) {
 			accumulator += (Math.min(now - last, MAX_FRAME_MS) / 1000) * useHookStore.getState().timeScale;
 			last = now;
 			// Stops the tick it surfaces: a recording carries exactly the run, nothing from the rest of the frame.
+			if (useHookStore.getState().drillRequested) {
+				useHookStore.setState({ drillRequested: false });
+				drill(sim);
+				throttled = true;
+			}
 			while (accumulator >= 1 / TICK_HZ && !sim.result) {
 				axes.push(script ? (script[sim.tick] ?? 0) : manual ? keys.axis() : autopilotAxis(sim));
 				const rate = manual ? keys.rate() : 1;

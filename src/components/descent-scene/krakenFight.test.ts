@@ -2,9 +2,25 @@ import { describe, expect, it } from "vitest";
 
 import { depthToScreenY } from "@components/harbour-scene/framing";
 import { DEPTH_ZONES, KRAKEN_DEPTH_METERS } from "@constants/depthZones";
-import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT, KRAKEN_FIGHT_SECONDS, KRAKEN_SHEETS } from "@constants/krakenAnimations";
+import {
+	KRAKEN_ANIMATIONS,
+	KRAKEN_FIGHT,
+	KRAKEN_FIGHT_SECONDS,
+	KRAKEN_HOOKED_SECONDS,
+	KRAKEN_SHEETS,
+	KRAKEN_SWIM_SECONDS
+} from "@constants/krakenAnimations";
 
-import { krakenAnchorY, krakenFightPose, krakenFitScale, krakenHold } from "./krakenFight";
+import {
+	krakenAnchorY,
+	krakenFightPose,
+	krakenFitScale,
+	krakenHold,
+	krakenHookAt,
+	krakenHungPose,
+	krakenSwimPose,
+	SWIM_BOX
+} from "./krakenFight";
 import { krakenBox, krakenGrip, krakenTop } from "./krakenFrames";
 
 const [grab, yank] = KRAKEN_FIGHT;
@@ -122,11 +138,53 @@ describe("krakenFightPose", () => {
 });
 
 describe("krakenHold", () => {
-	it("starts free, closes on the hook as the tentacle wraps it, then lets go by the end of the fight", () => {
+	it("starts free, closes on the hook as the tentacle wraps it, then lets go once the swim is over", () => {
 		expect(krakenHold(0)).toBe(0);
 		expect(krakenHold(0.25)).toBeGreaterThan(0);
 		expect(krakenHold(0.25)).toBeLessThan(1);
 		expect(krakenHold(KRAKEN_FIGHT_SECONDS / 2)).toBe(1);
-		expect(krakenHold(KRAKEN_FIGHT_SECONDS)).toBe(0);
+		expect(krakenHold(KRAKEN_FIGHT_SECONDS)).toBe(1);
+		expect(krakenHold(KRAKEN_FIGHT_SECONDS + KRAKEN_SWIM_SECONDS)).toBe(1);
+		expect(krakenHold(KRAKEN_FIGHT_SECONDS + KRAKEN_SWIM_SECONDS + 10)).toBe(0);
+	});
+});
+
+describe("krakenSwimPose", () => {
+	const times = Array.from({ length: KRAKEN_SWIM_SECONDS * 30 + 1 }, (_, i) => i / 30);
+
+	it("goes right then left across the screen, never leaving it, and ends back in the middle", () => {
+		for (const view of VIEWS) {
+			const poses = times.map(t => krakenSwimPose(view, t));
+			const half = (SWIM_BOX.width * poses[0].scale) / 2;
+			expect(poses[0].sprite.x).toBeCloseTo(view.width / 2);
+			expect(poses.at(-1)!.sprite.x).toBeCloseTo(view.width / 2);
+			expect(Math.max(...poses.map(p => p.sprite.x)) + half).toBeLessThanOrEqual(view.width + 0.001);
+			expect(Math.min(...poses.map(p => p.sprite.x)) - half).toBeGreaterThanOrEqual(-0.001);
+			expect(new Set(poses.map(p => p.facing))).toEqual(new Set([1, -1]));
+		}
+	});
+
+	it("faces the way it is moving, with the hook in its beak on that side", () => {
+		for (const t of [0.3, 1.8]) {
+			const pose = krakenSwimPose(DESKTOP, t);
+			expect(Math.sign(krakenSwimPose(DESKTOP, t + 0.01).sprite.x - pose.sprite.x)).toBe(pose.facing);
+			expect(Math.sign(pose.grip.x - pose.sprite.x)).toBe(pose.facing);
+		}
+	});
+
+	it("ends with the hook let go of, as the Kraken settles onto it", () => {
+		const mouth = { x: 700, y: 400 };
+		expect(krakenHungPose(DESKTOP, 0, mouth).beak).toEqual(krakenSwimPose(DESKTOP, KRAKEN_SWIM_SECONDS).grip);
+		const hung = krakenHungPose(DESKTOP, KRAKEN_HOOKED_SECONDS, mouth);
+		expect(hung.beak).toEqual(mouth);
+		// Head-up: a quarter turn, so the middle of the sprite hangs below its beak.
+		expect(hung.rotation).toBeCloseTo(-Math.PI / 2);
+		expect(hung.sprite.y).toBeGreaterThan(mouth.y);
+		expect(krakenHold(KRAKEN_FIGHT_SECONDS + KRAKEN_SWIM_SECONDS + 0.2)).toBeCloseTo(1 - 0.5);
+	});
+
+	it("takes over from the fight's grip after the fight", () => {
+		expect(krakenHookAt(DESKTOP, 1)).toEqual(krakenFightPose(DESKTOP, 1).grip);
+		expect(krakenHookAt(DESKTOP, KRAKEN_FIGHT_SECONDS + 1)).toEqual(krakenSwimPose(DESKTOP, 1).grip);
 	});
 });

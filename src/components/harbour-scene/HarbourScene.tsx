@@ -15,6 +15,7 @@ import extendedSheetUrl from "@assets/player/player-succes-fail.png";
 import { DescentScene } from "@components/descent-scene";
 import { Creatures } from "@components/descent-scene/Creatures";
 import { FishingLine } from "@components/descent-scene/FishingLine";
+import { HookedKraken } from "@components/descent-scene/HookedKraken";
 import { useAnimatedNumber } from "@hooks/useAnimatedNumber";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
 import { layoutTweak, useTweak } from "@stores/harbourDebugStore";
@@ -229,6 +230,7 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 				</pixiContainer>
 				{/* Above the hook: the hooked fish overlaps it. */}
 				<Creatures view={view} depth={depth} seconds={seconds} hook={hook} onlyHooked />
+				<HookedKraken view={view} depth={depth} hook={hook} />
 			</pixiContainer>
 		</pixiContainer>
 	);

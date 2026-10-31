@@ -1,6 +1,7 @@
+import { SWIM_BOX } from "@components/descent-scene/krakenFight";
 import { simHookX } from "@components/descent-scene/lineDrift";
 import type { PlayerAnimationName } from "@constants/playerAnimations";
-import { HOOK_TIP_DY, TICK_HZ } from "@utils/simConfig";
+import { HOOK_TIP_DY, KRAKEN_FIGHT_TICKS, KRAKEN_SWIM_TICKS, TICK_HZ } from "@utils/simConfig";
 import {
 	CRANE_FROM,
 	type Extraction,
@@ -333,12 +334,13 @@ export function hookPose(sim: Sim, view: Size, tip: Point): HookPose {
 		),
 		y: hookWorldY(sim.depthM, tip.y, view)
 	};
-	const fish = sim.world[sim.hooked];
-	if (sim.phase !== "extract" || !fish) return { ...hanging, grow: 1 };
+	if (sim.phase !== "extract") return { ...hanging, grow: 1 };
 
 	const gears = gearsFor(sim.multiplier);
 	const extraction = extractionAt(gears, sim.catchM, sim.tick - sim.phaseTick);
-	const artLength = ART_FILL * fish.width;
+	// The Kraken isn't in the world: it is drawn at its sheet's own size (`HookedKraken`).
+	const fish = sim.world[sim.hooked];
+	const artLength = ART_FILL * (fish?.width ?? SWIM_BOX.width);
 	// A catch that needs the crane is landed with the harbour pulled back, and comes out of the water at its dropped surface, as
 	// long as the room under the boom allows.
 	const crane = gears.length > 1;
@@ -365,13 +367,15 @@ export function hookPose(sim: Sim, view: Size, tip: Point): HookPose {
 }
 
 /** Camera shake while the fish fights the hook, then a hard jolt as the "HOOKED!" splash lands that settles. */
+const KRAKEN_HOOKED_FROM_TICK = KRAKEN_FIGHT_TICKS + KRAKEN_SWIM_TICKS;
 const FIGHT_SHAKE_PX = 4;
 const JOLT_SHAKE_PX = 12;
 const JOLT_TICKS = 30;
 
 export function cameraShake(sim: Sim): Point {
 	let amount = 0;
-	if (sim.phase === "hooked") amount = FIGHT_SHAKE_PX;
+	if (sim.phase === "hooked" || (sim.phase === "kraken" && sim.tick - sim.fightTick >= KRAKEN_HOOKED_FROM_TICK))
+		amount = FIGHT_SHAKE_PX;
 	else if (sim.phase === "announce") amount = JOLT_SHAKE_PX * Math.max(0, 1 - (sim.tick - sim.phaseTick) / JOLT_TICKS);
 	if (amount <= 0) return { x: 0, y: 0 };
 	return {

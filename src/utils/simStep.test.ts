@@ -1,8 +1,15 @@
 import { expect, it } from "vitest";
 
-import { HOOKED_TICKS, KRAKEN_FIGHT_TICKS, SIM_WIDTH, TICK_HZ } from "./simConfig";
+import {
+	HOOKED_TICKS,
+	KRAKEN_FIGHT_TICKS,
+	KRAKEN_HOOKED_TICKS,
+	KRAKEN_SWIM_TICKS,
+	SIM_WIDTH,
+	TICK_HZ
+} from "./simConfig";
 import { ANNOUNCE_TICKS, CHINOOK_FROM, CRANE_FROM, HELICOPTER_FROM } from "./simExtraction";
-import { createSim, type Sim, type SimPhase, step } from "./simStep";
+import { createSim, drill, type Sim, type SimPhase, step } from "./simStep";
 
 /** A sim over an empty sea, so nothing gets hooked. */
 function emptySim(seed = 1) {
@@ -158,18 +165,27 @@ it("takes longer to land a heavier catch, since it needs more gear", () => {
 	expect(roundTicks(CHINOOK_FROM)).toBeGreaterThan(roundTicks(HELICOPTER_FROM));
 });
 
-it("fights the Kraken at the bottom, then reels it in with the camera on the hook", () => {
+it("fights the Kraken at the bottom, lets it swim, then lands it like any catch", () => {
 	const sim = emptySim();
 	sim.depthM = 11_399;
 	while (sim.phase === "descend") step(sim, 0);
 	expect(sim.phase).toBe("kraken");
-	for (let i = 0; i < KRAKEN_FIGHT_TICKS; i++) step(sim, 0);
-	expect(sim.phase).toBe("reel");
-	while ((sim.phase as string) === "reel") {
+	for (let i = 0; i < KRAKEN_FIGHT_TICKS + KRAKEN_SWIM_TICKS + KRAKEN_HOOKED_TICKS - 1; i++) step(sim, 0);
+	expect(sim.phase).toBe("kraken");
+	step(sim, 0);
+	expect(sim.phase).toBe("ascend");
+	expect(sim.catchM).toBe(11_400);
+	runUntil(sim, "surfaced");
+	expect(sim.result).toMatchObject({ fish: "kraken", depthM: 0 });
+});
+
+it("descends at the same speed at every depth", () => {
+	for (const depthM of [0, 5000, 8000, 10_000, 11_000]) {
+		const sim = emptySim();
+		sim.depthM = depthM;
 		step(sim, 0);
-		expect(sim.cameraM).toBe(sim.depthM);
+		expect(sim.depthM - depthM).toBeCloseTo(220 / TICK_HZ);
 	}
-	expect(sim.result?.fish).toBe("kraken");
 });
 
 // A round's catch is the server's: the hook may only take the fish it chose.
@@ -215,4 +231,14 @@ it("scales the descent speed by rate", () => {
 		step(fast, 0, 2);
 	}
 	expect(fast.depthM / slow.depthM).toBeCloseTo(4);
+});
+
+it("drills to the top of the jackpot layer, then carries on down to the Kraken", () => {
+	const sim = emptySim();
+	step(sim, 0);
+	drill(sim);
+	expect(sim.depthM).toBe(10_935);
+	expect(sim.cameraM).toBe(10_935);
+	runUntil(sim, "kraken");
+	expect(sim.depthM).toBe(11_400);
 });

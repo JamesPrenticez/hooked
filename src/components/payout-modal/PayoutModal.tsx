@@ -6,7 +6,6 @@ import { FISH } from "@constants/fish";
 import { useBalanceStore } from "@stores/balanceStore";
 import { type RoundSnapshot, useRoundStore } from "@stores/roundStore";
 import type { DepthId } from "@type/api";
-import { ZONES } from "@utils/simConfig";
 
 export const AUTO_CLOSE_SECONDS = 3;
 
@@ -140,13 +139,14 @@ interface PayoutModalProps {
 }
 
 /** The round as the manual run played it: the fish it caught at the price the round's market set for it. */
-function manualRound(round: RoundSnapshot, { fish, depthM }: ManualCatch): RoundSnapshot {
-	const zone = ZONES.filter(z => depthM >= z.fromMeters).at(-1)?.id ?? "shallow";
+function manualRound(round: RoundSnapshot, { fish }: ManualCatch): RoundSnapshot {
+	// The run ends at the surface, so its own depth says nothing: the fish's home zone themes the card.
+	const depth = FISH.find(f => f.id === fish)?.depth ?? "shallow";
 	const multiplier = round.market.find(m => m.fish === fish)?.multiplier ?? "0.00";
 	const total = (Number(round.stake) * Number(multiplier)).toFixed(2);
 	return {
 		...round,
-		outcome: { ...round.outcome, fish, depth: zone === "trench" ? "abyss" : zone, escaped: false, multiplier },
+		outcome: { ...round.outcome, fish, depth, escaped: false, multiplier },
 		payout: { ...round.payout, total }
 	};
 }

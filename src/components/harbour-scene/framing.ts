@@ -25,7 +25,7 @@ export function horizonY(view: Size): number {
 }
 
 /** Screen height fraction the hook rests at once the descent is under way. */
-const HOOK_REST_Y = 0.5;
+export const HOOK_REST_Y = 0.5;
 
 /** Metres over which the cast plays out: the hook falls from the rod tip to
  *  its resting height, and the camera pans from the harbour down into the

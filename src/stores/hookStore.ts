@@ -25,6 +25,9 @@ interface HookStore {
 	/** Sim ticks per real tick — fast-forwards a run without changing it. */
 	timeScale: number;
 	setTimeScale: (scale: number) => void;
+	/** Debug: the running sim is to drill to the jackpot layer on its next frame (`useHookSim`). */
+	drillRequested: boolean;
+	requestDrill: () => void;
 	/** Debug overlay: mouth circles and the hook tip. */
 	showHitboxes: boolean;
 	setShowHitboxes: (show: boolean) => void;
@@ -48,6 +51,8 @@ export const useHookStore = create<HookStore>(set => ({
 	setMultiplier: multiplier => set({ multiplier }),
 	timeScale: 1,
 	setTimeScale: timeScale => set({ timeScale }),
+	drillRequested: false,
+	requestDrill: () => set({ drillRequested: true }),
 	showHitboxes: false,
 	setShowHitboxes: showHitboxes => set({ showHitboxes }),
 	heldKeys: [],

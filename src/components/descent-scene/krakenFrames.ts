@@ -122,6 +122,10 @@ export const SHEET_TOPS: Record<string, number[]> = {
 	coiled_yanks_full_body: [43, 51, 51, 42, 40, 35, 348, 388, 412, 463, 462, 475, 768, 727, 665, 762, 775, 793]
 };
 
+/** Where the beak is in the swimming sheet's frames, as a share of a frame's box from its middle, for the Kraken facing
+ *  right. Read off the art, so good to ~8px — a hooked Kraken hangs from it. Re-measure if the sheet is redrawn. */
+export const SWIM_MOUTH = { x: 0.4, y: 0.16 };
+
 /** The nominal even-grid cell of a `columns` x `rows` sheet — what each frame is set in. */
 export function krakenBox(columns: number, rows: number) {
 	return { width: SHEET_WIDTH / columns, height: SHEET_HEIGHT / rows };

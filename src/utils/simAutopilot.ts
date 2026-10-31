@@ -1,5 +1,5 @@
-import { HOOK_DRAG, HOOK_MAX_VX, HOOK_TIP_DY, PX_PER_METER, TICK_HZ } from "./simConfig.ts";
-import { type Sim, zoneSpeed } from "./simStep.ts";
+import { DESCENT_METERS_PER_SECOND, HOOK_DRAG, HOOK_MAX_VX, HOOK_TIP_DY, PX_PER_METER, TICK_HZ } from "./simConfig.ts";
+import type { Sim } from "./simStep.ts";
 import { mouthAt } from "./simWorld.ts";
 
 /** Px the hook still travels after steering stops: Σ vx·DRAGⁿ / TICK_HZ. */
@@ -13,7 +13,7 @@ const DEADBAND_PX = 4;
  */
 export function autopilotAxis(sim: Sim): number {
 	const tipY = sim.depthM * PX_PER_METER + HOOK_TIP_DY;
-	const pxPerTick = (zoneSpeed(sim.depthM) * PX_PER_METER) / TICK_HZ;
+	const pxPerTick = (DESCENT_METERS_PER_SECOND * PX_PER_METER) / TICK_HZ;
 	let best: { x: number; reachable: boolean; dy: number } | undefined;
 	for (const fish of sim.world) {
 		if (sim.target && fish.id !== sim.target) continue;

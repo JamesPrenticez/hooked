@@ -56,9 +56,7 @@ export const TotalSection = () => {
 	const total = useBetStore(s => s.chip);
 	const currency = useBalanceStore(s => s.currency) ?? "USD";
 	const landing = useLandingMultiplier();
-	const landingPhase = useHookStore(
-		s => s.sim?.phase === "ascend" || s.sim?.phase === "extract" || s.sim?.phase === "reel"
-	);
+	const landingPhase = useHookStore(s => s.sim?.phase === "ascend" || s.sim?.phase === "extract");
 	const simMultiplier = useHookStore(s => s.sim?.multiplier || 1);
 	const serverPayout = useRoundStore(s => s.round?.payout.total);
 

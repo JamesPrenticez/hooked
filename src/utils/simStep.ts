@@ -1,6 +1,6 @@
 import {
 	CAST_METERS,
-	DECEL_FRACTION,
+	DESCENT_METERS_PER_SECOND,
 	HOOK_ACCEL,
 	HOOK_DRAG,
 	HOOK_MAX_VX,
@@ -8,10 +8,10 @@ import {
 	HOOK_TIP_DY,
 	HOOKED_TICKS,
 	KRAKEN_FIGHT_TICKS,
+	KRAKEN_HOOKED_TICKS,
+	KRAKEN_SWIM_TICKS,
 	MAX_DEPTH_METERS,
-	MIN_DESCENT_METERS_PER_SECOND,
 	PX_PER_METER,
-	REEL_METERS_PER_SECOND,
 	SIM_WIDTH,
 	TICK_HZ,
 	ZONES
@@ -29,8 +29,8 @@ import { mouthAt, spawnWorld, type WorldFish } from "./simWorld.ts";
 
 /** A fish: `descend` → `hooked` (it fights the hook underwater) → `announce` (the "HOOKED!" splash, the fish
  *  staying put) → `ascend` (only the camera returns to the surface) → `extract` (the landing) → `surfaced`.
- *  The Kraken skips the middle: `kraken` → `reel`, the camera on the hook. */
-export type SimPhase = "descend" | "hooked" | "announce" | "ascend" | "extract" | "kraken" | "reel" | "surfaced";
+ *  The Kraken skips the splash: `kraken` (it fights the hook, swims with it, then is hooked) → `ascend` → `extract`. */
+export type SimPhase = "descend" | "hooked" | "announce" | "ascend" | "extract" | "kraken" | "surfaced";
 
 /** What a finished run caught: a roster id, or `"kraken"` from the bottom. */
 export interface SimResult {
@@ -95,15 +95,6 @@ export function createSim(worldSeed: number, multiplier = MIN_MULTIPLIER, target
 	};
 }
 
-export function zoneSpeed(depthM: number): number {
-	let speed: number = ZONES[0].speed;
-	for (const zone of ZONES) {
-		if (depthM < zone.fromMeters) break;
-		speed = zone.speed;
-	}
-	return speed;
-}
-
 function enter(sim: Sim, phase: SimPhase): void {
 	sim.phase = phase;
 	sim.phaseTick = sim.tick;
@@ -149,13 +140,10 @@ export function step(sim: Sim, axis: number, rate = 1): void {
 		return;
 	}
 	if (sim.phase === "kraken") {
-		if (sim.tick - sim.fightTick >= KRAKEN_FIGHT_TICKS) enter(sim, "reel");
-		return;
-	}
-	if (sim.phase === "reel") {
-		sim.depthM = Math.max(0, sim.depthM - REEL_METERS_PER_SECOND / TICK_HZ);
-		sim.cameraM = sim.depthM;
-		if (sim.depthM <= 0) surface(sim);
+		if (sim.tick - sim.fightTick >= KRAKEN_FIGHT_TICKS + KRAKEN_SWIM_TICKS + KRAKEN_HOOKED_TICKS) {
+			sim.catchM = sim.depthM;
+			enter(sim, "ascend");
+		}
 		return;
 	}
 
@@ -166,17 +154,21 @@ export function step(sim: Sim, axis: number, rate = 1): void {
 		sim.vx = 0;
 	}
 
-	const speed = zoneSpeed(sim.depthM);
-	const decelStart = MAX_DEPTH_METERS * (1 - DECEL_FRACTION);
-	const factor =
-		sim.depthM > decelStart ? Math.max(0, (MAX_DEPTH_METERS - sim.depthM) / (MAX_DEPTH_METERS - decelStart)) : 1;
-	const effective = Math.max(speed * factor, Math.min(speed, MIN_DESCENT_METERS_PER_SECOND)) * rate;
-	sim.depthM = Math.min(MAX_DEPTH_METERS, sim.depthM + effective / TICK_HZ);
+	sim.depthM = Math.min(MAX_DEPTH_METERS, sim.depthM + (DESCENT_METERS_PER_SECOND * rate) / TICK_HZ);
 	sim.cameraM = sim.depthM;
 	if (sim.depthM >= MAX_DEPTH_METERS) {
 		enter(sim, "kraken");
 		sim.fightTick = sim.tick;
 	} else if (sim.depthM >= CAST_METERS) hookFish(sim);
+}
+
+/** Debug: the hook drills straight through the descent and pops out at the top of the jackpot layer, from where it
+ *  carries on down to the Kraken. A run that uses it can't be recorded (recordings hold the steering alone). */
+export function drill(sim: Sim): void {
+	if (sim.phase !== "descend") return;
+	const jackpot = ZONES[ZONES.length - 1].fromMeters;
+	sim.depthM = Math.max(sim.depthM, jackpot);
+	sim.cameraM = sim.depthM;
 }
 
 /** The first mouth (lowest index) the hook tip touches, if any, goes on the hook — of the target's kind, when it has one. */

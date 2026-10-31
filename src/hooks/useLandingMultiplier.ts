@@ -7,11 +7,9 @@ export interface LandingMultiplier {
 	value: number;
 }
 
-/** The multiplier as it climbs while a catch is landed, or `undefined` outside an extraction (or while still hauling).
- *  The Kraken is reeled in whole, so it shows its multiplier from the start of the reel. */
+/** The multiplier as it climbs while a catch is landed, or `undefined` outside an extraction (or while still hauling). */
 export function useLandingMultiplier(): LandingMultiplier | undefined {
 	const sim = useHookStore(state => state.sim);
-	if (sim?.phase === "reel") return { stage: "kraken", value: sim.multiplier };
 	if (sim?.phase !== "extract") return undefined;
 
 	const { stage, reveal } = extractionAt(gearsFor(sim.multiplier), sim.catchM, sim.tick - sim.phaseTick);
