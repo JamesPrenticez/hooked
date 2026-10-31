@@ -1,10 +1,16 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
 import castButton from "@assets/bottom-bar/cast-button.png";
 import castButtonHover from "@assets/bottom-bar/cast-button-hover.png";
 import castButtonPressed from "@assets/bottom-bar/cast-button-pressed.png";
 import castLineText from "@assets/bottom-bar/cast-line-text.png";
 import { breakpoint } from "@utils/breakpoint";
+
+const spin = keyframes`
+	to {
+		transform: rotate(360deg);
+	}
+`;
 
 const CastButton = styled.button`
 	pointer-events: auto;
@@ -18,15 +24,47 @@ const CastButton = styled.button`
 	margin-top: -3rem;
 	padding: 0;
 	border: none;
-	background: url(${castButton}) center / contain no-repeat;
+	background: none;
 	cursor: pointer;
+	position: relative;
+	isolation: isolate;
+
+	--wheel: url(${castButton});
+
+	/* The same art on two layers, split at the edge of the blue glass: ::before (frame and handles) spins, ::after (glass) stays. */
+	&::before,
+	&::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: var(--wheel) center / contain no-repeat;
+	}
+
+	&::before {
+		mask-image: radial-gradient(circle closest-side, transparent 55%, #000 55.5%);
+	}
+
+	&::after {
+		mask-image: radial-gradient(circle closest-side, #000 55%, transparent 55.5%);
+	}
+
+	&[aria-pressed="true"]::before {
+		animation: ${spin} 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		&[aria-pressed="true"]::before {
+			animation: none;
+		}
+	}
 
 	&:hover:not(:disabled) {
-		background-image: url(${castButtonHover});
+		--wheel: url(${castButtonHover});
 	}
 
 	&:active:not(:disabled) {
-		background-image: url(${castButtonPressed});
+		--wheel: url(${castButtonPressed});
 	}
 
 	&:disabled {

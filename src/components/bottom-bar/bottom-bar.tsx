@@ -19,7 +19,6 @@ const Container = styled.div`
 	left: 0;
 	right: 0;
 	bottom: 0;
-	border: red 1px solid;
 	display: flex;
 	align-items: center;
 	gap: var(--spacing-sm);
