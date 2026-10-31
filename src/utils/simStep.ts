@@ -118,8 +118,9 @@ function surface(sim: Sim): void {
 	};
 }
 
-/** Advances `sim` one tick in place. `axis` is the steering input, −1 / 0 / +1. */
-export function step(sim: Sim, axis: number): void {
+/** Advances `sim` one tick in place. `axis` is the steering input, −1 / 0 / +1; `rate` scales the descent speed
+ *  (debug only — a run that uses it can't be recorded, since recordings hold the steering alone). */
+export function step(sim: Sim, axis: number, rate = 1): void {
 	sim.tick += 1;
 	if (sim.phase === "surfaced") return;
 	if (sim.phase === "hooked") {
@@ -169,7 +170,7 @@ export function step(sim: Sim, axis: number): void {
 	const decelStart = MAX_DEPTH_METERS * (1 - DECEL_FRACTION);
 	const factor =
 		sim.depthM > decelStart ? Math.max(0, (MAX_DEPTH_METERS - sim.depthM) / (MAX_DEPTH_METERS - decelStart)) : 1;
-	const effective = Math.max(speed * factor, Math.min(speed, MIN_DESCENT_METERS_PER_SECOND));
+	const effective = Math.max(speed * factor, Math.min(speed, MIN_DESCENT_METERS_PER_SECOND)) * rate;
 	sim.depthM = Math.min(MAX_DEPTH_METERS, sim.depthM + effective / TICK_HZ);
 	sim.cameraM = sim.depthM;
 	if (sim.depthM >= MAX_DEPTH_METERS) {

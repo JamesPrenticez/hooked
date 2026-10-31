@@ -28,6 +28,8 @@ interface HookStore {
 	/** Debug overlay: mouth circles and the hook tip. */
 	showHitboxes: boolean;
 	setShowHitboxes: (show: boolean) => void;
+	/** Arrow keys currently held (control mode) — drives the debug key pad. */
+	heldKeys: string[];
 	/** The run `replay` mode plays. Set by the debug Recordings list. */
 	replay: ReplayRun | undefined;
 	setReplay: (run: ReplayRun | undefined) => void;
@@ -48,6 +50,7 @@ export const useHookStore = create<HookStore>(set => ({
 	setTimeScale: timeScale => set({ timeScale }),
 	showHitboxes: false,
 	setShowHitboxes: showHitboxes => set({ showHitboxes }),
+	heldKeys: [],
 	sim: undefined,
 	recording: undefined,
 	replay: undefined,

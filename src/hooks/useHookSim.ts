@@ -19,11 +19,11 @@ const MAX_FRAME_MS = 250;
  * server opened: the autopilot steers the hook to the fish the server chose, and the catch weighs what the round's
  * market says it pays. In the debug sandbox the arrow keys steer instead (`control`), or a stored recording does
  * (`replay`), and any fish will take the hook. Every tick's steering is kept, and when a sandbox run ends it is
- * published as `hookStore.recording` before `onSurfaced` is called. A run cut short, or aimed at a fish, leaves none
- * — the server could not replay it without the target.
+ * published as `hookStore.recording` before `onSurfaced` is called. A run cut short, aimed at a fish, or sped up or
+ * slowed with ↑/↓ leaves none — the server could not replay it without the target or the speed.
  */
 export function useHookSim(active: boolean, onSurfaced?: () => void): void {
-	const axis = useHookKeys(active);
+	const keys = useHookKeys(active);
 	const onSurfacedRef = useRef(onSurfaced);
 	onSurfacedRef.current = onSurfaced;
 
@@ -45,6 +45,7 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 		const worldSeed = run?.worldSeed ?? (manual ? state.worldSeed : Math.floor(Math.random() * 2 ** 31));
 		const sim = createSim(worldSeed, multiplier, target, escapes);
 		const axes: number[] = [];
+		let throttled = false;
 		let accumulator = 0;
 		let last = performance.now();
 		const publish = () => useHookStore.setState({ sim: { ...sim } });
@@ -56,13 +57,15 @@ export function useHookSim(active: boolean, onSurfaced?: () => void): void {
 			last = now;
 			// Stops the tick it surfaces: a recording carries exactly the run, nothing from the rest of the frame.
 			while (accumulator >= 1 / TICK_HZ && !sim.result) {
-				axes.push(script ? (script[sim.tick] ?? 0) : manual ? axis() : autopilotAxis(sim));
-				step(sim, axes[axes.length - 1]);
+				axes.push(script ? (script[sim.tick] ?? 0) : manual ? keys.axis() : autopilotAxis(sim));
+				const rate = manual ? keys.rate() : 1;
+				throttled ||= rate !== 1;
+				step(sim, axes[axes.length - 1], rate);
 				accumulator -= 1 / TICK_HZ;
 			}
 			publish();
 			if (sim.result) {
-				if (!target) {
+				if (!target && !throttled) {
 					const inputs = encodeInputs(axes);
 					useHookStore.setState({
 						recording: { simVersion: SIM_VERSION, worldSeed, multiplier, inputs, result: sim.result }

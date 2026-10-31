@@ -206,3 +206,13 @@ it("ends the run at the surface right after the splash when the fish gets away",
 	expect(phases).toEqual(["hooked", "announce", "surfaced"]);
 	expect(sim.cameraM).toBe(0);
 });
+
+it("scales the descent speed by rate", () => {
+	const slow = createSim(1);
+	const fast = createSim(1);
+	for (let i = 0; i < 60; i++) {
+		step(slow, 0, 0.5);
+		step(fast, 0, 2);
+	}
+	expect(fast.depthM / slow.depthM).toBeCloseTo(4);
+});

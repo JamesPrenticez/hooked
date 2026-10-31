@@ -6,6 +6,7 @@ import styled from "styled-components";
 
 import { BottomBar } from "@components/bottom-bar";
 import { DebugModal } from "@components/debug";
+import { DebugControls } from "@components/debug-controls";
 import { DepthIndicator } from "@components/depth-indicator";
 import { HarbourDebug } from "@components/harbour-debug";
 import { HarbourScene } from "@components/harbour-scene";
@@ -95,8 +96,6 @@ export function App() {
 	};
 	useHookSim(descending, land);
 	// The camera's depth, not the hook's: after a fish bites the camera returns to the surface alone.
-	const hookMode = useHookStore(state => state.hookMode);
-	const setHookMode = useHookStore(state => state.setHookMode);
 	const simDepth = useHookStore(state => state.sim?.cameraM ?? 0);
 
 	// DEBUG panel's Kraken toggle: the hook is parked at the bottom of the trench
@@ -165,9 +164,7 @@ export function App() {
 						<Button title="debug" onClick={() => setIsDebugOpen(true)}>
 							DEBUG
 						</Button>
-						<Button title="control mode" onClick={() => setHookMode(hookMode === "control" ? "auto" : "control")}>
-							CONTROL {hookMode === "control" ? "ON" : "OFF"}
-						</Button>
+						<DebugControls />
 						<HarbourDebug />
 					</DebugDock>
 					{isDebugOpen && <DebugModal />}
