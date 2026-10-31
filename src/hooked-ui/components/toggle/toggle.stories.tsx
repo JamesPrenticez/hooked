@@ -2,7 +2,7 @@ import { type ComponentProps, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
 
-import { Toggle } from "./Toggle";
+import { Toggle } from "./toggle";
 
 const meta = {
 	title: "Components/Toggle",

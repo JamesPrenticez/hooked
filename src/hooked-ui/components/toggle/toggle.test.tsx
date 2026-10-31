@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { Toggle } from "./Toggle";
+import { Toggle } from "./toggle";
 
 describe("Toggle", () => {
 	it("is a switch reporting its checked state", () => {

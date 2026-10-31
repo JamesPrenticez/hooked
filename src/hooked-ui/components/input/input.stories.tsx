@@ -1,8 +1,8 @@
 import { type ComponentProps, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Input } from "./Input";
-import { MenuIcon } from "../../icons";
+import { Input } from "./input";
+import { ICONS } from "../../icons";
 
 const meta = {
 	title: "Components/Input",
@@ -34,7 +34,7 @@ export const Default: Story = {
 export const WithIconButton: Story = {
 	args: {
 		value: "10.00",
-		icon: <MenuIcon />,
+		icon: ICONS.HamburgerIcon,
 		iconLabel: "Open options",
 		onIconClick: () => {}
 	},
@@ -45,7 +45,7 @@ export const ReadOnly: Story = {
 	args: {
 		value: "10.00",
 		readOnly: true,
-		icon: <MenuIcon />,
+		icon: ICONS.HamburgerIcon,
 		iconLabel: "Open options",
 		onIconClick: () => {}
 	},
@@ -56,7 +56,7 @@ export const Disabled: Story = {
 	args: {
 		value: "10.00",
 		disabled: true,
-		icon: <MenuIcon />,
+		icon: ICONS.HamburgerIcon,
 		iconLabel: "Open options",
 		onIconClick: () => {}
 	},

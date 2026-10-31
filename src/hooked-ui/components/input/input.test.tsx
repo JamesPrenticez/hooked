@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { Input } from "./Input";
+import { Input } from "./input";
 
 const icon = <svg aria-hidden="true" focusable="false" />;
 
