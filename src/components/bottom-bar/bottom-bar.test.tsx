@@ -151,7 +151,7 @@ function landWithServerPayout(total: string) {
 
 it("turns the total into the server's payout once the catch is being landed", () => {
 	landWithServerPayout("2.13");
-	expect(screen.getByText("$2.13")).toBeInTheDocument();
+	expect(screen.getAllByText("$2.13")).toHaveLength(2);
 	act(() => useHookStore.setState({ sim: undefined }));
 });
 
@@ -166,13 +166,13 @@ it("shows a catch worth less than the stake as the payout it is, from the first 
 	});
 
 	expect(screen.getByText("Payout")).toBeInTheDocument();
-	expect(screen.getByText("$0.25")).toBeInTheDocument();
+	expect(screen.getAllByText("$0.25")).toHaveLength(2);
 	act(() => useHookStore.setState({ sim: undefined }));
 });
 
 it("shows no payout for a round the server settled at nothing", () => {
 	landWithServerPayout("0.00");
-	expect(screen.getByText("$0.00")).toBeInTheDocument();
+	expect(screen.getAllByText("$0.00")).toHaveLength(2);
 	act(() => useHookStore.setState({ sim: undefined }));
 });
 

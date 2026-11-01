@@ -75,7 +75,7 @@ test("force-outcome pins the catch on the next round, and {} clears it", async (
 		fish: "kraken",
 		tier: "jackpot",
 		escaped: false,
-		multiplier: "100.00"
+		multiplier: "50.00"
 	});
 
 	const cleared = await call("POST", "/api/debug/force-outcome", { body: {} });

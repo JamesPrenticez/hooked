@@ -11,18 +11,17 @@ import { TICK_HZ } from "./simConfig.ts";
 export type Gear = "rod" | "crane" | "helicopter" | "chinook";
 const GEAR_ORDER: readonly Gear[] = ["rod", "crane", "helicopter", "chinook"];
 
-/** What the catch weighs, as a multiplier: 1× is a plain reel-in, 500× is the biggest fish there is. A round's catch
- *  pays what the market says — from a few cents on the dollar up to the Kraken's jackpot — and the fish is landed at
- *  that weight, the readout starting from `MIN_MULTIPLIER` (or the catch's own, if it is worth less). */
+/** What the catch weighs, as a multiplier: 1× is a plain reel-in, 20× is as big as a fish gets (a bigger payout — the
+ *  Kraken, a bonus on a deep catch — is landed at that size). A round's catch pays what the market says, the readout
+ *  starting from `MIN_MULTIPLIER` (or the catch's own, if it is worth less). */
 export const MIN_MULTIPLIER = 1;
-export const MAX_MULTIPLIER = 500;
+export const MAX_MULTIPLIER = 20;
 
-/** The smallest multiplier that calls in each extra piece of gear. Set against what a round pays (price × hidden size,
- *  server/src/constants.ts): the crane for roughly 1 round in 15, the helicopter for 1 in 60, the Chinook for the
- *  Kraken. */
-export const CRANE_FROM = 2.5;
-export const HELICOPTER_FROM = 5;
-export const CHINOOK_FROM = 40;
+/** The smallest multiplier that calls in each extra piece of gear. Set against what a round pays (price × bonus,
+ *  server/src/constants.ts) so about 1 round in 5 calls in the crane or more; `pnpm solve:payouts` prints the split. */
+export const CRANE_FROM = 1.5;
+export const HELICOPTER_FROM = 3;
+export const CHINOOK_FROM = 10;
 
 /** Every gear this catch needs, in the order they take the strain. */
 export function gearsFor(multiplier: number): Gear[] {

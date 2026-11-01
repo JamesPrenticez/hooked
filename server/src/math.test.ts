@@ -16,10 +16,11 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { config } from "./config.ts";
-import { DEPTHS, FISH, LEVELS, PRICE_POOLS, RTP, VOLATILITIES } from "./constants.ts";
-import { PRICES } from "./market.ts";
+import { BONUS_MULTIPLIERS, BONUS_ODDS, DEPTHS, FISH, LEVELS, RTP, VOLATILITIES } from "./constants.ts";
+import { ESCAPE, PRICES } from "./market.ts";
 import { toCents } from "./money.ts";
 import { type DepthId, payoutCents, rollRound, type Volatility } from "./rounds.ts";
+import { CHINOOK_FROM, CRANE_FROM, HELICOPTER_FROM } from "../../src/utils/simExtraction.ts";
 
 // --- The test's own model of the odds and the returns, derived straight from
 // the tables. Deliberately not a server helper: a bug in how the server turns
@@ -30,9 +31,30 @@ const rosterOf = (d: DepthId) => FISH.filter(f => f.depth === d);
 const oddsTotal = (v: Volatility) => DEPTHS.reduce((sum, d) => sum + LEVELS[v].odds[d], 0);
 const pZone = (v: Volatility, d: DepthId) => LEVELS[v].odds[d] / oddsTotal(v);
 
-/** What a volatility returns per unit staked, given what each zone's fish are listed at on average (bonus aside). */
+const bonusWeight = BONUS_MULTIPLIERS.reduce((sum, b) => sum + b.weight, 0);
+/** What the bonus multiplies a landed catch by on average: one landed catch in BONUS_ODDS pays a random bonus on top. */
+const bonusFactor =
+	1 + (BONUS_MULTIPLIERS.reduce((sum, b) => sum + b.value * b.weight, 0) / bonusWeight - 1) / BONUS_ODDS;
+
+/** What a volatility returns per unit staked, given what each zone's fish are listed at on average, bonus included. */
 const returnOf = (v: Volatility, zoneMean: (d: DepthId) => number) =>
-	DEPTHS.reduce((sum, d) => sum + pZone(v, d) * zoneMean(d) * (d === "jackpot" ? 1 : 1 - LEVELS[v].escape), 0);
+	bonusFactor * DEPTHS.reduce((sum, d) => sum + pZone(v, d) * zoneMean(d) * (d === "jackpot" ? 1 : 1 - ESCAPE[v]), 0);
+
+/** The share of rounds whose payout (price × bonus) calls in at least the crane, by walking every price and bonus. */
+const craneShare = (v: Volatility) => {
+	let share = 0;
+	for (const d of DEPTHS) {
+		const prices = PRICES[v][d];
+		const landed = pZone(v, d) * (d === "jackpot" ? 1 : 1 - ESCAPE[v]);
+		for (const price of prices) {
+			const per = landed / prices.length;
+			if (price >= CRANE_FROM) share += per * (1 - 1 / BONUS_ODDS);
+			for (const b of BONUS_MULTIPLIERS)
+				if (price * b.value >= CRANE_FROM) share += (per / BONUS_ODDS) * (b.weight / bonusWeight);
+		}
+	}
+	return share;
+};
 
 // ===========================================================================
 // 1. Tables — the pools fit the roster
@@ -41,7 +63,12 @@ const returnOf = (v: Volatility, zoneMean: (d: DepthId) => number) =>
 test("every price pool holds exactly one price per fish in its zone", () => {
 	for (const d of DEPTHS) {
 		for (const v of VOLATILITIES) assert.equal(PRICES[v][d].length, rosterOf(d).length, `${v} ${d}`);
-		if (d !== "jackpot") assert.equal(PRICE_POOLS[d].length, rosterOf(d).length, `PRICE_POOLS ${d}`);
+	}
+});
+
+test("a landed fish always pays more than the bet", () => {
+	for (const v of VOLATILITIES) {
+		for (const d of DEPTHS) for (const price of PRICES[v][d]) assert.ok(price > 1, `${v} ${d}: ${price}`);
 	}
 });
 
@@ -69,10 +96,18 @@ test("the hook dives shallower, and the jackpot grows, as the volatility rises",
 // 2. RTP — the 96% target (GDD "Mathematical Model & RTP")
 // ===========================================================================
 
-test("theoretical RTP — every volatility returns 96% (bonus aside, to within the cent rounding of the prices)", () => {
+test("theoretical RTP — every volatility returns 96% (bonus included, to within the cent rounding of the prices)", () => {
 	for (const v of VOLATILITIES) {
 		const rtp = returnOf(v, d => mean(PRICES[v][d]));
 		assert.ok(Math.abs(rtp - RTP) < 0.005, `${v}: ${(rtp * 100).toFixed(3)}%`);
+	}
+});
+
+test("about 1 round in 5 calls in the crane or better, at every volatility", () => {
+	assert.ok(CRANE_FROM < HELICOPTER_FROM && HELICOPTER_FROM < CHINOOK_FROM);
+	for (const v of VOLATILITIES) {
+		const share = craneShare(v);
+		assert.ok(share > 0.15 && share < 0.3, `${v}: ${(share * 100).toFixed(1)}%`);
 	}
 });
 
@@ -135,10 +170,9 @@ const sims = Object.fromEntries(
 		const zoneHits = Object.fromEntries(DEPTHS.map(d => [d, 0])) as Record<DepthId, number>;
 		let paid = 0;
 		for (let nonce = 0; nonce < SIM_N; nonce++) {
-			const { outcome, bonus } = rollRound("math-test-server-seed", "math-test-client-seed", nonce, v);
+			const { outcome } = rollRound("math-test-server-seed", "math-test-client-seed", nonce, v);
 			zoneHits[outcome.depth]++;
-			// The bonus is too rare for a run this size to average out, so the run is checked without it.
-			paid += Number(outcome.multiplier) / Number(bonus.find(b => b.fish === outcome.fish)?.multiplier ?? 1);
+			paid += Number(outcome.multiplier);
 		}
 		return [v, { zoneHits, rtp: paid / SIM_N }];
 	})
@@ -159,7 +193,7 @@ test("measured zone frequencies match the odds of every volatility", () => {
 	}
 });
 
-test("simulated RTP — over a long run, every volatility converges on 96%, bonus aside", () => {
+test("simulated RTP — over a long run, every volatility converges on 96%", () => {
 	// The jackpot is a small share of the rounds but a big share of the return at high volatility, so that is
 	// where the sample is noisiest; the theoretical test above is the exact guarantee.
 	for (const v of VOLATILITIES) {
@@ -196,7 +230,7 @@ test("a stake at the configured minimum still pays whole cents on the smallest p
 // 5. Bonus — the highlighted fish
 // ===========================================================================
 
-test("every round highlights 1 to 5 distinct fish, in roster order, each with a bonus of 100x to 8888x", () => {
+test("every round highlights 1 to 5 distinct fish, in roster order, each with a bonus of 2x to 10x", () => {
 	const order = FISH.map(f => f.id);
 	for (let nonce = 0; nonce < 500; nonce++) {
 		const { bonus } = rollRound("bonus", "check", nonce, "medium");
@@ -206,7 +240,7 @@ test("every round highlights 1 to 5 distinct fish, in roster order, each with a 
 			ids,
 			order.filter(id => ids.includes(id))
 		);
-		for (const b of bonus) assert.ok(Number(b.multiplier) >= 100 && Number(b.multiplier) <= 8888);
+		for (const b of bonus) assert.ok(Number(b.multiplier) >= 2 && Number(b.multiplier) <= 10);
 	}
 });
 
@@ -220,7 +254,7 @@ test("a highlighted catch pays its bonus on top; an ordinary one is never highli
 		const price = Number(market.find(e => e.fish === outcome.fish)!.multiplier);
 		assert.ok(Math.abs(Number(outcome.multiplier) - price * Number(hit.multiplier)) < 0.01);
 	}
-	assert.ok(hits > 5 && hits < 80, `${hits} hits in 60000 rounds`);
+	assert.ok(hits > 1_100 && hits < 1_800, `${hits} hits in 60000 rounds`);
 });
 
 test("a hooked fish gets away at the volatility's escape chance, pays nothing, and is never the Kraken or highlighted", () => {
@@ -236,6 +270,6 @@ test("a hooked fish gets away at the volatility's escape chance, pays nothing, a
 			assert.notEqual(outcome.depth, "jackpot");
 			assert.ok(!bonus.some(b => b.fish === outcome.fish), "an escaped fish is never highlighted");
 		}
-		assert.ok(Math.abs(escapes / landed - LEVELS[v].escape) < 0.02, `${v}: ${escapes}/${landed}`);
+		assert.ok(Math.abs(escapes / landed - ESCAPE[v]) < 0.02, `${v}: ${escapes}/${landed}`);
 	}
 });

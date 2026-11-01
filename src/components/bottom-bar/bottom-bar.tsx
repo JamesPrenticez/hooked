@@ -13,6 +13,7 @@ import { MarketModal } from "./market-modal";
 import { MarketSection } from "./market-section";
 import { MasterVolume } from "./master-volume";
 import { MenuSection } from "./menu-section";
+import { TotalBet } from "./total-bet";
 import { TotalSection } from "./total-section";
 import { VolatilityModal } from "./volatility-modal";
 import { VolatilitySection } from "./volatility-section";
@@ -67,6 +68,21 @@ const LeftButtons = styled.div`
 	}
 `;
 
+/* Balance and total bet side by side. Last in the portrait column, first in the row from landscape up (never-give-up). */
+const Stats = styled.div`
+	order: 1;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--spacing-md);
+
+	@media ${breakpoint.landscape} {
+		order: -1;
+		justify-content: flex-start;
+		gap: var(--spacing-lg);
+	}
+`;
+
 const Bar = styled.div`
 	box-sizing: border-box;
 	pointer-events: none;
@@ -74,7 +90,7 @@ const Bar = styled.div`
 	flex-direction: column;
 	flex-grow: 1;
 	gap: var(--spacing-sm);
-	/* padding: var(--spacing-sm); */
+	padding: var(--spacing-sm) var(--spacing-md);
 	background: color-mix(in srgb, var(--color-black) 72%, transparent);
 
 	@media ${breakpoint.landscape} {
@@ -90,7 +106,7 @@ const Bar = styled.div`
 		align-items: center;
 		justify-content: space-between;
 		flex-grow: 0;
-		/* padding: var(--spacing-md); */
+		padding: var(--spacing-sm) var(--spacing-md);
 		border: var(--border-thickness) solid color-mix(in srgb, var(--color-primary) 40%, transparent);
 		border-radius: 1.2rem;
 	}
@@ -128,7 +144,10 @@ export const BottomBar = ({ descending, onCast }: BottomBarProps) => {
 						<MenuSection />
 					</LeftButtons>
 					<BonusSection disabled={descending} onOpen={() => setBonusOpen(true)} />
-					<Balance />
+					<Stats>
+						<Balance />
+						<TotalBet />
+					</Stats>
 					<BetSection disabled={descending} />
 					<CallToActionSection descending={descending} onCast={onCast} />
 					<SideButtons>

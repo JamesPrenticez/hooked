@@ -117,11 +117,11 @@ The bet and the volatility are locked in _before_ the market is dealt, so a play
 
 Volatility replaces the old target-selection button. It does one thing: it sets **how likely the hook is to dive into each depth zone**.
 
-| Level  | The hook                     | In the game                               |
-| ------ | ---------------------------- | ----------------------------------------- |
-| Low    | mostly stays in the shallows | smaller swings, a smaller jackpot (×50)   |
-| Medium | dives to a mix of depths     | the default (jackpot ×100)                |
-| High   | dives deep more often        | bigger swings, the biggest jackpot (×200) |
+| Level  | The hook                     | In the game                                         |
+| ------ | ---------------------------- | --------------------------------------------------- |
+| Low    | mostly stays in the shallows | smaller swings, a smaller jackpot (×30)             |
+| Medium | dives to a mix of depths     | the default (jackpot ×50)                           |
+| High   | dives deep more often        | bigger swings, a bigger jackpot (×75), extreme ×100 |
 
 A button in the bottom bar (where the Targets button used to be) shows the current level - its name and one to three chevrons for how deep the hook tends to dive. It opens a picker with all three levels and a line on what each does; picking one applies it and closes the picker. The bet, the volatility and the Bonus button lock from the moment the cast is pressed until the catch is landed.
 
@@ -148,41 +148,55 @@ The game targets a **96% theoretical RTP**: over a very large number of rounds, 
 
 ## Where the 96% comes from
 
-The server never stores final prices. It stores, per volatility, the **odds** of each zone and the Kraken's **jackpot**, plus one shared set of **relative prices** per zone; it then scales each volatility's prices so that the whole thing returns exactly the RTP target. So the RTP is a constant of the code, not a property of hand-entered numbers: change an odds or a relative price and the prices rescale, and a test fails if any volatility lands outside 0.1 percentage points of 96% (rounding prices to the cent is the only slack).
+Each volatility stores its zone **odds**, the Kraken's **jackpot** and a price **range** per zone, spread evenly across the zone's fish. Every landed fish pays **more than the bet** (the lowest price is x1.05), so a catch can never lose money. The return is balanced by the other side: a hooked fish can **get away** and pay nothing, and the server derives that chance per volatility so the whole volatility returns exactly the RTP target, once the Kraken and the **bonus multipliers** (below) have taken their share. So the RTP is a constant of the code, not a property of hand-entered numbers: change an odds, a range or a bonus and the escape chance moves, and a test fails if any volatility lands outside 0.5 percentage points of 96% or a landed fish pays 1x or less. `pnpm solve:payouts` prints each volatility's RTP, escape chance and how often every piece of extraction gear is called in.
+
+About 1 round in 4 (24-30%) pays enough to call in the crane or better, at every volatility. Most of the rest is the rod: a fish that got away (about 54-59%, rising with volatility).
 
 The current tables (first-pass values; tune them in `server/src/constants.ts`):
 
-**Low** - RTP 95.96%, pays at least the bet on 22% of casts
+**Low - RTP 96.05%, crane or better on 24.8% of casts**
 
 | Zone    | Chance | Prices (× bet) |
 | ------- | ------ | -------------- |
-| Shallow | 56.00% | 0.19 - 0.49    |
-| Reef    | 33.00% | 0.57 - 1.29    |
-| Deep    | 9.00%  | 1.52 - 5.32    |
-| Abyss   | 1.90%  | 3.42 - 17.11   |
+| Shallow | 38.00% | 0.20 - 0.40    |
+| Reef    | 32.00% | 0.40 - 0.79    |
+| Deep    | 21.00% | 1.50 - 2.40    |
+| Abyss   | 8.90%  | 2.50 - 5.00    |
+| Jackpot | 0.10%  | 30             |
+
+**Medium - RTP 96.04%, crane or better on 22.2% of casts**
+
+| Zone    | Chance | Prices (× bet) |
+| ------- | ------ | -------------- |
+| Shallow | 40.00% | 0.16 - 0.33    |
+| Reef    | 33.00% | 0.33 - 0.66    |
+| Deep    | 19.50% | 1.50 - 2.50    |
+| Abyss   | 7.40%  | 3.00 - 7.00    |
 | Jackpot | 0.10%  | 50             |
 
-**Medium** - RTP 95.96%, pays at least the bet on 22.5% of casts
+**High - RTP 95.91%, crane or better on 20.6% of casts**
 
 | Zone    | Chance | Prices (× bet) |
 | ------- | ------ | -------------- |
-| Shallow | 43.00% | 0.10 - 0.27    |
-| Reef    | 32.00% | 0.31 - 0.70    |
-| Deep    | 17.50% | 0.82 - 2.89    |
-| Abyss   | 7.40%  | 1.85 - 9.27    |
+| Shallow | 41.00% | 0.15 - 0.30    |
+| Reef    | 34.00% | 0.30 - 0.60    |
+| Deep    | 19.00% | 1.50 - 2.60    |
+| Abyss   | 5.90%  | 3.00 - 9.00    |
+| Jackpot | 0.10%  | 75             |
+
+**Extreme - RTP 95.98%, crane or better on 18.1% of casts**
+
+| Zone    | Chance | Prices (× bet) |
+| ------- | ------ | -------------- |
+| Shallow | 43.00% | 0.14 - 0.28    |
+| Reef    | 35.00% | 0.28 - 0.57    |
+| Deep    | 17.50% | 1.50 - 2.80    |
+| Abyss   | 4.40%  | 3.50 - 12.00   |
 | Jackpot | 0.10%  | 100            |
 
-**High** - RTP 96.01%, pays at least the bet on 26.3% of casts
+### Bonus multipliers
 
-| Zone    | Chance | Prices (× bet) |
-| ------- | ------ | -------------- |
-| Shallow | 33.00% | 0.07 - 0.17    |
-| Reef    | 30.00% | 0.20 - 0.46    |
-| Deep    | 25.00% | 0.54 - 1.88    |
-| Abyss   | 11.90% | 1.21 - 6.05    |
-| Jackpot | 0.10%  | 200            |
-
-Each zone's prices are a pool of one price per fish; the range above is the pool's lowest and highest.
+Every round highlights 1 to 5 fish with a bonus. One landed catch in 20 is a highlighted one and pays **price × bonus** (×2 50%, ×3 30%, ×5 15%, ×10 5%). It is part of the 96%, not on top of it. A bonus on a deep or abyss catch is what usually calls in the helicopter and the Chinook.
 
 ## Why rotating prices can't break the RTP
 
@@ -212,12 +226,12 @@ Questions to settle when the step is built, none decided: how junk shows in the 
 
 Extraction is a presentation system driven by the server's payout multiplier:
 
-| Gear       | Called in from | In the harbour                                             |
-| ---------- | -------------- | ---------------------------------------------------------- |
-| Rod        | always         | the fisherman on his boat; the only gear for most catches  |
-| Crane      | ×4             | the dock crane swings out over the hook                    |
-| Helicopter | ×9             | called in over the crane                                   |
-| Chinook    | ×40            | the heaviest lift - the Kraken's jackpot, and nothing else |
+| Gear       | Called in from | In the harbour                                               |
+| ---------- | -------------- | ------------------------------------------------------------ |
+| Rod        | always         | the fisherman on his boat; the only gear for most catches    |
+| Crane      | ×1.5           | the dock crane swings out over the hook                      |
+| Helicopter | ×3             | called in over the crane                                     |
+| Chinook    | ×10            | the heaviest lift - the Kraken, or a bonus on an abyss catch |
 
 The thresholds are placeholders sized to the market's price range (the crane for the better deep and abyss catches, the helicopter for the best of the abyss, the Chinook for the Kraken), found in `simExtraction.ts`. Each gear takes the strain in turn: the fish stays stuck while a gear pulls, then gives, and the next gear is needed. The multiplier counts up as the fish rises, holds while a gear strains, and lands on the catch's real price. The size of the landed fish follows the multiplier, not the species.
 

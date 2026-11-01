@@ -2,21 +2,14 @@ import styled from "styled-components";
 
 import { useAnimatedNumber } from "@hooks/useAnimatedNumber";
 import { useBalanceStore } from "@stores/balanceStore";
-import { breakpoint } from "@utils/breakpoint";
 
 const Container = styled.div`
-	/* Last in the portrait column, first in the row from landscape up (never-give-up). */
-	order: 1;
 	display: flex;
 	flex-direction: column;
 	gap: var(--spacing-xs);
 	color: var(--color-white);
 	pointer-events: none;
 	user-select: none;
-
-	@media ${breakpoint.landscape} {
-		order: -1;
-	}
 `;
 
 const Label = styled.span`

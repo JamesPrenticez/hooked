@@ -111,11 +111,11 @@ test("keys mashed after the hook took change nothing — it is the same run", ()
 test("different steering or a different multiplier is a different run", () => {
 	const { axes } = play(1, () => 0);
 	const { axes: steered } = play(1, tick => (tick < 20 ? 1 : 0));
-	const { axes: crane } = play(1, () => 0, 250); // the same hook, a longer landing
+	const { axes: crane } = play(1, () => 0, 15); // the same hook, a longer landing
 	const shas = [
 		saveRecording(wire(1, axes)),
 		saveRecording(wire(1, steered)),
-		saveRecording(wire(1, crane, { multiplier: 250 }))
+		saveRecording(wire(1, crane, { multiplier: 15 }))
 	].map(saved => saved.sha256);
 	assert.equal(new Set(shas).size, 3);
 });
@@ -148,7 +148,7 @@ test("rejects bad fields and malformed inputs", () => {
 		{ worldSeed: 1.5 },
 		{ worldSeed: "1" },
 		{ multiplier: 0 },
-		{ multiplier: 501 },
+		{ multiplier: 21 },
 		{ multiplier: 2.5 },
 		{ inputs: 7 },
 		{ inputs: "not base64!" },

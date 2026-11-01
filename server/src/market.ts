@@ -1,6 +1,6 @@
 // The fish market and the catch (ARCHITECTURE.md §20, §21): the prices a round pays and the fish the hook lands.
 // Pure and deterministic in the stream they are drawn from, so POST /api/game/verify can recompute a round from its
-// seeds. The odds and relative prices live in constants.ts.
+// seeds. The odds and price ranges live in constants.ts.
 
 import {
 	BONUS_MAX_FISH,
@@ -11,17 +11,13 @@ import {
 	type FishDef,
 	type Level,
 	LEVELS,
-	PRICE_POOLS,
+	type PricedDepth,
 	RTP,
 	VOLATILITIES
 } from "./constants.ts";
 import { fromCents, toCents } from "./money.ts";
 import { rollInt, rollWeighted } from "./rng.ts";
 import type { BonusEntry, DepthId, FishingOutcome, MarketEntry, Volatility } from "./rounds.ts";
-
-type PricedDepth = Exclude<DepthId, "jackpot">;
-
-const PRICED: PricedDepth[] = ["shallow", "reef", "deep", "abyss"];
 
 const mean = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / values.length;
 
@@ -32,20 +28,45 @@ const BONUS_WEIGHTS = BONUS_MULTIPLIERS.map(b => b.weight);
 const MEAN_BONUS =
 	BONUS_MULTIPLIERS.reduce((sum, b) => sum + b.value * b.weight, 0) / BONUS_WEIGHTS.reduce((a, b) => a + b, 0);
 
-/** What the bonus multiplies a round's expected payout by: one round in `BONUS_ODDS` pays its mean bonus. It is paid on
- *  top of RTP, not out of it. */
+/** What the bonus multiplies a landed catch's expected payout by: one round in `BONUS_ODDS` pays its mean bonus. */
 export const BONUS_FACTOR = 1 + (MEAN_BONUS - 1) / BONUS_ODDS;
 
-/** A volatility's prices for every zone, as multiples of the stake: `PRICE_POOLS` scaled so the volatility returns
- *  RTP once the Kraken has taken its fixed share and the escapes have paid nothing. Whole cents, since that is what a round pays out in. */
-function priceZones({ odds, escape, jackpot }: Level): Record<DepthId, number[]> {
+const rosterSize = (depth: DepthId) => FISH.filter(f => f.depth === depth).length;
+
+/** `count` prices spread evenly from `low` to `high`. */
+const spread = ([low, high]: [number, number], count: number) =>
+	Array.from({ length: count }, (_, i) => low + ((high - low) * i) / (count - 1));
+
+/** The chance a hooked fish gets away (pays 0) for a volatility to return RTP: every landed fish pays above the stake,
+ *  so the Kraken, the listed prices and the bonus (which lifts every landed catch by `BONUS_FACTOR` on average) are
+ *  fixed and the escape chance takes up the slack. Exported for scripts/solve-payouts.ts. */
+export function balanceEscape({ odds, jackpot, prices }: Level): number {
 	const total = DEPTHS.reduce((sum, d) => sum + odds[d], 0);
-	const chance = (depth: DepthId) => odds[depth] / total;
-	const scale =
-		(RTP - chance("jackpot") * jackpot) /
-		((1 - escape) * PRICED.reduce((sum, d) => sum + chance(d) * mean(PRICE_POOLS[d]), 0));
-	const zones = Object.fromEntries(PRICED.map(d => [d, PRICE_POOLS[d].map(p => Math.round(p * scale * 100) / 100)]));
-	return { ...zones, jackpot: [jackpot] } as Record<DepthId, number[]>;
+	const worth = (["shallow", "reef", "deep", "abyss"] as PricedDepth[]).reduce(
+		(sum, d) => sum + (odds[d] / total) * mean(spread(prices[d], rosterSize(d))),
+		0
+	);
+	const escape = 1 - (RTP - (odds.jackpot / total) * jackpot * BONUS_FACTOR) / (BONUS_FACTOR * worth);
+	if (!(escape >= 0 && escape < 1)) throw new Error("the listed prices cannot be balanced to RTP by an escape chance");
+	return Math.round(escape * ESCAPE_RESOLUTION) / ESCAPE_RESOLUTION;
+}
+
+/** Each volatility's chance that a hooked fish (not the Kraken) gets away. */
+export const ESCAPE = Object.fromEntries(VOLATILITIES.map(v => [v, balanceEscape(LEVELS[v])])) as Record<
+	Volatility,
+	number
+>;
+
+/** A volatility's prices for every zone, as multiples of the stake. Whole cents, since that is what a round pays out in. */
+function priceZones(level: Level): Record<DepthId, number[]> {
+	const zone = (d: PricedDepth) => spread(level.prices[d], rosterSize(d)).map(p => Math.round(p * 100) / 100);
+	return {
+		shallow: zone("shallow"),
+		reef: zone("reef"),
+		deep: zone("deep"),
+		abyss: zone("abyss"),
+		jackpot: [level.jackpot]
+	};
 }
 
 /** What the fish in each zone can be worth, per volatility. Exported for the tests — a client is only ever sent a
@@ -83,7 +104,7 @@ export function rollCatch(stream: Generator<number>, volatility: Volatility, mar
 	const fish = roster[rollInt(stream, roster.length)];
 	const outcome = outcomeFor(fish, market);
 	// Drawn for every catch so the stream stays aligned; the Kraken is exempt.
-	const escaped = rollInt(stream, ESCAPE_RESOLUTION) < LEVELS[volatility].escape * ESCAPE_RESOLUTION;
+	const escaped = rollInt(stream, ESCAPE_RESOLUTION) < ESCAPE[volatility] * ESCAPE_RESOLUTION;
 	return escaped && depth !== "jackpot" ? { ...outcome, multiplier: fromCents(0), escaped: true } : outcome;
 }
 

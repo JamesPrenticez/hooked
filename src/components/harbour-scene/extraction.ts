@@ -45,8 +45,8 @@ const between = (a: number, from: number, to: number) => {
 
 /** A landed fish's length, as a share of the screen height once the camera has pulled out: a 1× fish is about
  *  three-quarters the size it swam at (kept between these) and grows with the multiplier to `MAX_LENGTH` — the most
- *  that fits under the crane and helicopter. So the multiplier, not the species, decides how big it is: a 500× shrimp
- *  is as big as a 500× whale. */
+ *  that fits under the crane and helicopter. So the multiplier, not the species, decides how big it is: a 20× shrimp
+ *  is as big as a 20× whale. */
 const BASE_SHRINK = 0.75;
 const MIN_BASE_LENGTH = 0.09;
 export const MAX_BASE_LENGTH = 0.2;
@@ -69,8 +69,8 @@ export function catchLength(
 		max
 	);
 	// A catch worth less than the stake is no lighter than a plain one.
-	const growth = Math.max(0, (multiplier - MIN_MULTIPLIER) / (MAX_MULTIPLIER - MIN_MULTIPLIER));
-	// Eased out: the first few multipliers are the visible ones, a 250× is already most of the way to a 500×.
+	const growth = Math.min(1, Math.max(0, (multiplier - MIN_MULTIPLIER) / (MAX_MULTIPLIER - MIN_MULTIPLIER)));
+	// Eased out: the first few multipliers are the visible ones, a 10× is already most of the way to a 20×.
 	return base + (max - base) * (1 - (1 - growth) ** 2);
 }
 

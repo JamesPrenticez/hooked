@@ -127,22 +127,22 @@ test("the Kraken pays its fixed price so the jackpot is exact", async () => {
 		token: session.sessionToken,
 		body: startBody("1.00", "medium")
 	});
-	assert.equal(start.json.message.outcome.multiplier, "100.00");
-	assert.equal(start.json.message.payout.total, "100.00");
-	assert.equal(start.json.message.payout.net, "99.00");
+	assert.equal(start.json.message.outcome.multiplier, "50.00");
+	assert.equal(start.json.message.payout.total, "50.00");
+	assert.equal(start.json.message.payout.net, "49.00");
 	await forceOutcome({});
 });
 
-test("a catch that pays less than the stake reports a negative net", async () => {
+test("the cheapest landed catch still reports a positive net", async () => {
 	const session = await newSession();
-	await forceOutcome({ fish: "shrimp" }); // every shallow price is under 1× at medium
+	await forceOutcome({ fish: "shrimp" }); // the lowest price on the market
 	const start = await call("POST", "/api/game/play", {
 		token: session.sessionToken,
 		body: startBody("5.00", "medium")
 	});
 	const { payout } = start.json.message;
-	assert.ok(Number(payout.total) < 5, payout.total);
-	assert.ok(payout.net.startsWith("-"), payout.net);
+	assert.ok(Number(payout.total) > 5, payout.total);
+	assert.ok(!payout.net.startsWith("-") && Number(payout.net) > 0, payout.net);
 	assert.equal(payout.net, money(Math.round(Number(payout.total) * 100) - 500));
 	await forceOutcome({});
 });

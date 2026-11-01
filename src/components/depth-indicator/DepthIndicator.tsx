@@ -5,7 +5,7 @@ import { useDebugStore } from "@stores/debugStore";
 
 const Container = styled.div`
 	position: absolute;
-	top: 8.4rem; /* below the Total bet panel */
+	top: 8.4rem; /* below the landing multiplier */
 	left: var(--spacing-md);
 	display: flex;
 	flex-direction: column;
