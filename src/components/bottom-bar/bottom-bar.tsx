@@ -13,6 +13,7 @@ import { MarketModal } from "./market-modal";
 import { MarketSection } from "./market-section";
 import { MasterVolume } from "./master-volume";
 import { MenuSection } from "./menu-section";
+import { AutoplaySection, TurboSection } from "./play-mode-section";
 import { TotalBet } from "./total-bet";
 import { TotalSection } from "./total-section";
 import { VolatilityModal } from "./volatility-modal";
@@ -40,15 +41,31 @@ const Container = styled.div`
 	}
 `;
 
-/* Phones: transparent, so each button keeps its own place against the bar. Desktop: the two stack inside the bar's right end. */
+/* Portrait phones: transparent, so each button keeps its own place against the bar. Landscape phones: a row at the bar's end. Desktop: the two stack inside the left panel's right end. */
 const SideButtons = styled.div`
 	display: contents;
+
+	@media ${breakpoint.landscape} {
+		display: flex;
+		order: 1;
+		gap: var(--spacing-sm);
+	}
+
+	@media ${breakpoint.tablet} {
+		flex-direction: column;
+		order: 0;
+		gap: var(--spacing-xs);
+	}
+`;
+
+/* Same stack as SideButtons, at the right panel's end. Desktop only. */
+const PlayModeButtons = styled.div`
+	display: none;
 
 	@media ${breakpoint.tablet} {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-xs);
-		margin-right: var(--spacing-sm);
 	}
 `;
 
@@ -63,8 +80,8 @@ const LeftButtons = styled.div`
 
 	@media ${breakpoint.tablet} {
 		flex-direction: column-reverse;
+		order: 0;
 		gap: var(--spacing-xs);
-		margin-left: var(--spacing-sm);
 	}
 `;
 
@@ -80,6 +97,42 @@ const Stats = styled.div`
 		order: -1;
 		justify-content: flex-start;
 		gap: var(--spacing-lg);
+	}
+
+	@media ${breakpoint.tablet} {
+		order: 0;
+	}
+`;
+
+/* Phones: transparent, the Bar lays the children out. Desktop: two bordered panels, 70/30. */
+const Panel = styled.div`
+	display: contents;
+
+	@media ${breakpoint.tablet} {
+		display: flex;
+		align-items: center;
+		box-sizing: border-box;
+		min-width: 0;
+		padding: var(--spacing-sm) var(--spacing-md);
+		background: color-mix(in srgb, var(--color-black) 72%, transparent);
+		border: var(--border-thickness) solid color-mix(in srgb, var(--color-primary) 40%, transparent);
+		border-radius: 1.2rem;
+	}
+`;
+
+const LeftPanel = styled(Panel)`
+	@media ${breakpoint.tablet} {
+		flex: 9 1 0;
+		justify-content: space-between;
+		gap: var(--spacing-md);
+	}
+`;
+
+/* Sized by its content (the cast wheel is wide) and given the leftover space 3:7 against the left panel. */
+const RightPanel = styled(Panel)`
+	@media ${breakpoint.tablet} {
+		flex: 1 0 auto;
+		gap: var(--spacing-md);
 	}
 `;
 
@@ -101,14 +154,13 @@ const Bar = styled.div`
 
 	@media ${breakpoint.tablet} {
 		position: relative;
-		width: min(90rem, calc(100vw - 30rem));
+		width: min(110rem, calc(100vw - 30rem));
 		flex-direction: row;
-		align-items: center;
-		justify-content: space-between;
+		align-items: stretch;
+		gap: var(--spacing-sm);
 		flex-grow: 0;
-		padding: var(--spacing-sm) var(--spacing-md);
-		border: var(--border-thickness) solid color-mix(in srgb, var(--color-primary) 40%, transparent);
-		border-radius: 1.2rem;
+		padding: 0;
+		background: none;
 	}
 `;
 
@@ -139,21 +191,29 @@ export const BottomBar = ({ descending, onCast }: BottomBarProps) => {
 			<TotalSection />
 			<Container>
 				<Bar>
-					<LeftButtons>
-						<AudioSection onOpenVolume={() => setVolumeOpen(true)} />
-						<MenuSection />
-					</LeftButtons>
 					<BonusSection disabled={descending} onOpen={() => setBonusOpen(true)} />
-					<Stats>
-						<Balance />
-						<TotalBet />
-					</Stats>
-					<BetSection disabled={descending} />
-					<CallToActionSection descending={descending} onCast={onCast} />
-					<SideButtons>
-						<MarketSection onOpen={() => setMarketOpen(true)} />
-						<VolatilitySection disabled={descending} onOpen={() => setVolatilityOpen(true)} />
-					</SideButtons>
+					<LeftPanel>
+						<LeftButtons>
+							<AudioSection onOpenVolume={() => setVolumeOpen(true)} />
+							<MenuSection />
+						</LeftButtons>
+						<Stats>
+							<Balance />
+							<TotalBet />
+						</Stats>
+						<SideButtons>
+							<MarketSection onOpen={() => setMarketOpen(true)} />
+							<VolatilitySection disabled={descending} onOpen={() => setVolatilityOpen(true)} />
+						</SideButtons>
+					</LeftPanel>
+					<RightPanel>
+						<BetSection disabled={descending} />
+						<CallToActionSection descending={descending} onCast={onCast} />
+						<PlayModeButtons>
+							<AutoplaySection />
+							<TurboSection />
+						</PlayModeButtons>
+					</RightPanel>
 				</Bar>
 
 				{volumeOpen && <MasterVolume onClose={() => setVolumeOpen(false)} />}
