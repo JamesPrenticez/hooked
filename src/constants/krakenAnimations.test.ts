@@ -41,7 +41,7 @@ describe("kraken-animations.json", () => {
 	it("gives every animation a unique id", () => {
 		const ids = KRAKEN_SHEETS.flatMap(sheet => sheet.animations.map(({ id }) => id));
 		expect(new Set(ids).size).toBe(ids.length);
-		expect(ids).toHaveLength(29);
+		expect(ids).toHaveLength(7);
 	});
 
 	it("keeps every animation's frames inside its sheet's grid", () => {

@@ -23,8 +23,8 @@ it("has cuts for every sheet — a row of edges down the 1024px, and per row a s
 });
 
 it("numbers cells left to right, then top to bottom", () => {
-	const { rows, cols } = SHEET_CUTS.reveal_parts;
-	const rect = krakenFrameRect("reveal_parts", 6, 5, 7);
+	const { rows, cols } = SHEET_CUTS.coiled_yanks_full_body;
+	const rect = krakenFrameRect("coiled_yanks_full_body", 6, 3, 7);
 	expect(rect).toMatchObject({
 		x: cols[1][1],
 		y: rows[1],

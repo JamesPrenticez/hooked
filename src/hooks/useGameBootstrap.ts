@@ -5,7 +5,7 @@ import { initSession } from "@api";
 import { recoverFromServer } from "@components/system/roundRecovery";
 import { pixiAppRef } from "@hooks/use-canvas-freeze";
 import { useGameStore } from "@stores/gameStore";
-import { loadBootAssets } from "@utils/bootAssets";
+import { loadBootAssets } from "@utils/loadAssets";
 
 /**
  * Drives the loading → game transition (BUILD_PLAN §0.2): advance only once

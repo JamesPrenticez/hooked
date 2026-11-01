@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Assets } from "pixi.js";
 
 import causticsUrl from "@assets/layers/hub/water/underwater-caustics.webp";
 import shaftsUrl from "@assets/layers/hub/water/underwater-shafts.webp";
 import { waterlineY } from "@components/harbour-scene/framing";
-import { cachedTextures, mipmapped } from "@utils/bootAssets";
+import { cachedTextures } from "@utils/loadAssets";
 
 import type { DepthAmbience } from "./depthAmbience";
 
@@ -72,19 +72,7 @@ interface WaterTilesProps {
  *  drifting particles all the way down — drawn additively over `WaterLayer`.
  *  Nothing renders until the two tiles load. */
 export function WaterTiles({ view, y, scroll, ambience, seconds }: WaterTilesProps) {
-	const [textures, setTextures] = useState(() => cachedTextures([causticsUrl, shaftsUrl]));
-
-	useEffect(() => {
-		let live = true;
-		// ponytail: loaded on scene mount, not via the boot manifest — same as
-		// HarbourScene; route through §5's manifest when the asset set is real.
-		Assets.load([mipmapped(causticsUrl), mipmapped(shaftsUrl)]).then(loaded => {
-			if (live) setTextures(loaded);
-		});
-		return () => {
-			live = false;
-		};
-	}, []);
+	const [textures] = useState(() => cachedTextures([causticsUrl, shaftsUrl]));
 
 	if (!textures) return null;
 

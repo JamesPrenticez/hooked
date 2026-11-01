@@ -1,5 +1,3 @@
-import { Assets, type Texture } from "pixi.js";
-
 import bgDesktopUrl from "@assets/background/bg-desktop.webp";
 import bgMobileUrl from "@assets/background/bg-mobile.webp";
 import boomSegmentUrl from "@assets/dock-crane/boom-segment.webp";
@@ -15,16 +13,15 @@ import basicSheetUrl from "@assets/player/player-idle-cast-reel.webp";
 import extendedSheetUrl from "@assets/player/player-succes-fail.webp";
 import { SHEET_URLS } from "@components/descent-scene/krakenSheets";
 import { SHEETS } from "@constants/fish";
-import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT } from "@constants/krakenAnimations";
 
 /** Textures drawn well under their source size get mipmaps so fine detail doesn't shimmer. */
-export const mipmapped = (src: string) => ({
+const mipmapped = (src: string) => ({
 	src,
 	data: { autoGenerateMipmaps: true }
 });
 
 /** Everything the game scenes draw from the first frame, so nothing pops in after the loading screen. */
-const BOOT_ASSETS = [
+export const PIXI_ASSETS = [
 	bgDesktopUrl,
 	bgMobileUrl,
 	mipmapped(waterTileUrl),
@@ -40,17 +37,29 @@ const BOOT_ASSETS = [
 	mipmapped(boomTipUrl),
 	mipmapped(helicopterUrl),
 	...SHEETS.map(s => s.url),
-	SHEET_URLS[KRAKEN_ANIMATIONS[KRAKEN_FIGHT[0]].sheet]
+	...Object.values(SHEET_URLS)
 ];
 
-/** Loads every boot asset, reporting 0–1 progress. */
-export function loadBootAssets(onProgress: (progress: number) => void) {
-	return Assets.load(BOOT_ASSETS, onProgress);
-}
+/** Images only the DOM draws (cast button states, bonus and volatility art, fish portraits) — `preloadImages`
+ *  keeps them out of the browser's lazy fetch path. */
+export const DOM_IMAGE_URLS = Object.values(
+	import.meta.glob<string>(
+		[
+			"../assets/bonuses/*.webp",
+			"../assets/bottom-bar/cast-button*.webp",
+			"../assets/bottom-bar/cast-line-text.webp",
+			"../assets/bottom-bar/select-targets.webp",
+			"../assets/single-fish/*.webp",
+			"../assets/volatility/*.{webp,svg}"
+		],
+		{ eager: true, query: "?url", import: "default" }
+	)
+);
 
-/** The textures for `urls` if the boot load already cached them all — lets a scene draw on its first render. */
-export function cachedTextures(urls: string[]): Record<string, Texture> | undefined {
-	return urls.every(url => Assets.cache.has(url))
-		? Object.fromEntries(urls.map(url => [url, Assets.get<Texture>(url)]))
-		: undefined;
-}
+export const FONTS = [
+	'1em "Otomanopee One"',
+	"400 1em Aronui",
+	"700 1em Aronui",
+	"italic 400 1em Aronui",
+	"italic 700 1em Aronui"
+];

@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Assets, type Texture } from "pixi.js";
 
 import hookUrl from "@assets/player/hook.webp";
 import { useDebugStore } from "@stores/debugStore";
 import { useKrakenStore } from "@stores/krakenStore";
-import { cachedTextures, mipmapped } from "@utils/bootAssets";
+import { cachedTextures } from "@utils/loadAssets";
 
 import { krakenHold, krakenHookAt } from "./krakenFight";
 import { hookX as sweptHookX } from "./lineDrift";
@@ -60,22 +60,9 @@ export function FishingLine({
 	seconds,
 	lineAlpha = 1
 }: FishingLineProps) {
-	const [hook, setHook] = useState<Texture | undefined>(() => cachedTextures([hookUrl])?.[hookUrl]);
+	const [hook] = useState<Texture | undefined>(() => cachedTextures([hookUrl])?.[hookUrl]);
 	const fightStart = useKrakenStore(state => state.fightStart);
 	const depthZones = useDebugStore(state => state.depthZones);
-
-	useEffect(() => {
-		let live = true;
-		// ponytail: loaded on scene mount, not via the boot manifest — same as
-		// Mackerel; route through §5's manifest when the asset set is real. The
-		// hook is drawn ~9x smaller than its source, so it gets mipmaps.
-		Assets.load<Texture>(mipmapped(hookUrl)).then(loaded => {
-			if (live) setHook(loaded);
-		});
-		return () => {
-			live = false;
-		};
-	}, []);
 
 	let x = hookX ?? sweptHookX(tip.x, view, hookY - waterY, seconds);
 	let y = hookY;

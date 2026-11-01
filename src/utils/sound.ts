@@ -23,6 +23,31 @@ function howl(src: string, loop = false): Howl {
 	return h;
 }
 
+/** Number of sounds `preloadSounds` waits on. */
+export const SOUND_COUNT = Object.keys(MUSIC).length + Object.keys(SFX).length;
+
+/** Fetches and decodes every sound up front, with the same loop settings `playMusic`/`playSfx` use. A sound that
+ *  fails to load counts as done, so it can't block the loading screen. */
+export function preloadSounds(onProgress?: (fraction: number) => void): Promise<void> {
+	const all = [...Object.values(MUSIC).map(src => howl(src, true)), ...Object.values(SFX).map(src => howl(src))];
+	let done = 0;
+	return Promise.all(
+		all.map(
+			h =>
+				new Promise<void>(resolve => {
+					const finish = () => {
+						done += 1;
+						onProgress?.(done / all.length);
+						resolve();
+					};
+					if (h.state() === "loaded") return finish();
+					h.once("load", finish);
+					h.once("loaderror", finish);
+				})
+		)
+	).then(() => undefined);
+}
+
 export function setMasterVolume(value: number) {
 	Howler.volume(value);
 }

@@ -1,4 +1,4 @@
-/** All seven sheets are 1536x1024. */
+/** Both sheets are 1536x1024. */
 const SHEET_WIDTH = 1536;
 const SHEET_HEIGHT = 1024;
 
@@ -7,43 +7,11 @@ const SHEET_HEIGHT = 1024;
  * between rows (`rows + 1` of them) and `cols[row]` the x edges between that
  * row's frames (`columns + 1`). The sheets are generated art, so
  * `kraken-animations.json`'s grid is only the logical order — rows sit at uneven
- * heights and a frame drifts off its even column (the reveal tentacles reach
- * across into the next cell). Each edge is the line, near its nominal spot,
+ * heights and a frame drifts off its even column. Each edge is the line, near its nominal spot,
  * crossing the least art on the sheet's alpha channel, so a frame doesn't pick
- * up a slice of its neighbour; a few tentacles do still cross a cut (worst: ~80
- * pixels, in `reveal_parts` and `swats_full_body`). Re-measure if a sheet is redrawn.
+ * up a slice of its neighbour; a few tentacles can still cross a cut. Re-measure if a sheet is redrawn.
  */
 export const SHEET_CUTS: Record<string, { rows: number[]; cols: number[][] }> = {
-	reveal_parts: {
-		rows: [0, 255, 470, 604, 785, 1024],
-		cols: [
-			[0, 281, 512, 813, 1051, 1262, 1536],
-			[0, 285, 512, 778, 1024, 1280, 1536],
-			[0, 264, 528, 781, 1036, 1284, 1536],
-			[0, 249, 522, 768, 1024, 1287, 1536],
-			[0, 247, 513, 738, 1024, 1280, 1536]
-		]
-	},
-	attack_parts: {
-		rows: [0, 169, 338, 505, 666, 819, 1024],
-		cols: [
-			[0, 256, 512, 768, 1024, 1280, 1536],
-			[0, 256, 512, 768, 1024, 1280, 1536],
-			[0, 256, 512, 768, 1024, 1280, 1536],
-			[0, 261, 512, 768, 1023, 1281, 1536],
-			[0, 257, 512, 768, 1024, 1280, 1536],
-			[0, 256, 512, 768, 1024, 1280, 1536]
-		]
-	},
-	seabed_full_body: {
-		rows: [0, 256, 506, 766, 1024],
-		cols: [
-			[0, 384, 768, 1152, 1536],
-			[0, 384, 768, 1152, 1536],
-			[0, 384, 768, 1152, 1536],
-			[0, 384, 768, 1152, 1536]
-		]
-	},
 	swimming_full_body: {
 		rows: [0, 256, 507, 768, 1024],
 		cols: [
@@ -53,29 +21,12 @@ export const SHEET_CUTS: Record<string, { rows: number[]; cols: number[][] }> = 
 			[0, 342, 728, 1145, 1536]
 		]
 	},
-	hook_play_full_body: {
-		rows: [0, 256, 493, 749, 1024],
-		cols: [
-			[0, 263, 515, 770, 1025, 1280, 1536],
-			[0, 258, 518, 777, 1033, 1286, 1536],
-			[0, 263, 514, 778, 1029, 1286, 1536],
-			[0, 263, 527, 781, 1048, 1296, 1536]
-		]
-	},
 	coiled_yanks_full_body: {
 		rows: [0, 341, 663, 1024],
 		cols: [
 			[0, 261, 516, 769, 1024, 1280, 1536],
 			[0, 264, 536, 797, 1035, 1280, 1536],
 			[0, 274, 521, 771, 1041, 1298, 1536]
-		]
-	},
-	swats_full_body: {
-		rows: [0, 341, 683, 1024],
-		cols: [
-			[0, 261, 522, 770, 1027, 1291, 1536],
-			[0, 260, 521, 777, 1027, 1283, 1536],
-			[0, 261, 515, 780, 1028, 1302, 1536]
 		]
 	}
 };

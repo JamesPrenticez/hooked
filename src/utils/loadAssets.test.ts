@@ -1,7 +1,7 @@
 import { Assets, Cache, type Texture } from "pixi.js";
 import { afterEach, expect, it } from "vitest";
 
-import { cachedTextures } from "./bootAssets";
+import { cachedTextures } from "./loadAssets";
 
 afterEach(() => {
 	Cache.reset();

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { Assets, Rectangle, Texture } from "pixi.js";
+import { useMemo, useState } from "react";
+import { Rectangle, Texture } from "pixi.js";
 
 import { BITE, cellRect, SHEET_ROWS, type SheetAnimation, STRUGGLE } from "@components/descent-scene/spriteSheet";
 import { type Sheet, SHEETS } from "@constants/fish";
-import { cachedTextures } from "@utils/bootAssets";
+import { cachedTextures } from "@utils/loadAssets";
 
 export interface SheetFrames {
 	swim: Texture[];
@@ -13,20 +13,7 @@ export interface SheetFrames {
 
 /** Swim, bite and struggle frames per sheet, once every sheet has loaded. */
 export function useFrames() {
-	const [sheets, setSheets] = useState(() => cachedTextures(SHEETS.map(s => s.url)));
-
-	useEffect(() => {
-		let live = true;
-		// ponytail: all 14 sheets load on scene mount (~85MB of textures), not via
-		// the boot manifest — same as HarbourScene; load per depth zone or route
-		// through §5's manifest if memory matters.
-		Assets.load<Texture>(SHEETS.map(s => s.url)).then(loaded => {
-			if (live) setSheets(loaded);
-		});
-		return () => {
-			live = false;
-		};
-	}, []);
+	const [sheets] = useState(() => cachedTextures(SHEETS.map(s => s.url)));
 
 	return useMemo(() => {
 		if (!sheets) return undefined;

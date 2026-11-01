@@ -6,7 +6,7 @@ import { useGameStore } from "@stores/gameStore";
 
 import { useGameBootstrap } from "./useGameBootstrap";
 
-vi.mock("@utils/bootAssets", () => ({ loadBootAssets: () => Promise.resolve({}) }));
+vi.mock("@utils/loadAssets", () => ({ loadBootAssets: () => Promise.resolve({}) }));
 
 beforeEach(() => {
 	vi.useFakeTimers();

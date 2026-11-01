@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useApplication } from "@pixi/react";
 
 import { cameraScroll, depthToScreenY, waterlineY } from "@components/harbour-scene/framing";
@@ -11,7 +10,6 @@ import { computeDepthAmbience } from "./depthAmbience";
 import { DepthMarkers } from "./DepthMarkers";
 import { HitboxOverlay } from "./HitboxOverlay";
 import { Kraken } from "./Kraken";
-import { preloadKrakenFight } from "./krakenSheets";
 import { WaterLayer } from "./WaterLayer";
 import { WaterTiles } from "./WaterTiles";
 
@@ -45,10 +43,6 @@ export function DescentScene({ depth, seconds, surfaceY }: DescentSceneProps) {
 	// reaches the bottom of the trench fights the Kraken.
 	const ascending = useHookStore(state => state.sim?.phase === "ascend");
 	const bossEncounter = depth >= KRAKEN_DEPTH_METERS;
-	const descending = depth > 0;
-	useEffect(() => {
-		if (descending) preloadKrakenFight();
-	}, [descending]);
 
 	if (!isInitialised) return null;
 

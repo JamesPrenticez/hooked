@@ -20,7 +20,7 @@ export interface KrakenSheet {
 	animations: KrakenAnimation[];
 }
 
-/** The seven Kraken sheets, straight from `kraken-animations.json` — its fps
+/** The two Kraken sheets (fight and swim), straight from `kraken-animations.json` — its fps
  *  and loop values are the manifest's suggestions, not playback-tested. */
 export const KRAKEN_SHEETS: KrakenSheet[] = animationData.sheets.map(sheet => ({
 	id: sheet.id,

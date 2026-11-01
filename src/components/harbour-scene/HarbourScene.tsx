@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useApplication } from "@pixi/react";
-import { Assets } from "pixi.js";
 
 import bgDesktopUrl from "@assets/background/bg-desktop.webp";
 import bgMobileUrl from "@assets/background/bg-mobile.webp";
@@ -21,7 +20,7 @@ import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
 import { layoutTweak, useTweak } from "@stores/harbourDebugStore";
 import { useHookStore } from "@stores/hookStore";
 import { usePlayerStore } from "@stores/playerStore";
-import { cachedTextures, mipmapped } from "@utils/bootAssets";
+import { cachedTextures } from "@utils/loadAssets";
 
 import { BackgroundLayer } from "./BackgroundLayer";
 import { DockCrane } from "./DockCrane";
@@ -94,7 +93,7 @@ const HARBOUR_URLS = [
 
 export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const { app, isInitialised } = useApplication();
-	const [textures, setTextures] = useState(() => cachedTextures(HARBOUR_URLS));
+	const [textures] = useState(() => cachedTextures(HARBOUR_URLS));
 	const seconds = useElapsedSeconds();
 	const sim = useHookStore(state => state.sim);
 	const waterlineTweak = useTweak("waterline");
@@ -113,34 +112,6 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 		grow: useAnimatedNumber(landing.grow)
 	};
 	const grow = 1 + (ROD_GROW - 1) * scene.grow;
-
-	useEffect(() => {
-		let live = true;
-		// ponytail: loaded on scene mount, not via the boot manifest — one small
-		// pop the first time the hub shows. Route through §5's Assets.load(manifest)
-		// when the harbour asset set is real.
-		// The water tile is drawn ~1-3x smaller than its 1024px source, so it gets
-		// mipmaps. The player sheets are drawn larger than their 256px frames, so
-		// they don't.
-		Assets.load([
-			bgDesktopUrl,
-			bgMobileUrl,
-			mipmapped(waterTileUrl),
-			mipmapped(seamUrl),
-			basicSheetUrl,
-			extendedSheetUrl,
-			// All drawn at well under a third of their source size.
-			mipmapped(towerUrl),
-			mipmapped(boomSegmentUrl),
-			mipmapped(boomTipUrl),
-			mipmapped(helicopterUrl)
-		]).then(loaded => {
-			if (live) setTextures(loaded);
-		});
-		return () => {
-			live = false;
-		};
-	}, []);
 
 	const player = useMemo(
 		() =>
