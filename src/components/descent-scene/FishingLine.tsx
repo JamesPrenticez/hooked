@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Assets, type Texture } from "pixi.js";
 
-import hookUrl from "@assets/player/hook.png";
+import hookUrl from "@assets/player/hook.webp";
 import { useDebugStore } from "@stores/debugStore";
 import { useKrakenStore } from "@stores/krakenStore";
 import { cachedTextures, mipmapped } from "@utils/bootAssets";

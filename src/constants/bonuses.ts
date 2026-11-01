@@ -1,7 +1,7 @@
-import monsterHunt from "@assets/bonuses/boss-hunter.png";
-import feedingFrenzy from "@assets/bonuses/feeding-frenzy.png";
-import luckyBait from "@assets/bonuses/lucky-bait.png";
-import reCast from "@assets/bonuses/re-cast.png";
+import monsterHunt from "@assets/bonuses/boss-hunter.webp";
+import feedingFrenzy from "@assets/bonuses/feeding-frenzy.webp";
+import luckyBait from "@assets/bonuses/lucky-bait.webp";
+import reCast from "@assets/bonuses/re-cast.webp";
 
 export interface BonusItem {
 	id: string;

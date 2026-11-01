@@ -1,18 +1,18 @@
 import { Assets, type Texture } from "pixi.js";
 
-import bgDesktopUrl from "@assets/background/bg-desktop.png";
-import bgMobileUrl from "@assets/background/bg-mobile.png";
-import boomSegmentUrl from "@assets/dock-crane/boom-segment.png";
-import boomTipUrl from "@assets/dock-crane/boom-tip.png";
-import towerUrl from "@assets/dock-crane/tower.png";
-import helicopterUrl from "@assets/helicopter/helicopter.png";
-import seamUrl from "@assets/layers/hub/water/seam.png";
+import bgDesktopUrl from "@assets/background/bg-desktop.webp";
+import bgMobileUrl from "@assets/background/bg-mobile.webp";
+import boomSegmentUrl from "@assets/dock-crane/boom-segment.webp";
+import boomTipUrl from "@assets/dock-crane/boom-tip.webp";
+import towerUrl from "@assets/dock-crane/tower.webp";
+import helicopterUrl from "@assets/helicopter/helicopter.webp";
+import seamUrl from "@assets/layers/hub/water/seam.webp";
 import causticsUrl from "@assets/layers/hub/water/underwater-caustics.webp";
 import shaftsUrl from "@assets/layers/hub/water/underwater-shafts.webp";
 import waterTileUrl from "@assets/layers/hub/water/water-tile.webp";
-import hookUrl from "@assets/player/hook.png";
-import basicSheetUrl from "@assets/player/player-idle-cast-reel.png";
-import extendedSheetUrl from "@assets/player/player-succes-fail.png";
+import hookUrl from "@assets/player/hook.webp";
+import basicSheetUrl from "@assets/player/player-idle-cast-reel.webp";
+import extendedSheetUrl from "@assets/player/player-succes-fail.webp";
 import { SHEET_URLS } from "@components/descent-scene/krakenSheets";
 import { SHEETS } from "@constants/fish";
 import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT } from "@constants/krakenAnimations";

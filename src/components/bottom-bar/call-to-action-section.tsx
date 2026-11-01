@@ -1,9 +1,9 @@
 import styled, { keyframes } from "styled-components";
 
-import castButton from "@assets/bottom-bar/cast-button.png";
-import castButtonHover from "@assets/bottom-bar/cast-button-hover.png";
-import castButtonPressed from "@assets/bottom-bar/cast-button-pressed.png";
-import castLineText from "@assets/bottom-bar/cast-line-text.png";
+import castButton from "@assets/bottom-bar/cast-button.webp";
+import castButtonHover from "@assets/bottom-bar/cast-button-hover.webp";
+import castButtonPressed from "@assets/bottom-bar/cast-button-pressed.webp";
+import castLineText from "@assets/bottom-bar/cast-line-text.webp";
 import { breakpoint } from "@utils/breakpoint";
 
 const spin = keyframes`

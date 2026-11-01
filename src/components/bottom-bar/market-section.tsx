@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-import selectTargets from "@assets/bottom-bar/select-targets.png";
+import selectTargets from "@assets/bottom-bar/select-targets.webp";
 import { IconButton } from "@hooked-ui";
 import { breakpoint } from "@utils/breakpoint";
 

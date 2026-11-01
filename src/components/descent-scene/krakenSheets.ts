@@ -1,12 +1,12 @@
 import { Assets } from "pixi.js";
 
-import krak1 from "@assets/kraken/krak-1.png";
-import krak2 from "@assets/kraken/krak-2.png";
-import krak3 from "@assets/kraken/krak-3.png";
-import krak4 from "@assets/kraken/krak-4.png";
-import krak5 from "@assets/kraken/krak-5.png";
-import krak6 from "@assets/kraken/krak-6.png";
-import krak7 from "@assets/kraken/krak-7.png";
+import krak1 from "@assets/kraken/krak-1.webp";
+import krak2 from "@assets/kraken/krak-2.webp";
+import krak3 from "@assets/kraken/krak-3.webp";
+import krak4 from "@assets/kraken/krak-4.webp";
+import krak5 from "@assets/kraken/krak-5.webp";
+import krak6 from "@assets/kraken/krak-6.webp";
+import krak7 from "@assets/kraken/krak-7.webp";
 import { KRAKEN_ANIMATIONS, KRAKEN_FIGHT, KRAKEN_SHEETS, KRAKEN_SWIM } from "@constants/krakenAnimations";
 
 /** Sheet id → image, in the order `kraken-animations.json` lists them. */

@@ -72,31 +72,31 @@ const sheet = (
 });
 
 // One 8-column sheet per species (all face left). Shrimp, king crab, starfish have no sheet of their own yet and borrow one.
-const BARRACUDA = sheet(new URL("../assets/fish-sprites/barracuda.png", import.meta.url).href);
-const CLOWN = sheet(new URL("../assets/fish-sprites/clown.png", import.meta.url).href);
-const COD = sheet(new URL("../assets/fish-sprites/cod.png", import.meta.url).href);
-const DRAGON = sheet(new URL("../assets/fish-sprites/dragon.png", import.meta.url).href);
-const GROUPER = sheet(new URL("../assets/fish-sprites/grouper.png", import.meta.url).href);
-const SHRIMP = sheet(new URL("../assets/fish-sprites/shrimp.png", import.meta.url).href);
-const GUPPY = sheet(new URL("../assets/fish-sprites/guppy.png", import.meta.url).href);
-const LANTERN = sheet(new URL("../assets/fish-sprites/lantern.png", import.meta.url).href);
-const MARLIN = sheet(new URL("../assets/fish-sprites/marlin.png", import.meta.url).href);
-const PUFFER = sheet(new URL("../assets/fish-sprites/puffer.png", import.meta.url).href);
-const SARDINE = sheet(new URL("../assets/fish-sprites/sardine.png", import.meta.url).href);
-const SHARK = sheet(new URL("../assets/fish-sprites/shark.png", import.meta.url).href);
-const SNAPPER = sheet(new URL("../assets/fish-sprites/snapper.png", import.meta.url).href);
-const SQUID = sheet(new URL("../assets/fish-sprites/squid.png", import.meta.url).href);
-const STING = sheet(new URL("../assets/fish-sprites/sting.png", import.meta.url).href);
-const TREVALLY = sheet(new URL("../assets/fish-sprites/trevally.png", import.meta.url).href);
-const TUNA = sheet(new URL("../assets/fish-sprites/tuna.png", import.meta.url).href);
-const NAPOLEON = sheet(new URL("../assets/fish-sprites/napoleon.png", import.meta.url).href, { opaque: true });
-const TURTLE = sheet(new URL("../assets/fish-sprites/turtle.png", import.meta.url).href, { fps: 8 });
-const JELLY = sheet(new URL("../assets/fish-sprites/jelly.png", import.meta.url).href, { fps: 8 });
-const STARFISH = sheet(new URL("../assets/fish-sprites/starfish.png", import.meta.url).href, { fps: 8 });
-const CRAB = sheet(new URL("../assets/fish-sprites/crab.png", import.meta.url).href, { fps: 8 });
-const WHALE = sheet(new URL("../assets/fish-sprites/sperm.png", import.meta.url).href, { fps: 8 });
+const BARRACUDA = sheet(new URL("../assets/fish-sprites/barracuda.webp", import.meta.url).href);
+const CLOWN = sheet(new URL("../assets/fish-sprites/clown.webp", import.meta.url).href);
+const COD = sheet(new URL("../assets/fish-sprites/cod.webp", import.meta.url).href);
+const DRAGON = sheet(new URL("../assets/fish-sprites/dragon.webp", import.meta.url).href);
+const GROUPER = sheet(new URL("../assets/fish-sprites/grouper.webp", import.meta.url).href);
+const SHRIMP = sheet(new URL("../assets/fish-sprites/shrimp.webp", import.meta.url).href);
+const GUPPY = sheet(new URL("../assets/fish-sprites/guppy.webp", import.meta.url).href);
+const LANTERN = sheet(new URL("../assets/fish-sprites/lantern.webp", import.meta.url).href);
+const MARLIN = sheet(new URL("../assets/fish-sprites/marlin.webp", import.meta.url).href);
+const PUFFER = sheet(new URL("../assets/fish-sprites/puffer.webp", import.meta.url).href);
+const SARDINE = sheet(new URL("../assets/fish-sprites/sardine.webp", import.meta.url).href);
+const SHARK = sheet(new URL("../assets/fish-sprites/shark.webp", import.meta.url).href);
+const SNAPPER = sheet(new URL("../assets/fish-sprites/snapper.webp", import.meta.url).href);
+const SQUID = sheet(new URL("../assets/fish-sprites/squid.webp", import.meta.url).href);
+const STING = sheet(new URL("../assets/fish-sprites/sting.webp", import.meta.url).href);
+const TREVALLY = sheet(new URL("../assets/fish-sprites/trevally.webp", import.meta.url).href);
+const TUNA = sheet(new URL("../assets/fish-sprites/tuna.webp", import.meta.url).href);
+const NAPOLEON = sheet(new URL("../assets/fish-sprites/napoleon.webp", import.meta.url).href, { opaque: true });
+const TURTLE = sheet(new URL("../assets/fish-sprites/turtle.webp", import.meta.url).href, { fps: 8 });
+const JELLY = sheet(new URL("../assets/fish-sprites/jelly.webp", import.meta.url).href, { fps: 8 });
+const STARFISH = sheet(new URL("../assets/fish-sprites/starfish.webp", import.meta.url).href, { fps: 8 });
+const CRAB = sheet(new URL("../assets/fish-sprites/crab.webp", import.meta.url).href, { fps: 8 });
+const WHALE = sheet(new URL("../assets/fish-sprites/sperm.webp", import.meta.url).href, { fps: 8 });
 
-const portrait = (name: string) => new URL(`../assets/single-fish/${name}.png`, import.meta.url).href;
+const portrait = (name: string) => new URL(`../assets/single-fish/${name}.webp`, import.meta.url).href;
 
 /** Seed for every fish until the hit-box overlay says otherwise. */
 const MOUTH: Mouth = { x: -0.4, y: 0.05, r: 0.12 };

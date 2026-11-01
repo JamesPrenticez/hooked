@@ -1,7 +1,7 @@
 import styled, { keyframes } from "styled-components";
 
-import background from "@assets/loading/background.png";
-import logo from "@assets/loading/logo.png";
+import background from "@assets/loading/background.webp";
+import logo from "@assets/loading/logo.webp";
 import { breakpoint } from "@utils/breakpoint";
 
 const bob = keyframes`
