@@ -1,3 +1,5 @@
+import type { Tweak } from "@constants/harbourLayout";
+
 import { DESKTOP_DROP, HORIZON_Y } from "./framing";
 
 interface Size {
@@ -39,13 +41,16 @@ const DOCK_LINE = { desktop: 0.617, mobile: 0.644 };
  * can't hold the whole skyline, so the top of the sky (and the tower's tip)
  * crops rather than the docks falling short of the screen edges.
  */
-export function computeBackgroundFit(screen: Size): BackgroundFit {
+export function computeBackgroundFit(screen: Size, tweak: Tweak = { x: 0, y: 0, scale: 1 }): BackgroundFit {
 	const landscape = screen.width >= screen.height;
 	const texture = landscape ? FRAME.desktop : FRAME.mobile;
-	const scale = screen.width / texture.width;
 	const dockLine = landscape ? DOCK_LINE.desktop : DOCK_LINE.mobile;
-	const drop = landscape ? screen.height * DESKTOP_DROP : 0;
-	const top = screen.height * HORIZON_Y + drop - dockLine * texture.height * scale;
+	const horizon = screen.height * (HORIZON_Y + (landscape ? DESKTOP_DROP : 0));
+	// The layer is then resized/nudged about the screen centre (`tweakProps`), which moves the docks to here...
+	const tweakedHorizon = screen.height / 2 + tweak.y + tweak.scale * (horizon - screen.height / 2);
+	// ...so fit the width, but never so small that the sky above the docks stops short of the screen top.
+	const scale = Math.max(screen.width / texture.width, tweakedHorizon / tweak.scale / (dockLine * texture.height));
+	const top = horizon - dockLine * texture.height * scale;
 
 	return {
 		texture,

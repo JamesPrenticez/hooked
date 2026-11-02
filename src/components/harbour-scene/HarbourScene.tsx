@@ -15,9 +15,9 @@ import { DescentScene } from "@components/descent-scene";
 import { Creatures } from "@components/descent-scene/Creatures";
 import { FishingLine } from "@components/descent-scene/FishingLine";
 import { HookedKraken } from "@components/descent-scene/HookedKraken";
+import { layout } from "@constants/harbourLayout";
 import { useAnimatedNumber } from "@hooks/useAnimatedNumber";
 import { useElapsedSeconds } from "@hooks/useElapsedSeconds";
-import { layoutTweak, useTweak } from "@stores/harbourDebugStore";
 import { useHookStore } from "@stores/hookStore";
 import { usePlayerStore } from "@stores/playerStore";
 import { cachedTextures } from "@utils/loadAssets";
@@ -96,8 +96,6 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	const [textures] = useState(() => cachedTextures(HARBOUR_URLS));
 	const seconds = useElapsedSeconds();
 	const sim = useHookStore(state => state.sim);
-	const waterlineTweak = useTweak("waterline");
-	const playerTweak = useTweak("player");
 	const shift = rodTipShift(usePlayerStore(state => state.cue.animation));
 	// How the landing has moved the boat, the crane and the camera from how the harbour rests. Each eases to where
 	// the landing puts it, so when the round ends the harbour settles back to rest instead of snapping.
@@ -127,11 +125,11 @@ export function HarbourScene({ depth = 0 }: HarbourSceneProps) {
 	if (!isInitialised) return null;
 
 	const view = { width: app.screen.width, height: app.screen.height };
-	const waterline = layoutTweak("waterline", view, waterlineTweak);
+	const waterline = layout("waterline", view);
 	const scroll = cameraScroll(depth, view);
 	const laidOut = player && boatLayout(view, waterSwell(seconds), scene);
 	// The fisherman is nudged and resized about the boat's anchor (`Fisherman`), so the rod tip moves with him.
-	const p = layoutTweak("player", view, playerTweak);
+	const p = layout("player", view);
 	const boat = laidOut && {
 		...laidOut,
 		tip: {

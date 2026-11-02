@@ -1,6 +1,6 @@
 import type { Texture } from "pixi.js";
 
-import { useLayout } from "@stores/harbourDebugStore";
+import { layout } from "@constants/harbourLayout";
 
 import { horizonY, waterlineY } from "./framing";
 import { HARBOUR_LAYERS, type HarbourView, OVERSCAN } from "./layers";
@@ -65,7 +65,7 @@ interface OceanLayerProps {
  * same band.
  */
 export function OceanLayer({ view, texture, seconds, surface }: OceanLayerProps) {
-	const baseTop = horizonY(view) + useLayout("water", view).y;
+	const baseTop = horizonY(view) + layout("water", view).y;
 	const bottom = surface ?? waterlineY(view);
 
 	if (texture) {

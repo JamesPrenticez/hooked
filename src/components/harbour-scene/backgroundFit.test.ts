@@ -40,6 +40,22 @@ describe("computeBackgroundFit", () => {
 		expect(dockLineY(fit, 0.644)).toBeCloseTo(844 / 3);
 	});
 
+	it("scales up past the width fit so the sky always reaches the screen top", () => {
+		const fit = computeBackgroundFit({ width: 1000, height: 800 });
+
+		expect(fit.scale).toBeGreaterThan(1000 / 1774);
+		expect(fit.y - (fit.texture.height * fit.scale) / 2).toBeCloseTo(0);
+	});
+
+	it("still reaches the screen top once the layer is shrunk and nudged about the centre", () => {
+		const view = { width: 1000, height: 800 };
+		const tweak = { x: 0, y: -0.0762 * view.height, scale: 0.7267 };
+		const fit = computeBackgroundFit(view, tweak);
+		const top = fit.y - (fit.texture.height * fit.scale) / 2;
+
+		expect(view.height / 2 + tweak.y + tweak.scale * (top - view.height / 2)).toBeLessThanOrEqual(0.001);
+	});
+
 	it("treats an exact square as landscape", () => {
 		expect(computeBackgroundFit({ width: 1000, height: 1000 }).texture).toEqual(DESKTOP);
 	});

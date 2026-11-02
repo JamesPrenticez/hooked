@@ -8,7 +8,6 @@ import { BottomBar } from "@components/bottom-bar";
 import { DebugModal } from "@components/debug";
 import { DebugControls, DrillButton } from "@components/debug-controls";
 import { DepthIndicator } from "@components/depth-indicator";
-import { HarbourDebug } from "@components/harbour-debug";
 import { HarbourScene } from "@components/harbour-scene";
 import { HookedBanner } from "@components/hooked-banner";
 import { LoadingScreen } from "@components/loading-screen";
@@ -182,7 +181,6 @@ export function App() {
 						</Button>
 						<DebugControls />
 						<DrillButton />
-						<HarbourDebug />
 					</DebugDock>
 					{isDebugOpen && <DebugModal />}
 				</>

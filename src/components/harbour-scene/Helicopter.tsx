@@ -1,6 +1,6 @@
 import type { Texture } from "pixi.js";
 
-import { useLayout } from "@stores/harbourDebugStore";
+import { layout } from "@constants/harbourLayout";
 
 import { HELI_ART, heliDrop, heliLayout, type HookPose, release } from "./extraction";
 
@@ -16,7 +16,7 @@ interface HelicopterProps {
 
 /** The helicopter, parked still on the skyline's helipad until a catch calls it in. Faces left, as the art is drawn. */
 export function Helicopter({ view, texture, hook, heavy = false }: HelicopterProps) {
-	const tweak = useLayout("helicopter", view);
+	const tweak = layout("helicopter", view);
 	if (!texture) return null;
 
 	const arrival = hook?.extraction?.arrival;

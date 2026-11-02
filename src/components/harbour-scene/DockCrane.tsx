@@ -1,6 +1,6 @@
 import type { Texture } from "pixi.js";
 
-import { tweakProps, useLayout } from "@stores/harbourDebugStore";
+import { layout, tweakProps } from "@constants/harbourLayout";
 
 import { BOOM_ART, CRANE_ART, craneDrop, craneLayout, type HookPose, release } from "./extraction";
 
@@ -20,7 +20,7 @@ interface DockCraneProps {
  * tip is over the hook at the middle of the screen; its hoist cable pays out from the tip to the hook and lifts the fish.
  */
 export function DockCrane({ view, textures, out, hook }: DockCraneProps) {
-	const tweak = useLayout("crane", view);
+	const tweak = layout("crane", view);
 	if (!textures?.tower || !textures.segment || !textures.tip) return null;
 
 	const crane = craneLayout(view, out);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
+import { layout } from "@constants/harbourLayout";
 import { playerPose } from "@constants/playerAnimations";
-import { useLayout } from "@stores/harbourDebugStore";
 import { usePlayerStore } from "@stores/playerStore";
 
 import { BOAT_ANCHOR, type BoatLayout } from "./framing";
@@ -28,7 +28,7 @@ interface FishermanProps {
  */
 export function Fisherman({ frames, boat, seconds, view, grow = 1 }: FishermanProps) {
 	const cue = usePlayerStore(state => state.cue);
-	const tweak = useLayout("player", view);
+	const tweak = layout("player", view);
 
 	// A new cue starts its clip from the top. Adjusted during render rather than
 	// in an effect, so the first frame of the new clip isn't the old one.
