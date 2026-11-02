@@ -6,6 +6,7 @@ import { useGameStore } from "@stores/gameStore";
 
 import { useGameBootstrap } from "./useGameBootstrap";
 
+vi.mock("@api", () => ({ initSession: () => new Promise(() => {}) }));
 vi.mock("@utils/loadAssets", () => ({ loadBootAssets: () => Promise.resolve({}) }));
 
 beforeEach(() => {
