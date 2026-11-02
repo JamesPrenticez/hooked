@@ -24,13 +24,14 @@ function fakeApp(): Application {
 }
 
 it("does not advance while only the frame has rendered", () => {
-	const { result } = renderHook(() => useGameBootstrap());
+	const { result, unmount } = renderHook(() => useGameBootstrap());
 
 	act(() => {
 		result.current.onInit(fakeApp());
 	});
 
 	expect(useGameStore.getState().phase).toBe("loading");
+	unmount(); // the mocked asset load resolves after this test; don't let it set state outside act
 });
 
 it("does not advance while only the asset load has resolved", async () => {
