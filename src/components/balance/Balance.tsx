@@ -1,10 +1,13 @@
 import styled from "styled-components";
 
+import { FitText } from "@hooked-ui";
 import { useAnimatedNumber } from "@hooks/useAnimatedNumber";
 import { useBalanceStore } from "@stores/balanceStore";
 
 const Container = styled.div`
 	display: flex;
+	flex: 1 1 0;
+	min-width: 0;
 	flex-direction: column;
 	gap: var(--spacing-xs);
 	color: var(--color-white);
@@ -16,12 +19,14 @@ const Label = styled.span`
 	font: var(--font-display-xxs);
 	color: var(--color-primary-accent);
 	letter-spacing: 0.08em;
+	text-align: center;
 `;
 
-const Amount = styled.span`
-	font: var(--font-display-sm);
-	/* Keeps digit columns from jittering as the number eases. */
-	font-variant-numeric: tabular-nums;
+const Amount = styled(FitText)`
+	> span {
+		font: var(--font-display-xl);
+		font-variant-numeric: tabular-nums;
+	}
 `;
 
 // ponytail: locale pinned to en-US — swap for the operator/launch locale once

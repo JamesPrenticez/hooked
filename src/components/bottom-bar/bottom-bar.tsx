@@ -88,6 +88,8 @@ const LeftButtons = styled.div`
 /* Balance and total bet side by side. Last in the portrait column, first in the row from landscape up (never-give-up). */
 const Stats = styled.div`
 	order: 1;
+	flex: 1;
+	min-width: 0;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;

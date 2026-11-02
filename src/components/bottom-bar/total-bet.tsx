@@ -1,5 +1,6 @@
 import styled from "styled-components";
 
+import { FitText } from "@hooked-ui";
 import { useLandingPayout } from "@hooks/useLandingPayout";
 import { useBalanceStore } from "@stores/balanceStore";
 import { useBetStore } from "@stores/betStore";
@@ -8,6 +9,8 @@ import { formatMoney } from "@utils/formatMoney";
 
 const Total = styled.div`
 	display: flex;
+	flex: 1 1 0;
+	min-width: 0;
 	flex-direction: column;
 	gap: var(--spacing-xs);
 	color: var(--color-white);
@@ -19,11 +22,14 @@ const Label = styled.span`
 	font: var(--font-display-xxs);
 	color: var(--color-primary-accent);
 	letter-spacing: 0.08em;
+	text-align: center;
 `;
 
-const Amount = styled.span`
-	font: var(--font-display-sm);
-	font-variant-numeric: tabular-nums;
+const Amount = styled(FitText)`
+	> span {
+		font: var(--font-display-xl);
+		font-variant-numeric: tabular-nums;
+	}
 `;
 
 /**
