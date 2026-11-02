@@ -1,5 +1,6 @@
 import styled, { keyframes } from "styled-components";
 
+import cashOutText from "@assets/bottom-bar/cash-out-text.webp";
 import castButton from "@assets/bottom-bar/cast-button.webp";
 import castButtonHover from "@assets/bottom-bar/cast-button-hover.webp";
 import castButtonPressed from "@assets/bottom-bar/cast-button-pressed.webp";
@@ -91,13 +92,6 @@ const CastLabel = styled.img`
 	pointer-events: none;
 `;
 
-const SurfaceLabel = styled.span`
-	font: var(--font-display-xs);
-	color: var(--color-primary-accent);
-	letter-spacing: 0.06em;
-	pointer-events: none;
-`;
-
 interface CallToActionSectionProps {
 	descending: boolean;
 	onCast: () => void;
@@ -106,7 +100,7 @@ interface CallToActionSectionProps {
 export const CallToActionSection = ({ descending, onCast }: CallToActionSectionProps) => {
 	return (
 		<CastButton type="button" aria-pressed={descending} onClick={onCast}>
-			{descending ? <SurfaceLabel>Cash out</SurfaceLabel> : <CastLabel src={castLineText} alt="Cast Line" />}
+			{descending ? <CastLabel src={cashOutText} alt="Cash out" /> : <CastLabel src={castLineText} alt="Cast Line" />}
 		</CastButton>
 	);
 };

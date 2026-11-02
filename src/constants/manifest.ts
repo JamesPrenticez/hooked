@@ -48,6 +48,7 @@ export const DOM_IMAGE_URLS = Object.values(
 			"../assets/bonuses/*.webp",
 			"../assets/bottom-bar/cast-button*.webp",
 			"../assets/bottom-bar/cast-line-text.webp",
+			"../assets/bottom-bar/cash-out-text.webp",
 			"../assets/bottom-bar/select-targets.webp",
 			"../assets/single-fish/*.webp",
 			"../assets/volatility/*.{webp,svg}"
